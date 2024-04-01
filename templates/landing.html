@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="/stylelanding.css">
+  <title>Welcome to Natural Abundance</title>
+</head>
+<body>
+  <script>
+    window.onload = scrolltobottom;
+    function scrolltobottom(){
+      const myDiv = document.getElementById("receiptdiv")
+      console.log(myDiv);
+      console.log(myDiv.scrollHeight);
+      myDiv.scrollTop = myDiv.scrollHeight;
+    }
+  </script>
+  <div class="sidebar">
+  
+    <table class="sidebar">
+      <tr class="menuitem"><td class="logo">
+        <img src="/logo.png" style="width:100%">
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="clock_in">Clock In</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="clock_out">Clock Out</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="open_register">Open Register</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="item_info">Item Info</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </td></tr>
+    </table>
+  </div>
+
+  <div class="mainbody">
+    <h1>Welcome to Natural Abundance</h1>
+    <form method="post">
+      <h2>Username:</h2>
+      <input type="text" id="username" name="username"><br>
+      <h2>Password:</h2>
+      <input type="password" id="password" name="password">
+    </form>
+
+  </div>
+</body>
+</html>

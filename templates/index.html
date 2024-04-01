@@ -1,0 +1,525 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="/styleregister.css">
+  <title>Register Mode</title>
+</head>
+<body>
+  <script>
+    window.onload = scrolltobottom;
+    function scrolltobottom(){
+      const myDiv = document.getElementById("receiptdiv")
+      console.log(myDiv);
+      console.log(myDiv.scrollHeight);
+      myDiv.scrollTop = myDiv.scrollHeight;
+    }
+  </script>
+  <div class="sidebar">
+  
+    <table class="sidebar">
+      <tr class="menuitem"><td class="logo">
+        <form method="post"><button class="registermode" type="submit" name="function" value="register"><img src="/logo.png" style="width:100%"></button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="members">Members</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="lookup">Item Lookup</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="pay_card">Pay Card</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="pay_cash">Pay Cash</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="charge">Charge</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="void">Void</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="transactions">Transactions</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="inventory">Inventory</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="users">Users</button></form>
+      </td></tr>
+    </table>
+  </div>
+
+  <div class="mainbody">
+    <table class="topbartable"><tr>
+      <td class="topscan"><form name="scan" method="post"><input type="text" style="width:90%;vertical-align:middle" autofocus><input type="submit" hidden /> </form></td>
+      <td class="topmembernumber">Member#</td>
+      <td class="topitemqty">Items: 5</td>
+      <td class="toptotal">Total: $11.76</td>
+    </tr></table>
+
+    <div id="receiptdiv" class="receiptdiv" style="overflow-y: scroll;height: 85vh;">
+      <table class="receipt">
+
+
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+
+<!-- begin massive list -->
+
+
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="receiptrow">
+          <td class="receiptitem">Organic Valley Sour Cream 12oz</td>
+          <td class="receiptprice">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="modifyprice">~</button>
+            </form>
+            $3.99
+          </td>
+          <td class="receiptqty">
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty-">-</button>
+            </form>
+            Qty: 1
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="qty+">+</button>
+            </form>
+          </td>
+          <td class="receiptwtax">
+            w/Tax: $4.24
+            <form method="post">
+              <input type="hidden" name="upc" value="12340981234">
+              <button class="receipt" type="submit" name="function" value="remove">X</button>
+            </form>
+          </td>
+        </tr>
+
+
+<!--- end list test --->
+      </table>
+    </div>
+  </div>
+</body>
+</html>
