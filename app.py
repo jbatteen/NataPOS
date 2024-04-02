@@ -13,11 +13,9 @@ from load_config import load_config
 from validate_login import validate_login
 from validate_session_key import validate_session_key
 from create_user import create_user
+from config import db_name, mongo_uri, assets_url, business_name
 
 
-# variable config section
-dbname = 'testpos'
-mongouri = 'mongodb://localhost:27017'
 
 # begin app
 app = Flask(__name__)
@@ -25,12 +23,11 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def login():
   # load config
-  config = []
-  config = load_config(dbname, mongouri)
-  business_name = config[0]
-  assets_url = config[1]
-  client = MongoClient(mongouri)
-  db = client[dbname]
+#  config = []
+#  config = load_config(db_name, mongo_uri)
+#  business_name = config[0]
+  client = MongoClient(mongo_uri)
+  db = client[db_name]
   if request.method == 'POST':
     print('post')
     print('function :' + request.form['function'])
@@ -76,7 +73,7 @@ def login():
   else: # if method == GET
     return render_template('login.html', business_name=business_name, assets_url=assets_url)
 @app.route('/landing', methods=['POST'])
-def landing(business_name, assets_url, username, session_key):
+def landing(username, session_key):
       if request.form['function'] == 'landing':
         return render_template('landing.html', business_name=business_name, assets_url=assets_url, username=username, session_key=session_key)
       if request.form['function'] == 'clock_in':
