@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="/{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_create_first_user.css">
+  <title>Welcome to {{ business_name }}.</title>
+</head>
+<body>
+  <div class="sidebar">
+  
+    <table class="sidebar">
+      <tr class="menuitem"><td class="logo">
+        <img src="{{ assets_url }}/logo.png" style="width:100%">
+      </td></tr>
+    </table>
+  </div>
+
+  <div class="mainbody">
+    <h1>Welcome to {{ business_name }}.  Create your first user.</h1>
+    {% if message %}
+      <h2>{{ message }}</h2>
+    {% endif %}
+    <form method="post">
+      <h2>Username:</h2>
+      <input type="text" id="username" name="username"><br>
+      <h2>Password:</h2>
+      <input type="password" id="password" name="password">
+      <h2>Re-enter Password:</h2>
+      <input type="password" id="password2" name="password2"><br><br>
+      <button type="submit" name="function" value="create_first_user">Create</button>
+    </form>
+
+  </div>
+</body>
+</html>
