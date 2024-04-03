@@ -9,11 +9,11 @@ from pymongo.mongo_client import MongoClient
 
 
 # import local files
+from config import db_name, mongo_uri, assets_url, business_name
 from validate_login import validate_login
 from validate_session_key import validate_session_key
 from create_user import create_user
-from config import db_name, mongo_uri, assets_url, business_name
-
+from calculate_worked_hours import calculate_worked_hours
 # open db
 try:
   client = MongoClient(mongo_uri)
@@ -56,9 +56,10 @@ def login():
       try: # if employees collection exists
         db.validate_collection("employees")
       except: # no collection, try default password
-        if username == "admin":
-          if password == "admin": # default works, send to create first user page
-            return render_template('create_first_user.html', business_name=business_name, assets_url=assets_url) # default credentials to create first user page
+        if username == "admin" and password == "admin": # default works, send to create first user page
+          return render_template('create_first_user.html', business_name=business_name, assets_url=assets_url) # default credentials to create first user page
+        else:
+          return render_template('login.html', business_name=business_name, assets_url=assets_url)
       else: # collection exists, validate
         login_check = {}
         login_check = validate_login(db, username, password)
@@ -89,7 +90,7 @@ def landing(session_key):
     if request.method == 'GET':
       timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
       if timesheet is not None:
-        worked_hours = float(timesheet['worked_hours'])
+        worked_hours = str(round(timesheet['worked_hours'], 2))
         del timesheet['username']
         del timesheet['pay_period']
         del timesheet['worked_hours']
@@ -101,6 +102,7 @@ def landing(session_key):
           second_to_last_punch = timesheet[timestamps[-2]]
           if last_punch == second_to_last_punch:
             message = message + "<br>Missing punch, see a manager.<br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
+        message = message + '<br>Hours on this time sheet: ' + worked_hours
       else:
         message = 'First day worked in the pay period!'
 
@@ -112,12 +114,20 @@ def landing(session_key):
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'in'}})
+        timesheet[str(current_time)] = 'in'
+        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'in', 'worked_hours': calculate_worked_hours(timesheet)}})
       else:
         db.timesheets.insert_one({'username': username, 'pay_period': 'current', 'worked_hours': 0.0, str(current_time): 'in'})
       return redirect('/landing/' + session_key)
     if request.form['function'] == 'clock_out':
-      return 'clock out'
+      current_time = int(round(time.time()))
+      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+      if timesheet is not None:
+        timesheet[str(current_time)] = 'out'
+        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'out', 'worked_hours': calculate_worked_hours(timesheet)}})
+      else:
+        db.timesheets.insert_one({'username': username, 'pay_period': 'current', 'worked_hours': 0.0, str(current_time): 'out'})
+      return redirect('/landing/' + session_key)
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
