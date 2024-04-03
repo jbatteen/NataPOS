@@ -101,8 +101,8 @@ def landing(session_key):
         if len(timesheet) > 1:
           second_to_last_punch = timesheet[timestamps[-2]]
           if last_punch == second_to_last_punch:
-            message = message + "<br>Missing punch, see a manager.<br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
-        message = message + '<br>Hours on this time sheet: ' + worked_hours
+            message = message + "<br><br>Missing punch, see a manager.<br><br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
+        message = message + '<br><br>Hours on this time sheet: ' + worked_hours
       else:
         message = 'First day worked in the pay period!'
 

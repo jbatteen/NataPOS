@@ -16,7 +16,6 @@ def calculate_worked_hours(timesheet):
         for i in timestamps:
           count += 1
           current_punch_type = timesheet[i]
-          print(i + " " + current_punch_type)
           if count > 1:
             if current_punch_type == 'out' and last_punch_type == 'in':
               worked_seconds = worked_seconds + (int(i) - last_punch_time)
