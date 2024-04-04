@@ -1,2 +1,2 @@
 #!/bin/sh
-python3 wsgy.py
+python3.11 wsgy.py
