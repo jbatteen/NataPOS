@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_inventory_management.css">
+  <title>{{ instance_name }} Inventory Management</title>
+</head>
+<body>
+  <div class="sidebar">
+    <table class="sidebar">
+      <tr class="menuitem"><td class="logo">
+        <img src="{{ assets_url }}/logo.png" style="width:100%">
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </td></tr>
+    </table>
+  </div>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Inventory Management</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+
+    
+  </div>
+</body>
+</html>

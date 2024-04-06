@@ -1,0 +1,116 @@
+body {
+	color: #d4d0ab;
+	background-color: #1f2a46;
+	font-size: 1.2em;
+	font-weight: 100;
+	font-family: Sans-Serif;
+}
+h1 {
+	font-weight: 400;
+	font-size: 4vw;
+	text-align: left;
+}
+h2 {
+	font-weight: 400;
+	font-size: 3vw;
+	text-align: left;
+}
+input {
+/*  font-size: 3vw; */
+}
+h3 {
+	font-weight: 400;
+	margin-top: 0em;
+	font-size: 1.2em;
+	text-align: left;
+}
+h4 {
+	font-weight: 400;
+	font-size: 1em;
+	text-align: center;
+}
+h5 {
+	font-weight: 100;
+	margin-top: 0em;
+	margin-bottom: 0em;
+	font-size: 0.8em;
+	text-align: center;
+}
+a:visited, a:link {
+	color: #d4d0ab;
+  padding: 14px 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  background-color: #010338;
+  border: 1px;
+  border-style: solid;
+}
+a:hover, a:active {
+  background-color: #2d5675;
+}
+
+div.mainbody {
+  right: 0;
+  top: 1vh;
+  position: absolute;
+  width: 84vw;
+}
+
+/* sidebar stuff */
+
+div.sidebar {
+  height: 98vh;
+  width: 15vw;
+  float: left;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 0.2em;
+  display: block;
+}
+table.sidebar {
+  width: 15vw;
+  height: 100%
+}
+tr.menuitem {
+  text-align: center;
+}  
+td.menu {
+  height: 7vh;
+}
+td.logo {
+  height: 0;
+}
+td.change: {
+  text-align: right;
+}
+
+form {
+  display: inline;
+}
+form.change {
+  float: right;
+}
+
+button {
+  border: 1px;
+  border-style: solid;
+  color: inherit;
+  background-color: #010338;
+}
+
+button.change {
+  width: 10em;
+  padding: 1em, 1em;
+/*   font-size: 1.2em; */
+}
+
+button.menu {
+  width: 14vw;
+  height: 100%;
+  font-size: 3vmin;
+}
+button:hover {
+  background-color: #2d5675;
+}

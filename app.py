@@ -47,25 +47,20 @@ def login():
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   if request.method == 'POST':
-    if request.form['function'] == 'login':  # log in function
+    if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
       try: # if employees collection exists
         db.validate_collection("employees")
-      except: # no collection, create first user
-        return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url) # default credentials to create first user page
-      else: # collection exists, validate
-        login_check = {}
-        login_check = validate_login(db, username, password)
-        if login_check['success'] == False: # invalid combo, send back to main page
-          return render_template('login.html', instance_name=instance_name, assets_url=assets_url, error=login_check['error'])
-        else:
-          return redirect('/landing/' + login_check['session_key'])
-#          return render_template('landing.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=login_check['session_key'])
-    else:
-
-
-    # plain old index for the first time
+      except: # no collection, create first user. logically this shouldn't ever happen but it's here in case a session dies in the middle or something
+        return redirect('/create_first_user')
+      login_check = {}
+      login_check = validate_login(db, username, password)
+      if login_check['success'] == False: # invalid combo, send back to main page
+        return render_template('login.html', instance_name=instance_name, assets_url=assets_url, error=login_check['error'])
+      else:
+        return redirect('/landing/' + login_check['session_key'])
+    else: # this shouldn't ever happen but it's here in case i decide to add/change anything later
       return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
 
   else: # if method == GET
@@ -186,9 +181,7 @@ def landing(session_key):
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
-  
   username = result['username']
-
   config = db.natapos.find_one({'config': 'global'})
   current_pay_period = config['current_pay_period']
   instance_name = config['instance_name']
@@ -230,8 +223,6 @@ def landing(session_key):
     message = message + '<br><br>Hours on this time sheet: ' + worked_hours
   else:
     message = 'First day worked in the pay period!'
-
-
   return render_template('landing.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, message=message)
 
 @app.route('/admin/<session_key>', methods=['POST', 'GET'])
@@ -252,3 +243,21 @@ def admin(session_key):
   permissions = []
   permissions = employee_info['permissions']
   return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
+
+@app.route('/inventory_management/<session_key>', methods=['POST', 'GET'])
+def inventory_management(session_key):
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return redirect('/')
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/' + session_key)
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/' + session_key)
+  return render_template('inventory_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key,)
