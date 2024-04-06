@@ -5,7 +5,8 @@ import os
 import sys
 import subprocess
 import string
-from datetime import datetime, timedelta
+import time
+from datetime import date, timedelta, datetime
 from pymongo.mongo_client import MongoClient
 
 
@@ -15,7 +16,12 @@ from validate_login import validate_login
 from validate_session_key import validate_session_key
 from create_user import create_user
 from calculate_worked_hours import calculate_worked_hours
-from is_valid import is_valid_string, is_valid_password
+from is_valid import is_valid_string, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover
+
+
+
+
+
 # open db
 try:
   client = MongoClient(mongo_url)
@@ -26,11 +32,11 @@ else:
   try:
     db.validate_collection("natapos")
   except:
-    first_time = True
     instance_name = 'NataPOS'
-    most_recent_sunday = datetime.now() + timedelta(days=(0.0 - float(datetime.now().isoweekday())))
-    current_pay_period_start = str(most_recent_sunday.strftime('%y/%m/%d'))
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period_start': current_pay_period_start, 'tax_types': ['Sales Tax', 'Alcohol Tax']})
+    most_recent_sunday = date.today() + timedelta(days=(0 - int(date.today().isoweekday())))
+    two_weeks_from_then = most_recent_sunday + timedelta(days=14)
+    current_pay_period = most_recent_sunday.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'tax_types': ['Sales Tax', 'Alcohol Tax'], 'pay_period_rollover': 15})
   else:
     config = db.natapos.find_one({'config': 'global'})
     instance_name = config['instance_name']
@@ -48,11 +54,8 @@ def login():
       password = request.form['password']
       try: # if employees collection exists
         db.validate_collection("employees")
-      except: # no collection, try default password
-        if username == "admin" and password == "admin": # default works, send to create first user page
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url) # default credentials to create first user page
-        else:
-          return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
+      except: # no collection, create first user
+        return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url) # default credentials to create first user page
       else: # collection exists, validate
         login_check = {}
         login_check = validate_login(db, username, password)
@@ -68,10 +71,11 @@ def login():
       return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
 
   else: # if method == GET
-    if first_time == True:
+    try:
+      db.validate_collection("employees")
+    except:
       return redirect('/create_first_user')
-    
-    return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
+  return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
 
 
 @app.route('/create_first_user', methods=['POST', 'GET'])
@@ -86,6 +90,8 @@ def create_first_user():
         password2 = request.form['password']
         if username == '':
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: blank username")
+        if is_valid_string(username) == False:
+          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: Invalid username. Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"")
         if password != password2:
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: passwords didn't match")
         elif password == '':
@@ -130,6 +136,36 @@ def instance_config(session_key):
         else:
           instance_name = request.form['instance_name']
           db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
+    elif request.form['function'] == 'change_pay_period_type':
+      db.natapos.update_one({'config': 'global'}, {'$set': {'pay_period_type': request.form['pay_period_type']}})
+    elif request.form['function'] == 'change_current_pay_period_start':
+      if is_valid_date(request.form['current_pay_period_start']) == True:
+        config = db.natapos.find_one({'config': 'global'})
+        pay_period_type = config['pay_period_type']
+        if pay_period_type == 'weekly':
+          if is_date_within_range(request.form['current_pay_period_start'], 8) == True:
+            date_split = request.form['current_pay_period_start'].split('/')
+            current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
+            one_week_from_then = current_pay_period_start_time_object + timedelta(days=7)
+            current_pay_period = current_pay_period_start_time_object.strftime('%m/%d/%y') + "-" + str(one_week_from_then.strftime('%m/%d/%y'))
+            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period': current_pay_period}})
+          else:
+            message = 'Error: date out of range'
+        elif pay_period_type == 'biweekly':
+          if is_date_within_range(request.form['current_pay_period_start'], 15) == True:
+            date_split = request.form['current_pay_period_start'].split('/')
+            current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
+            two_weeks_from_then = current_pay_period_start_time_object + timedelta(days=14)
+            current_pay_period = current_pay_period_start_time_object.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
+            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period': current_pay_period}})
+          else:
+            message = 'Error: date out of range'
+      else:
+        message = 'Error: invalid date'
+    elif request.form['function'] == 'change_pay_period_rollover':
+      if is_valid_pay_period_rollover(request.form['pay_period_rollover']) == True:
+        db.natapos.update_one({'config': 'global'}, {'$set': {'pay_period_rollover': request.form['pay_period_rollover']}})
+      else: message = 'Error: invalid pay period rollover'
   else:
     print('method GET')
   config = db.natapos.find_one({'config': 'global'})
@@ -137,7 +173,10 @@ def instance_config(session_key):
   tax_types = config['tax_types']
   pay_period_type = config['pay_period_type']
   instance_name = config['instance_name']
-  return render_template('instance_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period_start=current_pay_period_start, message=message, tax_types=tax_types)
+  current_pay_period = config['current_pay_period']
+  pay_period_rollover = config['pay_period_rollover']
+
+  return render_template('instance_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period=current_pay_period, current_pay_period_start=current_pay_period.split('-')[0], pay_period_rollover=pay_period_rollover, message=message, tax_types=tax_types)
     
 
 @app.route('/landing/<session_key>', methods=['POST', 'GET'])
@@ -169,6 +208,7 @@ def landing(session_key):
       return 'open register'
     if request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
+  config = db.natapos.find_one({'config': 'global'})
 
   timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
   if timesheet is not None:

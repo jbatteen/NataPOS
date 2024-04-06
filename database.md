@@ -2,8 +2,9 @@
 ## natapos
 - 'instance_name': str (the business name to display)
 - 'pay_period_type': str ('weekly', 'biweekly', 'bimonthly')
-- 'current_pay_period_start': str (YY/MM/DD), only for weekly/biweekly
-- 'tax_types': list of str ('Sales', 'Tobacco', 'Alcohol')
+- 'current_pay_period': str (YY/MM/DD), for weekly/biweekly
+- 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the first and the pay_period_rolloverth
+- 'tax_types': list of str ('Sales', 'Alcohol') (not sure if we're using this field yet)
 
 ## employees
 - 'username': str (username for this system)
