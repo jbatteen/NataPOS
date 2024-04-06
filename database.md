@@ -23,7 +23,7 @@
 - 'superuser': all permissions, program checks for this first before checking individual permissions
 - 'change_users': add/modify users
 - 'remove_users': remove users
-- 'change_inventory': add/remove/modify items in inventory
+- 'inventory_management': add/remove/modify items in inventory
 - 'shrink': shrink items
 
 ## members
@@ -53,13 +53,11 @@
 - 'type': str ('pax s300', 'cash_drawer', 'receipt_printer', 'zebra zd200' )
 - 'url': str (http://xxxxxx)
 
-
-
 ## transactions
 - 'transaction_id': str (YYMMDDHHMMSS) (while transaction is unpaid or if voided, this is the timestamp of transaction creation.  when it is paid, the id changes to become the time of transaction completion)
 - 'register': str (register number)
 - 'member': str (member_id)
-- 'status:' str ('unpaid', 'paid', 'voided')
+- 'status:' str ('unpaid', 'paid', 'background', 'voided')
 - 'clerk': str (username of employee making the transaction)
 - 'location': str (location_identifier, store location)
 - str (item_id): dictionary of

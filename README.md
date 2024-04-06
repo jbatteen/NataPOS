@@ -18,11 +18,10 @@ Almost all configuration is done through the app and stored on a database, but t
 - db_name = name of the database to store everything in
 - mongo_uri = location of the mongod instance
 - assets_url = location of the static elements of the site such as css and images
-- instance_name = name of the business to be displayed on the interface
 
 The app expects stylesheets and images hosted at assets_url.  
 
-All registers connect with a web browser.  The barcode scanner is directly connected to the machine running the browser.  All other peripherals, such as scale, cash register, receipt and label printers, and card readers, are connected over the network.  All computation happens on the server running the flask app.  The browsers/registers are effectively dumb terminals.  All data is stored in the database, so theoretically one could write an entirely new application that could still interface with the information in the database if so desired.  
+All registers connect with a web browser.  The barcode scanner is directly connected to the machine running the browser.  Tentatively, all other peripherals, such as scale, cash register, receipt and label printers, and card readers, are connected over the network.  All computation happens on the server running the flask app.  The browsers/registers are effectively dumb terminals.  All data is stored in the database, so theoretically one could write an entirely new application that could still interface with the information in the database if so desired.  
 
 ## Links
 [Database Schema](database.md)

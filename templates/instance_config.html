@@ -6,44 +6,61 @@
   <title>{{ instance_name }} Instance Configuration</title>
 </head>
 <body>
+  <div class="sidebar">
+    <table class="sidebar">
+      <tr class="menuitem"><td class="logo">
+        <img src="{{ assets_url }}/logo.png" style="width:100%">
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </td></tr>
+      <tr class="menuitem"><td class="menu">
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </td></tr>
+    </table>
+  </div>
   <div class="mainbody">
     <h1>{{ instance_name }} Instance Configuration</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <table class="admin_list">
       <tr>
         <td>Instance Name: {{ instance_name }}</td>
-        <td><form method="post">
+        <td class="change"><form class="change" method="post">
           <input type="text" title="Enter a name at least 4 characters long" name="instance_name">
-          <button class="menu" type="submit" name="function" value="change_instance_name">Change</button>
+          <button class="change" type="submit" name="function" value="change_instance_name">Change</button>
         </form></td>
       </tr>
       <tr>
         <td>Pay Period Type: {{ pay_period_type }}</td>
-        <td><form method="post">
+        <td class="change"><form class="change" method="post">
         <select name="pay_period_type">
           <option value="weekly">Weekly</option>
           <option value="biweekly">Biweekly</option>
           <option value="bimonthly">Bimonthly</option>
         </select>
-        <button class="menu" type="submit" name="function" value="change_pay_period_type">Change</button>
+        <button class="change" type="submit" name="function" value="change_pay_period_type">Change</button>
         </form>
         </td>
       </tr>
       <tr>        
         {% if pay_period_type == 'weekly' or pay_period_type == 'biweekly' %}
         <td>Current Pay Period Start: {{ current_pay_period_start }}</td>
-        <td><form method="post">
+        <td class="change"><form class="change" method="post">
           <input type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start">
-          <button class="menu" type="submit" name="function" value="change_current_pay_period_start">Change</button>
+          <button class="change" type="submit" name="function" value="change_current_pay_period_start">Change</button>
         </form></td>
         {% elif pay_period_type == 'bimonthly' %}
         <td>Pay Period Rollover: {{ pay_period_rollover }}<sup>th</sup></td>
-        <td><form method="post">
+        <td class="change"><form class="change" method="post">
           <input type="text" name="pay_period_rollover" title="Enter a number between 10 and 19">
-          <button class="menu" type="submit" name="function" value="change_pay_period_rollover">Change</button>
+          <button class="change" type="submit" name="function" value="change_pay_period_rollover">Change</button>
         </form></td>
         {% endif %}
       </tr>
+      <tr><td>Current Pay Period: {{ current_pay_period }}</td></tr>
 <!---   NOT SURE IF WE'RE USING TAX TYPES YET
     <tr>
       <td>

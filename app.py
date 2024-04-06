@@ -12,11 +12,9 @@ from pymongo.mongo_client import MongoClient
 
 # import local files
 from config import db_name, mongo_url, assets_url
-from validate_login import validate_login
-from validate_session_key import validate_session_key
-from create_user import create_user
+from authentication_functions import validate_login, validate_session_key, create_user
 from calculate_worked_hours import calculate_worked_hours
-from is_valid import is_valid_string, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover
+from is_valid import is_valid_string, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future
 
 
 
@@ -37,9 +35,7 @@ else:
     two_weeks_from_then = most_recent_sunday + timedelta(days=14)
     current_pay_period = most_recent_sunday.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
     db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'tax_types': ['Sales Tax', 'Alcohol Tax'], 'pay_period_rollover': 15})
-  else:
-    config = db.natapos.find_one({'config': 'global'})
-    instance_name = config['instance_name']
+
 
 
   
@@ -48,6 +44,8 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'login':  # log in function
       username = request.form['username']
@@ -80,6 +78,8 @@ def login():
 
 @app.route('/create_first_user', methods=['POST', 'GET'])
 def create_first_user():
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'create_first_user': # create first user form submitted
       try: # if employees collection exists
@@ -99,16 +99,13 @@ def create_first_user():
 
         else:
           creation_check = {}
-          creation_check = create_user(db, username, password, {'superuser': True})
+          creation_check = create_user(db, username, password, ['superuser'])
           if creation_check['success'] == True:
             result = {}
-            print('username: '+ username + 'password: ' + password)
             result = validate_login(db, username=username, password=password)
-            print('result: ' + str(result))
             session_key = ''
             if result['success'] == True:
               session_key = result['session_key']
-              print('successful creation, session_key: ' + session_key)
               return redirect('/instance_config/' + session_key)
             else:
               return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='validation error')
@@ -143,7 +140,7 @@ def instance_config(session_key):
         config = db.natapos.find_one({'config': 'global'})
         pay_period_type = config['pay_period_type']
         if pay_period_type == 'weekly':
-          if is_date_within_range(request.form['current_pay_period_start'], 8) == True:
+          if is_date_within_range(request.form['current_pay_period_start'], 6) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
             date_split = request.form['current_pay_period_start'].split('/')
             current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
             one_week_from_then = current_pay_period_start_time_object + timedelta(days=7)
@@ -152,7 +149,7 @@ def instance_config(session_key):
           else:
             message = 'Error: date out of range'
         elif pay_period_type == 'biweekly':
-          if is_date_within_range(request.form['current_pay_period_start'], 15) == True:
+          if is_date_within_range(request.form['current_pay_period_start'], 13) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
             date_split = request.form['current_pay_period_start'].split('/')
             current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
             two_weeks_from_then = current_pay_period_start_time_object + timedelta(days=14)
@@ -166,8 +163,13 @@ def instance_config(session_key):
       if is_valid_pay_period_rollover(request.form['pay_period_rollover']) == True:
         db.natapos.update_one({'config': 'global'}, {'$set': {'pay_period_rollover': request.form['pay_period_rollover']}})
       else: message = 'Error: invalid pay period rollover'
-  else:
-    print('method GET')
+    elif request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/' + session_key)
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/' + session_key)
   config = db.natapos.find_one({'config': 'global'})
   tax_types = []
   tax_types = config['tax_types']
@@ -187,30 +189,32 @@ def landing(session_key):
   
   username = result['username']
 
+  config = db.natapos.find_one({'config': 'global'})
+  current_pay_period = config['current_pay_period']
+  instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'clock_in':
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
       if timesheet is not None:
-        timesheet[str(current_time)] = 'in'
-        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'in'}})
+        db.timesheets.update_one({'username': username, 'pay_period': current_pay_period}, {'$set': {str(current_time): 'in'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': 'current', 'worked_hours': 0.0, str(current_time): 'in'})
+        db.timesheets.insert_one({'username': username, 'pay_period': current_pay_period, 'worked_hours': 0.0, str(current_time): 'in'})
     if request.form['function'] == 'clock_out':
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+      timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
       if timesheet is not None:
-        timesheet[str(current_time)] = 'out'
-        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'out'}})
+        db.timesheets.update_one({'username': username, 'pay_period': current_pay_period}, {'$set': {str(current_time): 'out'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': 'current', 'worked_hours': 0.0, str(current_time): 'out'})
+        db.timesheets.insert_one({'username': username, 'pay_period': current_pay_period, 'worked_hours': 0.0, str(current_time): 'out'})
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
-  config = db.natapos.find_one({'config': 'global'})
-
-  timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+  timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
   if timesheet is not None:
     worked_hours = str(calculate_worked_hours(timesheet))
     del timesheet['username']
@@ -233,6 +237,18 @@ def landing(session_key):
 @app.route('/admin/<session_key>', methods=['POST', 'GET'])
 def admin(session_key):
   result = validate_session_key(db, session_key)
-  if result == False:
+  if result['success'] == False:
     return redirect('/')
-  return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key)  
+  username = result['username']
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/' + session_key)
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  employee_info = db.employees.find_one({'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
