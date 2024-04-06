@@ -3,7 +3,7 @@
 <head>
   <link rel="icon" href="/{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_create_first_user.css">
-  <title>Welcome to {{ business_name }}.</title>
+  <title>Welcome to {{ instance_name }}.</title>
 </head>
 <body>
   <div class="sidebar">
@@ -16,7 +16,7 @@
   </div>
 
   <div class="mainbody">
-    <h1>Welcome to {{ business_name }}.  Create your first user.</h1>
+    <h1>Welcome to {{ instance_name }}.  Create your first user.</h1>
     {% if message %}
       <h2>{{ message }}</h2>
     {% endif %}

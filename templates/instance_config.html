@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_admin.css">
+  <title>{{ instance_name }} Instance Configuration</title>
+</head>
+<body>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Instance Configuration</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <table class="admin_list">
+      <tr>
+        <td>Instance Name: {{ instance_name }}</td>
+        <td><form method="post">
+        <input type="text" name="instance_name">
+        <button class="menu" type="submit" name="function" value="change_instance_name">Change Instance Name</button>
+        </form></td>
+      </tr>
+      <tr>
+        <td>Pay Period Type: {{ pay_period_type }}</td>
+        <td><form method="post">
+        <select name="pay_period_type">
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Biweekly</option>
+          <option value="bimonthly">Bimonthly</option>
+        </select>
+        <button class="menu" type="submit" name="function" value="change_pay_period_type">Change Pay Period Type</button>
+        </form>
+        </td>
+      </tr>
+      {% if pay_period_type == 'weekly' or pay_period_type == 'biweekly' %}
+        
+      {% elif pay_period_type == 'bimonthly'% }
+    </table>
+  </div>
+</body>
+</html>

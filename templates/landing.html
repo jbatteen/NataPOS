@@ -3,7 +3,7 @@
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_landing.css">
-  <title>Welcome to {{ business_name }}</title>
+  <title>Welcome to {{ instance_name }}</title>
 </head>
 <body>
   <div class="sidebar">
@@ -34,7 +34,7 @@
   </div>
 
   <div class="mainbody">
-    <h1>Welcome to Natural Abundance</h1>
+    <h1>Welcome to {{ instance_name }}</h1>
     <h2>Logged in as {{ username }}</h2>
     <h3>{{ message|safe }}</h3>
   </div>

@@ -1,4 +1,10 @@
 # Collections
+## natapos
+- 'instance_name': str (the business name to display)
+- 'pay_period_type': str ('weekly', 'biweekly', 'bimonthly')
+- 'current_pay_period_start': str (YY/MM/DD), only for weekly/biweekly
+- 'tax_types': list of str ('Sales', 'Tobacco', 'Alcohol')
+
 ## employees
 - 'username': str (username for this system)
 - 'password': str (bcrypt hash of password)
@@ -7,7 +13,7 @@
 - 'title': str (job title, does nothing for the program just for your records)
 - 'phone': str (phone number)
 - 'email': str (email address)
-- 'hire_date': str (hire date MM/DD/YY)
+- 'hire_date': str (hire date YY/MM/DD)
 - 'status': str (current, former, other?)
 - 'permissions': list of str (permission names the user does/doesn't have)
 - 'authorized_locations': list of str (location_id) where the employee is authorized to work
@@ -17,6 +23,7 @@
 - 'change_users': add/modify users
 - 'remove_users': remove users
 - 'change_inventory': add/remove/modify items in inventory
+- 'shrink': shrink items
 
 ## members
 - 'member_id': str (member number)
@@ -68,15 +75,17 @@
 - 'address': str (street address)
 - 'attached_inventory': str (inventory_id)
 - 'default_taxes': list of str (tax_id applied to new items entered in inventory by default)
-- 'departments': dictionary of
-    - 'department_id': str (unique identifier for department)
-    - 'sub_inventory': str, '' by default, otherwise inventory_id of separate inventory if you need to keep track of interdepartment sales like deli buying ingredients from store
-    - 'default_taxes': if present, overrides store default
+
+
+## departments
+- 'department_id': str (unique identifier for department)
+- 'sub_inventory': str, '' by default, otherwise inventory_id of separate inventory if you need to keep track of interdepartment sales like deli buying ingredients from store
+- 'default_taxes': if present, overrides store default
+- 'employee_discount': float (percent off for employees)
+- 'categories': dictionary of
+    - 'category_id' str (eg 'Chips', 'Diapers')
+    - 'default_taxes': if present, overrides department default
     - 'employee_discount': float (percent off for employees)
-    - 'categories': dictionary of
-        - 'category_id' str (eg 'Chips', 'Diapers')
-        - 'default_taxes': if present, overrides department default
-        - 'employee_discount': float (percent off for employees)
 
 ## coupons
 - 'coupon_id': str (UPC)
@@ -95,7 +104,8 @@
 - 'eligibility': '
 
 ## taxes
-- 'tax_id': str (unique identifier for the tax eg 'Aberdeen City Sales Tax', 'South Dakota Tobacco Tax')
+- 'tax_type': str ('tax_type') from list of tax types in natapos config db
+- 'locality': str (tax district, eg 'Aberdeen, SD')
 - 'rate': float (tax rate)
 
 ## inventory_<inventory_id>
@@ -130,3 +140,8 @@
 ## brands
 - 'brand_id': str (unique brand identifier eg 'Kalona')
 - 'local': bool   default for new items scanned into inventory
+
+## timesheets
+- 'username': str (username)
+- 'pay_period': str (pay period identifier)
+- str ()
