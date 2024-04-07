@@ -3,7 +3,31 @@
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_inventory_management.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
   <title>{{ instance_name }} Inventory Management: {{ inventory_id }}</title>
+  <script>
+    function switch_visible(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      console.log('value_id');
+      console.log(value_id);
+      console.log('input_id');
+      console.log(input_id);
+      console.log('value_id display');
+      console.log(document.getElementById(value_id).style.display)
+      console.log('input_id display');
+      console.log(document.getElementById(input_id).style.display)
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+      }
+    }
+  </script>
 </head>
 <body>
   <div class="sidebar">
@@ -30,7 +54,7 @@
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="topbar">
       <div style="text-align:left"><form method="post"><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
-      <div style="text-align:center">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
+      <div style="text-align:left">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
       <div style="text-align:right">
         <form class="change" method="post">
           <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
@@ -42,109 +66,137 @@
     <div class="scanned_item">
     
       <div class="property">
-        <div class="key">Name:</div>
-        <div class="value">{{ scanned_item['name'] }}</div>
-        <div class="input">
+        <div class="key"><button class="key" onclick="switch_visible('name')">Name:</button></div>
+        <div id="name_value" class="value">{{ scanned_item['name'] }}</div>
+        <div id="name_input" class="input">
           <form class="change" method="post">
-            <input type="text" title="Enter a name" class="wide" name="name">
+            <input type="text" class="value" title="Enter a name" name="name">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_name" hidden />
+            <button class="change" type="submit" name="function" value="change_name">Change</button>
           </form>
         </div>
       </div>
-      <br>
       <div class="property">
-        <div class="key">Description:</div>
-        <div class="value">{{ scanned_item['description'] }}</div>
-        <div class="input">
+        <div class="key"><button class="key" onclick="switch_visible('description')">Description:</button></div>
+        <div id="description_value" class="value">{{ scanned_item['description'] }}</div>
+        <div id="description_input" class="input">
           <form class="change" method="post">
-            <input type="text" title="Enter a description" class="wide" name="description">
+            <input type="text" class="value" title="Enter a description" name="description">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_description" hidden />
+            <button class="change" type="submit" name="function" value="change_description">Change</button>
           </form>
         </div>
       </div>
-      <br>
       <div class="property">
-        <div class="key">Receipt Alias:</div>
-        <div class="value">{{ scanned_item['receipt_alias'] }}</div>
-        <div class="input">
+        <div class="key"><button class="key" onclick="switch_visible('receipt_alias')">Receipt Alias:</button></div>
+        <div id="receipt_alias_value" class="value">{{ scanned_item['receipt_alias'] }}</div>
+        <div id="receipt_alias_input" class="input">
           <form class="change" method="post">
-            <input type="text" title="Enter a receipt alias" class="wide" name="receipt_alias">
+            <input type="text" class="value" title="Enter a receipt alias" name="receipt_alias">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_receipt_alias" hidden />
+            <button class="change" type="submit" name="function" value="change_receipt_alias">Change</button>
           </form>
         </div>
       </div>
-      <br>
       <div class="property">
-        <div class="key">Memo:</div>
-        <div class="value">{{ scanned_item['memo'] }}</div>
-        <div class="input">
+        <div class="key"><button class="key" onclick="switch_visible('memo')">Memo:</button></div>
+        <div id="memo_value" class="value">{{ scanned_item['memo'] }}</div>
+        <div id="memo_input" class="input">
           <form class="change" method="post">
-            <input type="text" title="Enter a memo" class="wide" name="memo">
+            <input type="text" class="value" title="Enter a memo" name="memo">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_memo" hidden />
+            <button class="change" type="submit" name="function" value="change_memo">Change</button>
           </form>
         </div>
       </div>
-      <br>
-      <div class="property">
-        <div class="key">Sale Price: </div>
-        <div class="value">${{ scanned_item['sale_price'] }}</div>
-        <div class="input">
+      <div class="price_combo">
+
+        <div class="price_combo_key"><button class="key" onclick="switch_visible('regular_price')">Regular Price:</button></div>
+        <div id="regular_price_value" class="price_combo_value">{{ scanned_item['regular_price'] }}</div>
+        <div id="regular_price_input" class="price_combo_input">
           <form class="change" method="post">
-            <input type="text" title="Enter a sale price" class="wide" name="sale_price">
+            <input type="text" class="price" title="Enter a regular price" name="regular_price">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_sale_price" hidden />
+            <button class="change" type="submit" name="function" value="change_regular_price">OK</button>
           </form>
         </div>
-      </div>
-      <br>
-      <div class="property">
-        <div class="key">Quantity on Hand:</div>
-        <div class="value">{{ scanned_item['quantity_on_hand'] }}</div>
-        <div class="input">
+
+        <div class="price_combo_key"><button class="key" onclick="switch_visible('margin')">Margin:</button></div>
+        <div id="margin_value" class="price_combo_value">{{ margin }}5%</div>
+        <div id="margin_input" class="price_combo_input">
           <form class="change" method="post">
-            <input type="text" title="Enter a quantity on hand" class="wide" name="quantity_on_hand">
+            <input type="text" class="price" title="Enter a margin" name="margin">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_quantity_on_hand" hidden />
-          </form>
-        </div>      
-      </div>
-      <br>
-      <div class="property">
-        <div class="key">Unit:</div>
-        <div class="value">{{ scanned_item['unit'] }}</div>
-        <div class="input">
-          <form class="change" method="post">
-            <select name="unit" class="wide">
-              <option value="each">Each</option>
-              <option value="pounds">Pounds</option>
-              <option value="ounces">Ounces</option>
-            </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_unit">Change</button>
+            <button class="change" type="submit" name="function" value="change_regular_price_by_margin">OK</button>
           </form>
         </div>
+
+        <div class="price_combo_key"><button class="key" onclick="switch_visible('suggested_retail_price')">Suggested Retail Price:</button></div>
+        <div id="suggested_retail_price_value" class="price_combo_value">{{ scanned_item['suggested_retail_price'] }}</div>
+        <div id="suggested_retail_price_input" class="price_combo_input">
+          <form class="change" method="post">
+            <input type="text" class="price" title="Enter a suggested retail price" name="suggested_retail_price">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_suggested_retail_price">OK</button>
+          </form>
+        </div>
+
+        <div class="price_combo_key">Suggested Margin:</div>
+        <div class="price_combo_value">{{ suggested_margin }}5%</div>
+
+        <div class="price_combo_key">Cost Per:</div>
+        <div class="price_combo_value">{{ cost_per }}$1.00</div>
+
+        <div class="price_combo_key"><button class="key" onclick="switch_visible('case_quantity')">Case Quantity:</button></div>
+        <div id="case_quantity_value" class="price_combo_value">{{ scanned_item['case_quantity'] }}</div>
+        <div id="case_quantity_input" class="price_combo_input">
+          <form class="change" method="post">
+            <input type="text" class="price" title="Enter a case quantity" name="case_quantity">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_case_quantity">OK</button>
+          </form>
+        </div>
+
       </div>
-      <br>
-      <div class="property">
-        <div class="key">Supplier:</div>
-        <div class="value">{{ scanned_item['supplier'] }}</div>
+      <div class="quantity_combo">
+
+        <div class="quantity_combo_key"><button class="key" onclick="switch_visible('quantity_on_hand')">Quantity on Hand:</button></div>
+        <div class="quantity_combo_value" id="quantity_on_hand_value">{{ scanned_item['quantity_on_hand'] }}</div>
+        <div class="quantity_combo_input" id="quantity_on_hand_input">
+          <form class="change" method="post">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input class="price" type="text" title="Enter quantity on hand" name="quantity_on_hand">
+            <button class="change" type="submit" name="function" value="change_quantity_on_hand">OK</button>
+          </form>
+        </div>
         
-        <div class="input">
+        <div class="quantity_combo_key"><button class="key" onclick="switch_visible('unit')">Unit:</button></div>
+        <div class="quantity_combo_value" id="unit_value">{{ scanned_item['unit'] }}</div>
+        <div class="quantity_combo_input" id="unit_input">
           <form class="change" method="post">
-            <select name="supplier_id" class="wide">
-            {% for i in suppliers %}
-            <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
-            </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_supplier_id">Change</button>     
+            <select name="unit" class="wide">
+              <option value="each">each</option>
+              <option value="pounds">pounds</option>
+              <option value="ounces">ounces</option>
+            </select>
+            <button class="change" type="submit" name="function" value="change_unit">OK</button>
           </form>
         </div>
+
+        <div class="quantity_combo_key"><button class="key" onclick="switch_visible('quantity_low_alert')">Quantity Low Alert:</button></div>
+        <div class="quantity_combo_value" id="quantity_low_alert_value">{{ scanned_item['quantity_low_alert'] }}</div>
+        <div class="quantity_combo_input" id="quantity_low_alert_input">
+          <form class="change" method="post">
+            <input type="text" class="price" title="Enter a quantity" name="quantity_low_alert">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_quantity_low_alert">OK</button>
+          </form>
+        </div>
+
+
       </div>
+
     </div>
     {% endif %}
   </div>

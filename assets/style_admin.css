@@ -8,7 +8,7 @@ body {
 h1 {
 	font-weight: 400;
 	font-size: 1.5em;
-	text-align: left;
+	text-align: center;
 }
 h2 {
 	font-weight: 400;
@@ -67,6 +67,12 @@ div.sidebar {
   grid-template-columns: 14vw;
   grid-template-rows: auto;
 }
+
+div.admin_list {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  display: grid;
+}
+
 div.menuitem {
   text-align: center;
   height: 100%;

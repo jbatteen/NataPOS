@@ -64,7 +64,7 @@
   - str (payment type, 'credit', 'debit', 'ebt', 'cash', 'gift_card', 'check'): float ($ paid)
 - str (item_id): dictionary of
   - 'quantity': float (number of things bought.  float for bulk items by weight)
-  - 'sale_price': float (total cost of all in the quantity after bogos discounts etc, what the receipt says for that line)
+  - 'regular_price': float (total cost of all in the quantity after bogos discounts etc, what the receipt says for that line)
   - 'sales_tax': float (total sales tax withheld for these items)
   - 'our_cost': float (what the store paid for the items we sold)
   - 'coupons_applied': str (coupon UPCs, in a list if multiple)
@@ -117,11 +117,12 @@
 - 'description': str (long form description, visible to customer in places)
 - 'memo': str (internal, never visible to customer)
 - 'picture': str (url to picture)
-- 'sale_price': float (base $price to the customer per unit)
+- 'regular_price': float (base $price to the customer per unit)
+- 'suggested_retail_price': float ($price)
 - 'unit': str ('ea', 'lb', 'oz', etc)
 - 'supplier': str ('supplier_id')
 - 'order_code': str (if supplier uses something other than UPC to identify product, like product number etc)
-- 'case_quantity': int or float if bulk (unit not 'ea')
+- 'case_quantity': float
 - 'case_price': float ($case price)
 - 'item_groups': list of str (item_group_id)
 - 'department': str (department_id)
@@ -131,7 +132,9 @@
 - 'discontinued': bool
 - 'employee_discount': float (percent)   if present, overrides department/category defaults
 - 'age_restricted': int (0 if no, other if age)
-- 'quantity_on_hand': int or float if unit is not 'ea'
+- 'quantity_on_hand': float
+- 'most_recent_delivery': str (MMDDYY)
+- 'quantity_low_alert': float (quantity to alert)
 
 ## item_groups
 - 'item_group_id': str (unique group identifier)

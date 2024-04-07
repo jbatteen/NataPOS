@@ -2,6 +2,7 @@
 <html>
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
   <link rel="stylesheet" href="{{ assets_url }}/style_admin.css">
   <title>{{ instance_name }} Admin</title>
 </head>
@@ -23,13 +24,13 @@
     <div class="admin_list">
       <div><a href="change_password/{{session_key}}">Change Password</a></div>
       {% if 'superuser' in permissions %}
-      <div><a href="/instance_config/{{ session_key }}">Instance Config</a></div>
       <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
+      <div><a href="/instance_config/{{ session_key }}">Instance Config</a></div>
       {% else %}
       {% for i in permissions %}
-        {% if i == 'inventory_management' %}
-        <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
-        {% endif %}
+      {% if i == 'inventory_management' %}
+      <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
+      {% endif %}
       {% endfor %}
       {% endif %}
     </div>

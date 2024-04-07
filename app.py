@@ -13,7 +13,7 @@ from pymongo.mongo_client import MongoClient
 # import local files
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
-from calculate_worked_hours import calculate_worked_hours
+from calculations_and_conversions import calculate_worked_hours
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string
 from inventory_functions import get_inventories, get_suppliers
 
@@ -303,14 +303,21 @@ def inventory_selection(session_key):
       return redirect('/admin/' + session_key)
     elif request.form['function'] == 'select_inventory':
       return redirect('/inventory_management/' + request.form['inventory_id'] + '/' + session_key)
+    elif request.form['function'] == 'delete_inventory':
+      inventory_collection_name = 'inventory_' + request.form['inventory_id']
+      if db[inventory_collection_name].drop() == False:
+        message = 'error deleting inventory'
+      else:
+        message = 'inventory deleted successfully'
+        inventories = get_inventories(db)
+
     elif request.form['function'] == 'create_inventory':
       if is_valid_username(request.form['inventory_id']):
         inventory_collection_name = 'inventory_' + request.form['inventory_id']
-        db[inventory_collection_name].insert_one({'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'sale_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0})
+        db[inventory_collection_name].insert_one({'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'regular_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0})
         return redirect('/inventory_management/' + request.form['inventory_id'] + '/' + session_key)
       else:
         message = 'invalid characters in inventory_id'
       
   return render_template('inventory_selection.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, inventories=inventories, message=message)
 
-{'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'sale_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0}

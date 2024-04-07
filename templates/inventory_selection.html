@@ -2,7 +2,8 @@
 <html>
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
-  <link rel="stylesheet" href="{{ assets_url }}/style_inventory_management.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_inventory_selection.css">
   <title>{{ instance_name }} Inventory Selection</title>
 </head>
 <body>
@@ -24,35 +25,36 @@
     <h1>{{ instance_name }} Inventory Selection</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
 
-    <table>
-      {% if inventories != [] %}
-      <tr>
-        <td>Select Inventory:</td>
-        <form class="change" method="post">
-          <td>
+
+    {% if inventories != [] %}
+    <form class="change" method="post">
+      <div class="select_inventory{% if 'superuser' in permissions %}_superuser{% endif %}">
+        <div>Select Inventory:</div>
+        <div>
           <select name="inventory_id">
-            {% for i in inventories %}
-            <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
+          {% for i in inventories %}
+          <option value="{{ i }}">{{ i }}</option>
+          {% endfor %}
           </select>
-          </td>
-          <td><button class="change" type="submit" name="function" value="select_inventory">Select</button></td>
-          {% if 'superuser' in permissions %}<td><button class="change" type="submit" name="function" value="delete_inventory">Delete</button></td>{% endif %}
-        </form>
-      </tr>
-      {% endif %}
-      {% if 'superuser' in permissions %}
-      <tr>
-        <td>Create Inventory:</td>
-        <td>
-          <form class="change" method="post">
-            <input type="text" title="Enter an inventory name, no spaces only - or _" name="inventory_id">
-            <button class="change" type="submit" name="function" value="create_inventory">Create</button>
-          </form>
-        </td>
-      </tr>
-      {% endif %}
-    </table>
+        </div>
+        <div><button class="wide" type="submit" name="function" value="select_inventory">Select</button></div>
+        {% if 'superuser' in permissions %}
+        <div><button class="wide" type="submit" name="function" value="delete_inventory">Delete</button></div>
+        {% endif %}
+
+      </div>
+    </form>
+    {% endif %}
+    {% if 'superuser' in permissions %}
+    <form class="change" method="post">
+      <div class="create_inventory">
+        <div>Create Inventory:</div>
+        <div><input class="wide" type="text" title="Enter an inventory name, no spaces only - or _" name="inventory_id"></div>
+        <div><button class="wide" type="submit" name="function" value="create_inventory">Create</button></div>
+      </div>
+    </form>
+    {% endif %}
+
   
   </div>
 </body>

@@ -146,7 +146,7 @@ td.receiptprice {
 }
 td.receipttax {
   width: 17%;
-  align: right;
+  text-align: right;
 }
 
 
