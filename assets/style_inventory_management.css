@@ -7,34 +7,19 @@ body {
 }
 h1 {
 	font-weight: 400;
-	font-size: 4vw;
+	font-size: 1.8em;
 	text-align: left;
 }
 h2 {
 	font-weight: 400;
-	font-size: 3vw;
+	font-size: 1.5em;
 	text-align: left;
-}
-input {
-/*  font-size: 3vw; */
 }
 h3 {
 	font-weight: 400;
 	margin-top: 0em;
 	font-size: 1.2em;
 	text-align: left;
-}
-h4 {
-	font-weight: 400;
-	font-size: 1em;
-	text-align: center;
-}
-h5 {
-	font-weight: 100;
-	margin-top: 0em;
-	margin-bottom: 0em;
-	font-size: 0.8em;
-	text-align: center;
 }
 a:visited, a:link {
 	color: #d4d0ab;
@@ -54,10 +39,17 @@ div.mainbody {
   right: 0;
   top: 1vh;
   position: absolute;
-  width: 84vw;
+  width: 83vw;
+  display: grid;
+  padding: 1em;
 }
 
-/* sidebar stuff */
+input.wide {
+  width: 90%;
+}
+select.wide {
+  width: 70%;
+}
 
 div.sidebar {
   height: 98vh;
@@ -67,31 +59,39 @@ div.sidebar {
   left: 0;
   top: 0;
   padding: 0.2em;
-  display: block;
+  display: grid;
+  grid-template-columns: 14vw;
 }
-table.sidebar {
-  width: 15vw;
-  height: 100%
-}
-tr.menuitem {
-  text-align: center;
-}  
-td.menu {
-  height: 7vh;
-}
-td.logo {
-  height: 0;
-}
-td.change: {
-  text-align: right;
+div.topbar {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  margin-bottom: 2em;
 }
 
-form {
-  display: inline;
+div.property {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 20% 39% 39%;
 }
-form.change {
-  float: right;
+
+div.key {
+  text-align: right;
+  border-style: solid;
+  border-width: 1px;
+  padding: .2em;
+  font-weight: bold;
 }
+div.value {
+  border-style: solid;
+  border-width: 1px;
+  padding: 0.2em;
+}
+div.input {
+  border-style: solid;
+  border-width: 1px;
+  padding: 0.2em;
+}
+
 
 button {
   border: 1px;
@@ -100,15 +100,15 @@ button {
   background-color: #010338;
 }
 
+
 button.change {
-  width: 10em;
-  padding: 1em, 1em;
-/*   font-size: 1.2em; */
+/*  padding: 1em, 1em; */
+  font-size: 1.2em;
 }
 
 button.menu {
   width: 14vw;
-  height: 100%;
+  height: 15vh;
   font-size: 3vmin;
 }
 button:hover {

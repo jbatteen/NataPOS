@@ -14,8 +14,8 @@ from pymongo.mongo_client import MongoClient
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
 from calculate_worked_hours import calculate_worked_hours
-from is_valid import is_valid_string, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future
-
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future
+from inventory_functions import get_inventories, get_suppliers
 
 
 
@@ -85,7 +85,7 @@ def create_first_user():
         password2 = request.form['password']
         if username == '':
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: blank username")
-        if is_valid_string(username) == False:
+        if is_valid_username(username) == False:
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: Invalid username. Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"")
         if password != password2:
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: passwords didn't match")
@@ -123,7 +123,7 @@ def instance_config(session_key):
       if len(request.form['instance_name']) < 4:
         message = 'Error: name must be 4 characters or more'
       else:
-        if is_valid_string(request.form['instance_name']) == False:
+        if is_valid_username(request.form['instance_name']) == False:
           message = 'Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"'
         else:
           instance_name = request.form['instance_name']
@@ -244,14 +244,57 @@ def admin(session_key):
   permissions = employee_info['permissions']
   return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
 
-@app.route('/inventory_management/<session_key>', methods=['POST', 'GET'])
-def inventory_management(session_key):
+@app.route('/inventory_management/<inventory_id>/<session_key>', methods=['POST', 'GET'])
+def inventory_management(inventory_id, session_key):
   result = validate_session_key(db, session_key)
+  scanned_item = None
+  suppliers = []
+  suppliers = get_suppliers(db)
   if result['success'] == False:
     return redirect('/')
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   username = result['username']
+  employee_info = db.employees.find_one({'username': username})
+  username = result['username']
+  permissions = []
+  permissions = employee_info['permissions']
+  inventory_collection_name = 'inventory_' + inventory_id
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/' + session_key)
+    elif request.form['function'] == 'inventory_selection':
+      return redirect('/inventory_selection/' + session_key)
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/' + session_key)
+    elif request.form['function'] == 'scan':
+      cursor = db[inventory_collection_name].find({})
+      scanned_item = db[inventory_collection_name].find_one({'item_id' : request.form['scan']})
+      if scanned_item is None: # load defaults
+
+        scanned_item = db[inventory_collection_name].find_one({'item_id' : 'default'})
+        scanned_item['item_id'] = request.form['scan']
+        del scanned_item['_id']
+        db[inventory_collection_name].insert_one(scanned_item)
+  return render_template('inventory_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, suppliers=suppliers, permissions=permissions)
+
+@app.route('/inventory_selection/<session_key>', methods=['POST', 'GET'])
+def inventory_selection(session_key):
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return redirect('/')
+  message = None
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  inventories = []
+  inventories = get_inventories(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -260,4 +303,16 @@ def inventory_management(session_key):
       return redirect('/landing/' + session_key)
     elif request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
-  return render_template('inventory_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key,)
+    elif request.form['function'] == 'select_inventory':
+      return redirect('/inventory_management/' + request.form['inventory_id'] + '/' + session_key)
+    elif request.form['function'] == 'create_inventory':
+      if is_valid_username(request.form['inventory_id']):
+        inventory_collection_name = 'inventory_' + request.form['inventory_id']
+        db[inventory_collection_name].insert_one({'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'sale_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0})
+        return redirect('/inventory_management/' + request.form['inventory_id'] + '/' + session_key)
+      else:
+        message = 'invalid characters in inventory_id'
+      
+  return render_template('inventory_selection.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, inventories=inventories, message=message)
+
+{'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'sale_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0}

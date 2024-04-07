@@ -3,30 +3,150 @@
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_inventory_management.css">
-  <title>{{ instance_name }} Inventory Management</title>
+  <title>{{ instance_name }} Inventory Management: {{ inventory_id }}</title>
 </head>
 <body>
   <div class="sidebar">
-    <table class="sidebar">
-      <tr class="menuitem"><td class="logo">
-        <img src="{{ assets_url }}/logo.png" style="width:100%">
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </td></tr>
-    </table>
+
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menuitem">
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+    </div>
+    <div class="menuitem">
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+    </div>
+    <div class="menuitem">
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_selection">Inventory Selection</button></form>
+    </div>
+    <div class="menuitem">
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+    </div>
+
   </div>
   <div class="mainbody">
     <h1>{{ instance_name }} Inventory Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-
+    <div class="topbar">
+      <div style="text-align:left"><form method="post"><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
+      <div style="text-align:center">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
+      <div style="text-align:right">
+        <form class="change" method="post">
+          <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+          <button class="change" type="submit" name="function" value="delete_item">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% if scanned_item %}
+    <div class="scanned_item">
     
+      <div class="property">
+        <div class="key">Name:</div>
+        <div class="value">{{ scanned_item['name'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a name" class="wide" name="name">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_name" hidden />
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Description:</div>
+        <div class="value">{{ scanned_item['description'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a description" class="wide" name="description">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_description" hidden />
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Receipt Alias:</div>
+        <div class="value">{{ scanned_item['receipt_alias'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a receipt alias" class="wide" name="receipt_alias">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_receipt_alias" hidden />
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Memo:</div>
+        <div class="value">{{ scanned_item['memo'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a memo" class="wide" name="memo">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_memo" hidden />
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Sale Price: </div>
+        <div class="value">${{ scanned_item['sale_price'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a sale price" class="wide" name="sale_price">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_sale_price" hidden />
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Quantity on Hand:</div>
+        <div class="value">{{ scanned_item['quantity_on_hand'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <input type="text" title="Enter a quantity on hand" class="wide" name="quantity_on_hand">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_quantity_on_hand" hidden />
+          </form>
+        </div>      
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Unit:</div>
+        <div class="value">{{ scanned_item['unit'] }}</div>
+        <div class="input">
+          <form class="change" method="post">
+            <select name="unit" class="wide">
+              <option value="each">Each</option>
+              <option value="pounds">Pounds</option>
+              <option value="ounces">Ounces</option>
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_unit">Change</button>
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="property">
+        <div class="key">Supplier:</div>
+        <div class="value">{{ scanned_item['supplier'] }}</div>
+        
+        <div class="input">
+          <form class="change" method="post">
+            <select name="supplier_id" class="wide">
+            {% for i in suppliers %}
+            <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_supplier_id">Change</button>     
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </body>
 </html>

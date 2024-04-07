@@ -26,11 +26,11 @@
       <tr><td><a href="change_password/{{session_key}}">Change Password</a></td></tr>
       {% if 'superuser' in permissions %}
       <tr><td><a href="/instance_config/{{ session_key }}">Instance Config</a></td></tr>
-      <tr><td><a href="/inventory_management/{{ session_key }}">Inventory Management</a></td></tr>
+      <tr><td><a href="/inventory_selection/{{ session_key }}">Inventory Selection</a></td></tr>
       {% else %}
       {% for i in permissions %}
         {% if i == 'inventory_management' %}
-        <tr><td><a href="/inventory_management/{{ session_key }}">Inventory Management</a></td></tr>
+        <tr><td><a href="/inventory_selection/{{ session_key }}">Inventory Selection</a></td></tr>
         {% endif %}
       {% endfor %}
       {% endif %}
