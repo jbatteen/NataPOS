@@ -7,7 +7,7 @@ body {
 }
 h1 {
 	font-weight: 400;
-	font-size: 4vw;
+	font-size: 1.5em;
 	text-align: left;
 }
 h2 {
@@ -15,9 +15,7 @@ h2 {
 	font-size: 3vw;
 	text-align: left;
 }
-input {
-/*  font-size: 3vw; */
-}
+
 h3 {
 	font-weight: 400;
 	margin-top: 0em;
@@ -58,39 +56,34 @@ div.mainbody {
 }
 
 /* sidebar stuff */
-
 div.sidebar {
-  height: 98vh;
   width: 15vw;
   float: left;
   position: fixed;
   left: 0;
   top: 0;
   padding: 0.2em;
-  display: block;
+  display: grid;
+  grid-template-columns: 14vw;
+  grid-template-rows: auto;
 }
-table.sidebar {
-  width: 15vw;
-  height: 100%
-}
-tr.menuitem {
+div.menuitem {
   text-align: center;
+  height: 100%;
 }  
-td.menu {
-  height: 7vh;
-}
-td.logo {
-  height: 0;
-}
-td.change: {
-  text-align: right;
+button.menu {
+  width: 14vw;
+  height: 12vh;
+  border: 1px;
+  border-style: solid;
+  color: inherit;
+  font-size: 3vmin;
+  background-color: #010338;
 }
 
-form {
-  display: inline;
-}
-form.change {
-  float: right;
+
+button:hover {
+  background-color: #2d5675;
 }
 
 button {
@@ -106,11 +99,6 @@ button.change {
 /*   font-size: 1.2em; */
 }
 
-button.menu {
-  width: 14vw;
-  height: 100%;
-  font-size: 3vmin;
-}
 button:hover {
   background-color: #2d5675;
 }

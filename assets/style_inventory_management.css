@@ -52,7 +52,6 @@ select.wide {
 }
 
 div.sidebar {
-  height: 98vh;
   width: 15vw;
   float: left;
   position: fixed;
@@ -61,6 +60,7 @@ div.sidebar {
   padding: 0.2em;
   display: grid;
   grid-template-columns: 14vw;
+  grid-template-rows: auto;
 }
 div.topbar {
   display: grid;
@@ -108,7 +108,7 @@ button.change {
 
 button.menu {
   width: 14vw;
-  height: 15vh;
+  height: 12vh;
   font-size: 3vmin;
 }
 button:hover {

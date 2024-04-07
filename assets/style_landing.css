@@ -15,9 +15,6 @@ h2 {
 	font-size: 3vw;
 	text-align: left;
 }
-input {
-  font-size: 3vw;
-}
 h3 {
 	font-weight: 400;
 	margin-top: 0em;
@@ -38,34 +35,6 @@ h5 {
 }
 
 
-/* unused recycled
- p {
-	text-align: left;
-	text-indent: 2em;
-}
-a:visited {
-	color: #878683;
-}
-a:link {
-	color: #bebebe;
-}
-img.header {
-	display: block;
-	margin-top: 0.5em;
-	margin-bottom: 0em;
-	margin-left: auto;
-	margin-right: auto;
-}
-img.footer {
-	display: block;
-	margin-top: 0em;
-	margin-bottom: 0em;
-	margin-left: auto;
-	margin-right: auto;
-}
-*/
-
-
 div.mainbody {
   right: 0;
   top: 1vh;
@@ -76,99 +45,30 @@ div.mainbody {
 /* sidebar stuff */
 
 div.sidebar {
-  height: 98vh;
   width: 15vw;
   float: left;
   position: fixed;
   left: 0;
   top: 0;
   padding: 0.2em;
-  display: block;
+  display: grid;
+  grid-template-columns: 14vw;
+  grid-template-rows: auto;
 }
-
 div.menuitem {
   text-align: center;
 }  
 button.menu {
   width: 14vw;
-  height: 100%;
+  height: 12vh;
   border: 1px;
   border-style: solid;
   color: inherit;
   font-size: 3vmin;
   background-color: #010338;
 }
-div.menu {
-  height: 7vh;
-}
-div.logo {
-  height: 0;
-}
-
-/* top bar stuff */
-
-table.topbartable {
-  height: 4vw;
-  width: 100%;
-  border-style: solid;
-  border-width: 1px;
-}
-table.topbartable td {
-  border-style: solid;
-  border-width: 1px;
-  text-align: center;
-  font-size: 2vw;
-}
-
-/* receipt stuff */
-
-div.receipt {
-  height: 95%;
-  width: 100%;
-  top: 0;
-  padding: 0;
-  font-size: 1.7vw;
-}
-div.receiptrow {
-  height: 3.5vw;
-}
-div.receiptitem {
-  width: 45%;
-}
-div.receiptqty {
-  width: 15%;
-}
-div.receiptprice {
-  width: 18%;
-}
-div.receipttax {
-  width: 17%;
-  text-align: right;
-}
 
 
-form {
-  display: inline;
-}
-button.registermode {
-  margin-top: 0.2em;
-  border: 1px;
-  color: inherit;
-  border-style: solid;
-  appearance: none;
-  background-color: #010338;
-}
-button.receipt {
-  width: 1.4em;
-  height: 1.4em;
-  border: 1px;
-  border-style: solid;
-  color: inherit;
-  font-size: 1em;
-  background-color: #010338;
-  display: inline;
-  padding: 0;
-}
 button:hover {
   background-color: #2d5675;
 }

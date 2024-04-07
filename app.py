@@ -14,7 +14,7 @@ from pymongo.mongo_client import MongoClient
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
 from calculate_worked_hours import calculate_worked_hours
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string
 from inventory_functions import get_inventories, get_suppliers
 
 
@@ -123,7 +123,7 @@ def instance_config(session_key):
       if len(request.form['instance_name']) < 4:
         message = 'Error: name must be 4 characters or more'
       else:
-        if is_valid_username(request.form['instance_name']) == False:
+        if is_valid_string(request.form['instance_name']) == False:
           message = 'Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"'
         else:
           instance_name = request.form['instance_name']
@@ -188,7 +188,7 @@ def landing(session_key):
   if request.method == 'POST':
     if request.form['function'] == 'clock_in':
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+      timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
       if timesheet is not None:
         db.timesheets.update_one({'username': username, 'pay_period': current_pay_period}, {'$set': {str(current_time): 'in'}})
       else:
@@ -210,9 +210,7 @@ def landing(session_key):
   timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
   if timesheet is not None:
     worked_hours = str(calculate_worked_hours(timesheet))
-    del timesheet['username']
-    del timesheet['pay_period']
-    del timesheet['_id']
+
     timestamps = sorted(timesheet)
     last_punch = timesheet[timestamps[-1]]
     message = 'Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))

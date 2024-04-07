@@ -7,20 +7,18 @@
 </head>
 <body>
   <div class="sidebar">
-    <table class="sidebar">
-      <tr class="menuitem"><td class="logo">
-        <img src="{{ assets_url }}/logo.png" style="width:100%">
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </td></tr>
-    </table>
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+    </div>
   </div>
   <div class="mainbody">
     <h1>{{ instance_name }} Inventory Selection</h1>

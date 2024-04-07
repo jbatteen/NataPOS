@@ -7,34 +7,32 @@
 </head>
 <body>
   <div class="sidebar">
-    <table class="sidebar">
-      <tr class="menuitem"><td class="logo">
-        <img src="{{ assets_url }}/logo.png" style="width:100%">
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </td></tr>
-      <tr class="menuitem"><td class="menu">
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </td></tr>
-    </table>
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+    </div>
   </div>
   <div class="mainbody">
     <h1>{{ instance_name }} Admin</h1>
     <h3>{{ message|safe }}</h3>
-    <table class="admin_list">
-      <tr><td><a href="change_password/{{session_key}}">Change Password</a></td></tr>
+    <div class="admin_list">
+      <div><a href="change_password/{{session_key}}">Change Password</a></div>
       {% if 'superuser' in permissions %}
-      <tr><td><a href="/instance_config/{{ session_key }}">Instance Config</a></td></tr>
-      <tr><td><a href="/inventory_selection/{{ session_key }}">Inventory Selection</a></td></tr>
+      <div><a href="/instance_config/{{ session_key }}">Instance Config</a></div>
+      <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
       {% else %}
       {% for i in permissions %}
         {% if i == 'inventory_management' %}
-        <tr><td><a href="/inventory_selection/{{ session_key }}">Inventory Selection</a></td></tr>
+        <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
         {% endif %}
       {% endfor %}
       {% endif %}
-    </table>
+    </div>
   </div>
 </body>
 </html>
