@@ -1,0 +1,27 @@
+div.select_inventory, div.select_inventory_superuser, div.create_inventory {
+  margin-top: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.select_inventory, div.create_inventory {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+div.select_inventory_superuser {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.select_inventory, div.select_inventory_superuser, div.create_inventory div{
+  padding: .3em;
+}
+button.wide {
+  padding: 1em, 1em;
+  width: 95%;
+}
+input.wide {
+  width: 95%;
+}
+select {
+  width: 95%;
+}
+
