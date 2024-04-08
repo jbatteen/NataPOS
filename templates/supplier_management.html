@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_supplier_management.css">
+  <title>{{ instance_name }} Supplier Management</title>
+  <script>
+    function switch_visible(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menuitem">
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+    </div>
+    <div class="menu">
+      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+    </div>
+  </div>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Supplier Management</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <div class="supplier_list">
+
+   
+
+    {% if suppliers != [] %}
+    {% for i in suppliers_collection %}
+
+      <div class="supplier">
+
+        <div class="supplier_key">Name:</div>
+        <div class="supplier_value">{{ i['supplier_id'] }}</div>
+        
+        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_website')">Website:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_website_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a website" name="website">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+        
+        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_phone')">Phone:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_phone_value">{{ i['phone'] }}</div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_phone_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a phone number" name="phone">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+        
+        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_address')">Address:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_address_value">{{ i['address'] }}</div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_address_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter an address" name="address">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+        
+        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_contact_name')">Contact Name:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_contact_name_value">{{ i['contact_name'] }}</div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_contact_name_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a contact name" name="contact_name">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+        
+        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_email')">Email:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_email_value">{{ i['email'] }}</div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_email_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter an email address" name="email">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+
+
+      </div>
+    {% endfor %}
+    {% endif %}
+
+      <div class="new_supplier">
+        <div class="new_supplier_top">Create a New Supplier:</div>
+        <form method="post">
+          <div class="new_supplier_info">
+            <div class="supplier_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the supplier" name="supplier_id"></div>
+            <div class="supplier_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
+            <div class="supplier_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
+            <div class="supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
+            <div class="supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
+            <div class="supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
+            <div class="new_supplier_button"><button class="change" type="submit" name="function" value="create_supplier">Create</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  
+  </div>
+</body>
+</html>

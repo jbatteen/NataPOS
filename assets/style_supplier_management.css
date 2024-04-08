@@ -1,0 +1,58 @@
+
+div.supplier_list {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.supplier{
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+  grid-template-columns: 1fr 3fr;
+}
+div.supplier_value {
+  display: grid;
+}
+div.supplier_input {
+  display: none;
+}
+
+div.new_supplier {
+  border-width: 1px;
+  border-style: solid;
+
+}
+div.new_supplier_info {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+}
+div.new_supplier_top {
+  text-align: center;
+}
+div.new_supplier_button {
+  margin-top: 0.4em;
+  text-align: center;
+  grid-column: 1 / span 2;
+}
+div.supplier_key {
+  text-align: right;
+  margin-right: 0.5em;
+}
+button.wide {
+  padding: 1em, 1em;
+  width: 95%;
+  height: 2em;
+}
+input.wide {
+  width: 95%;
+}
+select {
+  width: 95%;
+}
+

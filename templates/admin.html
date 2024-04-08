@@ -22,14 +22,22 @@
     <h1>{{ instance_name }} Admin</h1>
     <h3>{{ message|safe }}</h3>
     <div class="admin_list">
-      <div><a href="change_password/{{session_key}}">Change Password</a></div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="change_password">Change Password</button></form>
+      </div>
       {% if 'superuser' in permissions %}
-      <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
-      <div><a href="/instance_config/{{ session_key }}">Instance Config</a></div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="instance_config">Instance Config</button></form>
+      </div>
       {% else %}
       {% for i in permissions %}
       {% if i == 'inventory_management' %}
-      <div><a href="/inventory_selection/{{ session_key }}">Inventory Management</a></div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+      </div>
       {% endif %}
       {% endfor %}
       {% endif %}

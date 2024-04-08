@@ -54,8 +54,9 @@
 - 'url': str (http://xxxxxx)
 
 ## transactions
-- 'transaction_id': str (YYMMDDHHMMSS) (while transaction is unpaid or if voided, this is the timestamp of transaction creation.  when it is paid, the id changes to become the time of transaction completion)
-- 'register': str (register number)
+- 'transaction_id': str (YYMMDDHHMMSS-$register) (while transaction is unpaid or if voided, this is the timestamp of transaction creation.  when it is paid, the id changes to become the time of transaction completion)
+- 'time_started': str (YYMMDDHHMMSS) time transaction started
+- 'register': str (register name)
 - 'member': str (member_id)
 - 'status': str ('unpaid', 'paid', 'background', 'voided')
 - 'clerk': str (username of employee making the transaction)
@@ -80,7 +81,7 @@
 
 ## departments
 - 'department_id': str (unique identifier for department)
-- 'sub_inventory': str, '' by default, otherwise inventory_id of separate inventory if you need to keep track of interdepartment sales like deli buying ingredients from store
+- 'separate_inventory': bool (true to keep track of inventory separately )
 - 'default_taxes': if present, overrides store default
 - 'employee_discount': float (percent off for employees)
 - 'categories': dictionary of

@@ -23,17 +23,8 @@ h3 {
 }
 a:visited, a:link {
 	color: #d4d0ab;
-  padding: 14px 25px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  background-color: #010338;
-  border: 1px;
-  border-style: solid;
 }
-a:hover, a:active {
-  background-color: #2d5675;
-}
+
 div.mainbody {
   right: 0;
   top: 0;

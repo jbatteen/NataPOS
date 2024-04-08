@@ -1,0 +1,233 @@
+div.topbar {
+  display: grid;
+  grid-template-columns: 50% 40% 10%;
+  margin-bottom: 2em;
+}
+div.property {
+  display: grid;
+  grid-template-columns: 20% 80%;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+  margin-top: 0.1em;
+  height: 1.8em;
+  align-items: center;
+}
+div.input {
+  width: 100%;
+  display: none;
+  grid-template-columns: auto auto;
+}
+div.price_combo_key {
+  display: grid;
+  align-items: center;
+  width: 28vw;
+  justify-content: end;
+}
+div.price_combo_input{
+  display: none;
+}
+div.price_combo_value {
+  display: grid;
+}
+div.price_combo_input, div.price_combo_value {
+  align-items: center;
+  width: 10vw;
+  justify-content: left;
+}
+div.price_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.price_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+
+div.quantity_combo_key {
+  display: grid;
+  align-items: center;
+/*  width: 10vw; */
+  justify-content: end;
+  margin-right: 1em;
+}
+div.quantity_combo_value {
+  display: grid;
+}
+div.quantity_combo_input {
+  display: none;
+}
+div.quantity_combo_input, div.quantity_combo_value {
+  align-items: center;
+  width: 15vw;
+  justify-content: left;
+}
+div.quantity_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.quantity_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+
+
+
+div.supplier_combo_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.supplier_combo_value {
+  display: grid;
+}
+div.supplier_combo_input {
+  display: none;
+}
+div.supplier_combo_input, div.supplier_combo_value {
+  align-items: center;
+  width: 30vw;
+  justify-content: left;
+}
+div.supplier_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.supplier_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+
+div.dropdown_combo_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.dropdown_combo_value {
+  display: grid;
+}
+div.dropdown_combo_input {
+  display: none;
+}
+div.dropdown_combo_input, div.dropdown_combo_value {
+  align-items: center;
+  width: 15vw;
+  justify-content: left;
+}
+div.dropdown_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.dropdown_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+div.item_groups {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.item_group {
+  align-items: center;
+  height: 2em;
+  display: grid;
+  text-align: center;
+}
+div.item_group_heading {
+  border-width: 1px;
+  border-style: solid;
+  align-items: center;
+  text-align: center;
+  height: 2em;
+  display: grid;
+}
+div.small_fields_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.small_fields_value {
+  display: grid;
+}
+div.small_fields_input {
+  display: none;
+}
+div.small_fields_input, div.small_fields_value {
+  align-items: center;
+  width: 15vw;
+  justify-content: left;
+}
+div.small_fields {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.small_fields div {
+  align-items: center;
+  height: 2em;
+}
+
+
+
+input.wide {
+/*  width: ; */
+}
+select {
+  /* width: 95%; */
+}
+button.key {
+  background-color: #1f2a46;
+  border: none;
+/*  border-style: solid; */
+  width: max-content;
+}
+button.key:hover {
+  background-color: #1f2a46;
+}
+input.value {
+  width: 60%;
+}
+input.price {
+  width: 3em;
+}
+input {
+  font-size: inherit;
+}

@@ -72,6 +72,9 @@ div.admin_list {
   grid-template-columns: 1fr 1fr 1fr 1fr;
   display: grid;
 }
+div.admin_list div {
+  text-align: center;
+}
 
 div.menuitem {
   text-align: center;
