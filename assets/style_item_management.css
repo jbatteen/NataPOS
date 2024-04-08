@@ -16,7 +16,7 @@ div.property {
 div.input {
   width: 100%;
   display: none;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto;
 }
 div.price_combo_key {
   display: grid;
@@ -223,7 +223,7 @@ button.key:hover {
   background-color: #1f2a46;
 }
 input.value {
-  width: 60%;
+  width: 90%;
 }
 input.price {
   width: 3em;

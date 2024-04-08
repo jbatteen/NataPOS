@@ -110,7 +110,7 @@
 - 'locality': str (tax district, eg 'Aberdeen, SD')
 - 'rate': float (tax rate)
 
-## inventory_<inventory_id>
+## inventory
 - 'item_id': str (UPC/PLU)
 - 'previous_item_id': str (UPC/PLU) (use this to link items for sales reports, to keep continuous sales data when UPCs change)
 - 'name': str (human readable name, goes on register display)
@@ -118,7 +118,7 @@
 - 'description': str (long form description, visible to customer in places)
 - 'memo': str (internal, never visible to customer)
 - 'picture': str (url to picture)
-- 'regular_price': float (base $price to the customer per unit)
+- 'regular_price_$location_id': float (base $price to the customer per unit) at $location_id
 - 'suggested_retail_price': float ($price)
 - 'unit': str ('ea', 'lb', 'oz', etc)
 - 'supplier': str ('supplier_id')
@@ -133,9 +133,9 @@
 - 'discontinued': bool
 - 'employee_discount': float (percent)   if present, overrides department/category defaults
 - 'age_restricted': int (0 if no, other if age)
-- 'quantity_on_hand': float
-- 'most_recent_delivery': str (MMDDYY)
-- 'quantity_low_alert': float (quantity to alert)
+- 'quantity_on_hand_$location_id': float    qoh at $location_id
+- 'most_recent_delivery_$location_id': str (MMDDYY) at $location_id
+- 'quantity_low_alert_$location_id': float (quantity to alert at $location_id)
 
 ## item_groups
 - 'item_group_id': str (unique group identifier)

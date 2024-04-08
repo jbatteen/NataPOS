@@ -9,7 +9,7 @@ div.supplier_list {
 }
 div.supplier{
   align-items: center;
-  margin-top: 0.1em;
+  margin-bottom: 0.1em;
   display: grid;
   border-width: 1px;
   border-style: solid;

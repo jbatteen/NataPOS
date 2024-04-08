@@ -62,7 +62,7 @@
           <form class="change" method="post">
             <input type="text" class="value" title="Enter a name" name="name">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_name">Change</button>
+            <input type="submit" name="function" value="change_name" hidden>
           </form>
         </div>
       </div>
@@ -73,7 +73,7 @@
           <form class="change" method="post">
             <input type="text" class="value" title="Enter a description" name="description">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_description">Change</button>
+            <input type="submit" name="function" value="change_description" hidden>
           </form>
         </div>
       </div>
@@ -84,7 +84,7 @@
           <form class="change" method="post">
             <input type="text" class="value" title="Enter a receipt alias" name="receipt_alias">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_receipt_alias">Change</button>
+            <input type="submit" name="function" value="change_receipt_alias" hidden>
           </form>
         </div>
       </div>
@@ -95,7 +95,7 @@
           <form class="change" method="post">
             <input type="text" class="value" title="Enter a memo" name="memo">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_memo">Change</button>
+            <input type="submit" name="function" value="change_memo" hidden>
           </form>
         </div>
       </div>
@@ -105,9 +105,9 @@
         <div id="regular_price_value" class="price_combo_value">{{ scanned_item['regular_price'] }}</div>
         <div id="regular_price_input" class="price_combo_input">
           <form class="change" method="post">
-            <input type="text" class="price" title="Enter a regular price" name="regular_price">
+            <input type="text" class="price" title="Enter the regular non-discounted price" name="regular_price">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_regular_price">OK</button>
+            <input type="submit" name="function" value="change_regular_price" hidden>
           </form>
         </div>
 
@@ -117,7 +117,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a margin" name="margin">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_regular_price_by_margin">OK</button>
+            <input type="submit" name="function" value="change_regular_price_by_margin" hidden>
           </form>
         </div>
 
@@ -127,7 +127,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a suggested retail price" name="suggested_retail_price">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_suggested_retail_price">OK</button>
+            <input type="submit" name="function" value="change_suggested_retail_price" hidden>
           </form>
         </div>
 
@@ -140,7 +140,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a case price" name="case_cost">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_case_cost">OK</button>
+            <input type="submit" name="function" value="change_case_cost" hidden>
           </form>
         </div>
 
@@ -150,11 +150,11 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a case quantity" name="case_quantity">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_case_quantity">OK</button>
+            <input type="submit" name="function" value="change_case_quantity" hidden>
           </form>
         </div>
 
-        <div class="price_combo_key">Cost Per:</div>
+        <div class="price_combo_key">Calculated Cost Per:</div>
         <div class="price_combo_value">{{ cost_per_unit }}$1.00</div>
 
         <div class="price_combo_key"><button class="key" onclick="switch_visible('employee_discount')">Employee Discount:</button></div>
@@ -163,7 +163,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a percentage" name="employee_discount">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_employee_discount">OK</button>
+            <input type="submit" name="function" value="change_employee_discount" hidden>
           </form>
         </div>
 
@@ -176,7 +176,7 @@
           <form class="change" method="post">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input class="price" type="text" title="Enter quantity on hand" name="quantity_on_hand">
-            <button class="change" type="submit" name="function" value="change_quantity_on_hand">OK</button>
+            <input type="submit" name="function" value="change_quantity_on_hand" hidden>
           </form>
         </div>
         
@@ -200,7 +200,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter a quantity" name="quantity_low_alert">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_quantity_low_alert">OK</button>
+            <input type="submit" name="function" value="change_quantity_low_alert" hidden>
           </form>
         </div>
 
@@ -212,7 +212,11 @@
         <div class="supplier_combo_value" id="supplier_value">{{ scanned_item['supplier'] }}</div>
         <div class="supplier_combo_input" id="supplier_input">
           <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a supplier" name="supplier">
+            <select name="supplier_id">
+              {% for i in supplier_list %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
+            </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_supplier">OK</button>
           </form>
@@ -224,7 +228,7 @@
             <form class="change" method="post">
               <input type="text" class="wide" title="Enter an order code" name="order_code">
               <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-              <button class="change" type="submit" name="function" value="change_order_code">OK</button>
+              <input type="submit" name="function" value="change_order_code" hidden>
             </form>
           </div>
       </div>
@@ -330,7 +334,7 @@
           <form class="change" method="post">
             <input type="text" class="price" title="Enter an age, 0 for non-restricted" name="age_restricted">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_age_restricted">OK</button>
+            <input type="submit" name="function" value="change_age_restricted" hidden>
           </form>
         </div>
       </div>

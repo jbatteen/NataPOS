@@ -275,7 +275,6 @@ def item_management(inventory_id, session_key):
     elif request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
     elif request.form['function'] == 'scan':
-      cursor = db[inventory_collection_name].find({})
       scanned_item = db[inventory_collection_name].find_one({'item_id' : request.form['scan']})
       if scanned_item is None: # load defaults
 
