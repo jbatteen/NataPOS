@@ -123,7 +123,7 @@
 - 'supplier': str ('supplier_id')
 - 'order_code': str (if supplier uses something other than UPC to identify product, like product number etc)
 - 'case_quantity': float
-- 'case_price': float ($case price)
+- 'case_cost': float ($case cost)
 - 'item_groups': list of str (item_group_id)
 - 'department': str (department_id)
 - 'category': str (category_id)

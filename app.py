@@ -314,7 +314,7 @@ def inventory_selection(session_key):
     elif request.form['function'] == 'create_inventory':
       if is_valid_username(request.form['inventory_id']):
         inventory_collection_name = 'inventory_' + request.form['inventory_id']
-        db[inventory_collection_name].insert_one({'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'regular_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_price': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0})
+        db[inventory_collection_name].insert_one({'item_id': 'default', 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'regular_price': 1.0, 'quantity_on_hand': 1, 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 10, 'case_cost': 8.0, 'item_groups': '', 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'age_restricted': 0})
         return redirect('/inventory_management/' + request.form['inventory_id'] + '/' + session_key)
       else:
         message = 'invalid characters in inventory_id'

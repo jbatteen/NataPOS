@@ -48,6 +48,8 @@ div.price_combo div {
   align-items: center;
   height: 2em;
 }
+
+
 div.quantity_combo_key {
   display: grid;
   align-items: center;
@@ -63,7 +65,7 @@ div.quantity_combo_input {
 }
 div.quantity_combo_input, div.quantity_combo_value {
   align-items: center;
-  width: 10em;
+  width: 15vw;
   justify-content: left;
 }
 div.quantity_combo {
@@ -79,8 +81,127 @@ div.quantity_combo div {
   align-items: center;
   height: 2em;
 }
+
+
+
+
+div.supplier_combo_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.supplier_combo_value {
+  display: grid;
+}
+div.supplier_combo_input {
+  display: none;
+}
+div.supplier_combo_input, div.supplier_combo_value {
+  align-items: center;
+  width: 30vw;
+  justify-content: left;
+}
+div.supplier_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.supplier_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+
+div.dropdown_combo_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.dropdown_combo_value {
+  display: grid;
+}
+div.dropdown_combo_input {
+  display: none;
+}
+div.dropdown_combo_input, div.dropdown_combo_value {
+  align-items: center;
+  width: 15vw;
+  justify-content: left;
+}
+div.dropdown_combo {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.dropdown_combo div {
+  align-items: center;
+  height: 2em;
+}
+
+div.item_groups {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.item_group {
+  align-items: center;
+  height: 2em;
+  display: grid;
+}
+
+
+div.small_fields_key {
+  display: grid;
+  align-items: center;
+  width: 10vw;
+  justify-content: end;
+  margin-right: 1em;
+}
+div.small_fields_value {
+  display: grid;
+}
+div.small_fields_input {
+  display: none;
+}
+div.small_fields_input, div.small_fields_value {
+  align-items: center;
+  width: 15vw;
+  justify-content: left;
+}
+div.small_fields {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.small_fields div {
+  align-items: center;
+  height: 2em;
+}
+
+
+
 input.wide {
-  width: 95%;
+/*  width: ; */
 }
 select {
   /* width: 95%; */
@@ -98,7 +219,7 @@ input.value {
   width: 60%;
 }
 input.price {
-  width: 2em;
+  width: 3em;
 }
 input {
   font-size: inherit;
