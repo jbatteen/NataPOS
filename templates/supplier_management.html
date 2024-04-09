@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{{ assets_url }}/style_supplier_management.css">
   <title>{{ instance_name }} Supplier Management</title>
   <script>
-    function switch_visible(property) {
+    function switch_value_input(property) {
       var value_id = "";
       value_id = property.concat("_value");
       var input_id = "";
@@ -56,7 +56,7 @@
         <div class="supplier_key">Name:</div>
         <div class="supplier_value">{{ i['supplier_id'] }}</div>
         
-        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_website')">Website:</button></div>
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_website_input">
           <form class="change" method="post">
@@ -66,7 +66,7 @@
           </form>
         </div>
         
-        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_phone')">Phone:</button></div>
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_phone')">Phone:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_phone_value">{{ i['phone'] }}</div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_phone_input">
           <form class="change" method="post">
@@ -76,7 +76,7 @@
           </form>
         </div>
         
-        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_address')">Address:</button></div>
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_address')">Address:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_address_value">{{ i['address'] }}</div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_address_input">
           <form class="change" method="post">
@@ -86,7 +86,7 @@
           </form>
         </div>
         
-        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_contact_name')">Contact Name:</button></div>
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_contact_name')">Contact Name:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_contact_name_value">{{ i['contact_name'] }}</div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_contact_name_input">
           <form class="change" method="post">
@@ -96,7 +96,7 @@
           </form>
         </div>
         
-        <div class="supplier_key"><button class="key" onclick="switch_visible('{{ i['supplier_id'] }}_email')">Email:</button></div>
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_email')">Email:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_email_value">{{ i['email'] }}</div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_email_input">
           <form class="change" method="post">

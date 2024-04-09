@@ -22,10 +22,6 @@ div.supplier_value {
 div.supplier_input {
   display: none;
 }
-div.supplier_key {
-  text-align: right;
-  margin-right: 0.5em;
-}
 
 div.new_supplier {
   border-width: 1px;
@@ -48,6 +44,11 @@ div.new_supplier_button {
 div.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
+}
+
+div.supplier_key {
+  text-align: right;
+  margin-right: 0.5em;
 }
 div.new_supplier_key {
   text-align: right;

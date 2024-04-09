@@ -24,15 +24,12 @@
     <h1>{{ instance_name }} Admin</h1>
     <h3>{{ message|safe }}</h3>
     <div class="admin_list">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="change_password">Change Password</button></form>
-      </div>
       {% if 'superuser' in permissions %}
       <div>
         <form method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
       </div>
       <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="instance_config">Instance Config</button></form>
+        <form method="post"><button class="menu" type="submit" name="function" value="global_config">Global Config</button></form>
       </div>
       {% else %}
       {% for i in permissions %}
@@ -43,6 +40,9 @@
       {% endif %}
       {% endfor %}
       {% endif %}
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="change_password">Change Password</button></form>
+      </div>
     </div>
   </div>
 </body>

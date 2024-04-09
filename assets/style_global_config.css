@@ -25,3 +25,30 @@ input {
 select {
   width: 95%;
 }
+div.location_list {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.location{
+  align-items: center;
+  margin-bottom: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+  grid-template-columns: 1fr 3fr;
+}
+div.location_value {
+  display: grid;
+}
+div.location_input {
+  display: none;
+}
+div.location_key {
+  text-align: right;
+  margin-right: 0.5em;
+}

@@ -58,6 +58,8 @@ def get_locations_collection(db):
   locations_collection = []
   collection = db.inventory_management.find({'type': 'location'})
   for location in collection:
+    print('location')
+    print(location)
     del location['_id']
     locations_collection.append(location)
   return locations_collection
@@ -152,15 +154,37 @@ def beautify_item(input_item):
       beautified[i] = input_item[i]
     elif i == 'category':
       beautified[i] = input_item[i]
+    elif i == 'subcategory':
+      beautified[i] = input_item[i]
     elif i == 'brand':
       beautified[i] = input_item[i]
     elif i == 'item_groups':
       beautified[i] = input_item[i]
     elif i == 'local':
       beautified[i] = str(input_item[i])
+    elif i == 'active':
+      beautified[i] = str(input_item[i])
+    elif i == 'online_ordering':
+      if input_item[i] == 'yes':
+        beautified[i] = 'Yes'
+      if input_item[i] == 'members':
+        beautified[i] = 'Members'
+      if input_item[i] == 'no':
+        beautified[i] = 'No'
     elif i == 'discontinued':
       beautified[i] = str(input_item[i])
     elif i == 'age_restricted':
       beautified[i] = str(input_item[i])
   return beautified
 
+
+def get_item_group_list(db):
+  try:
+    db.validate_collection("inventory_management")
+  except:
+    return []
+  item_group_list = []
+  collection = db.inventory_management.find({'type': 'item_group'})
+  for item_group in collection:
+    item_group_list.append(item_group['item_group_id'])
+  return item_group_list

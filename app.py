@@ -34,7 +34,7 @@ else:
     most_recent_sunday = date.today() + timedelta(days=(0 - int(date.today().isoweekday())))
     two_weeks_from_then = most_recent_sunday + timedelta(days=14)
     current_pay_period = most_recent_sunday.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'tax_types': ['Sales Tax', 'Alcohol Tax'], 'pay_period_rollover': 15})
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'pay_period_rollover': 15})
 
 
 
@@ -106,7 +106,7 @@ def create_first_user():
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
   
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id})
+        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': []})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'])
         if creation_check['success'] == True:
@@ -115,7 +115,7 @@ def create_first_user():
           session_key = ''
           if result['success'] == True:
             session_key = result['session_key']
-            return redirect('/instance_config/' + session_key)
+            return redirect('/global_config/' + session_key)
           else:
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='validation error')
         else:
@@ -125,13 +125,20 @@ def create_first_user():
   else:
     return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url)
 
-@app.route('/instance_config/<session_key>', methods=['POST', 'GET'])
-def instance_config(session_key):
+@app.route('/global_config/<session_key>', methods=['POST', 'GET'])
+def global_config(session_key):
   message = None
   current_pay_period_start = None
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
+
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions:
+    return redirect('/landing/' + session_key)
   if request.method == 'POST':
     if request.form['function'] == 'change_instance_name':
       if len(request.form['instance_name']) < 4:
@@ -179,15 +186,29 @@ def instance_config(session_key):
       return redirect('/landing/' + session_key)
     elif request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
+    elif request.form['function'] == 'create_tax':
+      if is_valid_float(request.form['tax_rate']) == False:
+        message = 'Invalid tax rate.  Enter a number with no percent sign'
+      elif is_valid_string(request.form['tax_id']) == False:
+        message = 'Invalid tax ID'
+      else:
+        tax_rate = 0.0
+        tax_rate = float(request.form['tax_rate']) / 100
+        location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
+        location_taxes = []
+        new_tax = {}
+        location_taxes = location_document['taxes']
+        new_tax['tax_id'] = request.form['tax_id']
+        new_tax['rate'] = tax_rate
+        location_taxes.append(new_tax)
+        result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
   config = db.natapos.find_one({'config': 'global'})
-  tax_types = []
-  tax_types = config['tax_types']
   pay_period_type = config['pay_period_type']
   instance_name = config['instance_name']
   current_pay_period = config['current_pay_period']
   pay_period_rollover = config['pay_period_rollover']
 
-  return render_template('instance_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period=current_pay_period, current_pay_period_start=current_pay_period.split('-')[0], pay_period_rollover=pay_period_rollover, message=message, tax_types=tax_types)
+  return render_template('global_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period=current_pay_period, current_pay_period_start=current_pay_period.split('-')[0], pay_period_rollover=pay_period_rollover, message=message, locations_collection=get_locations_collection(db))
     
 
 @app.route('/landing/<session_key>', methods=['POST', 'GET'])
@@ -253,8 +274,8 @@ def admin(session_key):
       return redirect('/change_password/' + session_key)
     elif request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/' + session_key)
-    elif request.form['function'] == 'instance_config':
-      return redirect('/instance_config/' + session_key)
+    elif request.form['function'] == 'global_config':
+      return redirect('/global_config/' + session_key)
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -303,13 +324,13 @@ def item_management(session_key):
         
     elif request.form['function'] == 'create_new_item':
       scanned_barcode = request.form['scan']
-      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': 0.3, 'suggested_retail_price': 0.01, 'age_restricted': 0}
+      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': 0.3, 'suggested_retail_price': 0.01, 'age_restricted': 0}
       db.inventory.insert_one(scanned_item)
       locations_to_add_to = request.form.getlist('add_to_location[]')
       for i in locations_to_add_to:
         today = date.today()
-        today_string = today.strftime('%m/%d/%Y')
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01})
+        today_string = today.strftime('%m/%d/%y')
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': []})
       scanned_item['locations'] = locations_collection
       db.inventory.update_one({'item_id': scanned_barcode}, {'$set': {'locations': locations_collection}})
     
@@ -344,12 +365,6 @@ def item_management(session_key):
         message = 'Invalid memo'
       else:
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'memo': request.form['memo']}})
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
-    elif request.form['function'] == 'change_order_code':
-      if is_valid_string(request.form['order_code']) == False:
-        message = 'Invalid order code'
-      else:
-        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'order_code': request.form['order_code']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_case_cost':
       if is_valid_price(request.form['case_cost']) == False:
@@ -413,11 +428,159 @@ def item_management(session_key):
           new_locations_collection.append(i)
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
         scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_most_recent_delivery':
+      if is_valid_date(request.form['most_recent_delivery']) == False:
+        message = 'Invalid date'
+      else:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['most_recent_delivery'] = request.form['most_recent_delivery']
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_quantity_low':
+      valid = False
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      if scanned_item['unit'] == 'each':
+        if is_valid_int(request.form['quantity_low']) == False:
+          message = 'Invalid quantity, must be whole number'
+        else:
+          valid = True
+      else:
+        if is_valid_float(request.form['quantity_low']) == False:
+          message = 'Invalid quantity, must be a valid number'
+        else:
+          valid = True
+      if valid == True:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['quantity_low'] = float(request.form['quantity_low'])
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+        scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_quantity_high':
+      valid = False
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      if scanned_item['unit'] == 'each':
+        if is_valid_int(request.form['quantity_high']) == False:
+          message = 'Invalid quantity, must be whole number'
+        else:
+          valid = True
+      else:
+        if is_valid_float(request.form['quantity_high']) == False:
+          message = 'Invalid quantity, must be a valid number'
+        else:
+          valid = True
+      if valid == True:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['quantity_high'] = float(request.form['quantity_high'])
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+        scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_unit':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'unit': request.form['unit']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_supplier':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'supplier': request.form['supplier_id']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_order_code':
+      if is_valid_string(request.form['order_code']) == False:
+        message = 'Invalid order code'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'order_code': request.form['order_code']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_department':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'department': request.form['department']}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'category': ''}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': ''}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_category':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'category': request.form['category']}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': ''}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_subcategory':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': request.form['subcategory']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_brand':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'brand': request.form['brand']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    #### ITEM GROUPS GO HERE
+    elif request.form['function'] == 'create_new_item_group':
+      if is_valid_string(request.form['item_group_id']) == False:
+        message = 'invalid group name'
+      elif request.form['item_group_id'] in item_group_list:
+        message = 'group already exists'
+        
+      else:
+        itemlist = []
+        itemlist.append(request.form['item_id'])
+        db.inventory_management.insert_one({'type': 'item_group', 'item_group_id': request.form['item_group_id'], 'items': itemlist})
+        scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+        grouplist = []
+        grouplist = scanned_item['item_groups']
+        grouplist.append(request.form['item_group_id'])
+        item_group_list.append(request.form['item_group_id'])
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'remove_from_item_group':
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      grouplist = []
+      grouplist = scanned_item['item_groups']
+      grouplist.remove(request.form['item_group_id'])
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'add_to_item_group':
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      grouplist = []
+      grouplist = scanned_item['item_groups']
+      grouplist.append(request.form['item_group_id'])
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_local':
+      if request.form['local'] == 'True':
+        local_bool = True
+      else:
+        local_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'local': local_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_online_ordering':
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'online_ordering': request.form['online_ordering']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_discontinued':
+      if request.form['discontinued'] == 'True':
+        discontinued_bool = True
+      else:
+        discontinued_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'discontinued': discontinued_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_age_restricted':
+      if is_valid_int(request.form['age_restricted']) == False:
+        message = 'invalid age'
+      else:
+        age_int = int(request.form['age_restricted'])
+        if age_int < 0 or age_int > 21:
+          message = 'invalid age'
+        else:
+          db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'age_restricted': age_int}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+
+
 
 
 
   
   if scanned_item is not None:
+    groups_item_is_in = []
+    groups_item_is_in = scanned_item['item_groups']
+    for group in groups_item_is_in:
+      item_group_list.remove(group)
     scanned_item = beautify_item(scanned_item)
   
 
@@ -562,3 +725,31 @@ def supplier_management(session_key):
         else:
           suppliers_collection = get_supplier_collection(db)
   return render_template('supplier_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, suppliers_collection=suppliers_collection, message=message)
+
+
+
+@app.route('/department_management/<session_key>', methods=['POST', 'GET'])
+def department_management(session_key):
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return redirect('/')
+  message = None
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+    return redirect('/landing/' + session_key)
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/' + session_key)
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/' + session_key)
+    elif request.form['function'] == 'inventory_management':
+      return redirect('/inventory_management/' + session_key)
+  return render_template('department_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)

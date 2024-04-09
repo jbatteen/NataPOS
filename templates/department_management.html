@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_supplier_management.css">
+  <title>{{ instance_name }} Department Management</title>
+  <script>
+    function switch_value_input(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menu">
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </div>
+    </div>
+  </div>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Department Management</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <div class="department_list">
+
+   
+
+
+    {% for i in departments %}
+
+      <div class="department">
+
+        <div class="department_key">Name:</div>
+        <div class="department_value">{{ i['department_id'] }}</div>
+        
+        <div class="department_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
+        <div class="department_value" id="{{ i['department_id'] }}_website_value" style="width:fit-content">{{ i['website'] }}</div>
+        <div class="department_input" id="{{ i['department_id'] }}_website_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a website" name="website">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_website" hidden>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+
+  
+  </div>
+</body>
+</html>

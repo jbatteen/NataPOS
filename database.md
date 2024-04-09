@@ -4,8 +4,6 @@
 - 'pay_period_type': str ('weekly', 'biweekly', 'bimonthly'), defaults to biweekly on instance spinup
 - 'current_pay_period': str (MM/DD/YY-MM/DD/YY), for weekly/biweekly, defaults to starting on the most recent sunday on instance spinup
 - 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the 1st and the pay_period_rolloverth, defaults to 15 on instance spinup
-- 'tax_types': list of str ('Sales', 'Alcohol') (not sure if we're using this field yet)
-
 ## employees (employees collection, 'type': 'user')
 - 'username': str (username for this system)
 - 'password': str (bcrypt hash of password)
@@ -71,17 +69,15 @@
   - 'coupons_applied': str (coupon UPCs, in a list if multiple)
   - 'override_price': float (if  the cashier overrode the calculated price, include this as well)
 
-## locations
+## locations (inventory_management collection, 'type': 'location')
 - 'location_id': str (unique identifier for store location)
 - 'phone': str (phone number)
 - 'address': str (street address)
-- 'attached_inventory': str (inventory_id)
 - 'default_taxes': list of str (tax_id applied to new items entered in inventory by default)
 
 
 ## departments
 - 'department_id': str (unique identifier for department)
-- 'separate_inventory': bool (true to keep track of inventory separately )
 - 'default_taxes': if present, overrides store default
 - 'employee_discount': float (percent off for employees)
 - 'categories': dictionary of
@@ -140,7 +136,7 @@
   - 'quantity_low': float (low alert quantity)
   - 'quantity_high': float (plenty on hand quantity)
 
-## item_groups
+## item_groups (inventory_management collection, 'type': 'item_group')
 - 'item_group_id': str (unique group identifier)
 - 'items': list of str (item_id)
 

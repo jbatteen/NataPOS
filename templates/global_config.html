@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_global_config.css">
+  <title>{{ instance_name }} Global Configuration</title>
+  <script>
+    function switch_value_input(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menu">
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </div>
+    </div>
+  </div>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Global Configuration</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <div class="location_list">
+      {% for i in locations_collection %}
+      <div class="location">
+
+        <div class="location_key">Name:</div>
+        <div class="location_value">{{ i['location_id'] }}</div>
+        
+        <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_phone')">Phone:</button></div>
+        <div class="location_value" id="{{ i['location_id'] }}_phone_value" style="width:fit-content">{{ i['phone'] }}</div>
+        <div class="location_input" id="{{ i['location_id'] }}_phone_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a phone" name="phone">
+            <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+            <input type="submit" name="function" value="change_phone" hidden>
+          </form>
+        </div>
+        
+        <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_address')">Address:</button></div>
+        <div class="location_value" id="{{ i['location_id'] }}_address_value" style="width:fit-content">{{ i['address'] }}</div>
+        <div class="location_input" id="{{ i['location_id'] }}_address_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter an address" name="address">
+            <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+            <input type="submit" name="function" value="change_address" hidden>
+          </form>
+        </div>
+
+        <div class="location_taxes">
+          <div class="taxes_heading">Taxes:</div>
+          <div class="create_tax">
+            <div>Create Tax:</div>
+            <div>
+              <form class="change" method="post">
+                <label>Tax name:</label>
+                <input type="text" class="wide" title="Enter a tax name" name="tax_id">
+                <label>Tax rate:</label>
+                <input type="text" class="wide" title="Enter a tax rate" name="tax_rate">
+                <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+                <button class="change" type="submit" name="function" value="create_tax">OK</button>
+              </form>
+            </div>
+          </div>
+          {% for tax in i['taxes'] %}
+          <div class="tax">
+            <div>{{ tax['tax_id'] }}: {{ tax['rate'] }}%</div>
+            <div>
+              <form method="post">
+                <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+
+                <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+                <button class="change" type="submit" name="function" value="delete_tax">X</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <div>
+      <form class="change" method="post">
+        <div class="instance_name">
+          <div>Instance Name: {{ instance_name }}</div>
+          <div><input type="text" title="Enter a name at least 4 characters long" name="instance_name"></div>
+          <div><button class="change" type="submit" name="function" value="change_instance_name">Change</button></div>
+        </div>
+      </form>
+    </div>
+    <div>
+      <form class="change" method="post">
+        <div class="pay_period_type">
+          <div>Pay Period Type: {{ pay_period_type }}</div>
+          <div>
+            <select name="pay_period_type">
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Biweekly</option>
+              <option value="bimonthly">Bimonthly</option>
+            </select>
+          </div>
+          <div><button class="change" type="submit" name="function" value="change_pay_period_type">Change</button></div>
+        </div>
+      </form>
+    </div>
+    {% if pay_period_type == 'weekly' or pay_period_type == 'biweekly' %}
+    <div>
+      <form class="change" method="post">
+        <div class="current_pay_period_start">
+          <div>Current Pay Period Start: {{ current_pay_period_start }}</div>
+          <div><input type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start"></div>
+          <div><button class="change" type="submit" name="function" value="change_current_pay_period_start">Change</button></div>
+        </div>
+      </form>
+    </div>
+    {% elif pay_period_type == 'bimonthly' %}
+    <div>
+      <form class="change" method="post">
+        <div class="pay_period_rollover">
+          <div>Pay Period Rollover: {{ pay_period_rollover }}<sup>th</sup></div>
+          <div><input type="text" name="pay_period_rollover" title="Enter a number between 10 and 19"></div>
+          <div><button class="change" type="submit" name="function" value="change_pay_period_rollover">Change</button></div>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="current_pay_period">Current Pay Period: {{ current_pay_period }}</div>
+  </div>
+</body>
+</html>

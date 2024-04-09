@@ -60,6 +60,7 @@ div.location_specific_header {
   text-align: center;
   align-items: center;
   grid-column: 1 / span 4;
+  margin-bottom: 0;
 }
 div.location_specific_input{
   display: none;
@@ -202,15 +203,36 @@ div.item_group {
   height: 2em;
   display: grid;
   text-align: center;
+  grid-template-columns: 3fr 1fr;
+}
+div.item_group_create {
+  align-items: center;
+  height: 2em;
+  display: grid;
+  text-align: center;
+  grid-template-columns: 3fr 1fr;
+}
+div.div.item_group_add {
+  align-items: center;
+  height: 2em;
+  display: grid;
+  text-align: center;
+  grid-template-columns: 3fr 1fr;
 }
 div.item_group_heading {
-  border-width: 1px;
-  border-style: solid;
   align-items: center;
   text-align: center;
   height: 2em;
   display: grid;
 }
+
+div.item_group_addcreate {
+  align-items: center;
+  text-align: center;
+  height: 2em;
+  display: grid;
+}
+
 div.small_fields_key {
   display: grid;
   align-items: center;
