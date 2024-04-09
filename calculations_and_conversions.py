@@ -23,3 +23,24 @@ def calculate_worked_hours(timesheet):
     last_punch_time = int(i)
   worked_hours = float(worked_seconds) / 3600.0
   return worked_hours
+
+def price_to_float(price = '$0.00'):
+  newstring = ''
+  for i in price:
+    if i != '$':
+      newstring = newstring + i
+  return float(newstring)
+
+def float_to_price(input_float = 0.0):
+  newstring = str(round(input_float, 2))
+  splitstring = newstring.split('.')
+  newstring = '$' + newstring
+  if len(splitstring[1]) == 1:
+    newstring = newstring + '0'
+  return newstring
+  
+def float_to_percent(input_float):
+  percent = round((input_float * 100), 1)
+  newstring = str(percent)
+  newstring = newstring + '%'
+  return newstring

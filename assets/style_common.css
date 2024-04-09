@@ -43,6 +43,12 @@ div.sidebar {
   grid-template-columns: 14vw;
   grid-template-rows: auto;
 }
+
+div.menu {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+}
 button {
   border: 1px;
   border-style: solid;

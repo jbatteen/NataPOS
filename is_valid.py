@@ -20,6 +20,56 @@ def is_valid_password(input_string=''):
       return False
   return True
 
+def is_valid_price(input_string=''):
+  allowed = set("1234567890.$")
+  newstring = ''
+  decimal_count = 0
+  for i in input_string:
+    if i not in allowed:
+      return False
+    if i != '$':
+      newstring = newstring + i
+    if i == '.':
+      decimal_count += 1
+  if decimal_count > 1:
+    return False
+  elif decimal_count == 1:
+    price_split = newstring.split('.')
+    if len(price_split[1]) > 2:
+      return False
+    if len(price_split[0]) > 5:
+      return False
+  return True
+
+
+
+def is_valid_float(input_string=''):
+  allowed = set("1234567890.")
+  decimal_count = 0
+  for i in input_string:
+    if i not in allowed:
+      return False
+    if i == '.':
+      decimal_count += 1
+  if decimal_count > 1:
+    return False
+  elif decimal_count == 1:
+    price_split = input_string.split('.')
+    if len(price_split[1]) > 3:
+      return False
+    if len(price_split[0]) > 5:
+      return False
+  return True
+
+
+def is_valid_int(input_string=''):
+  allowed = set("1234567890")
+  decimal_count = 0
+  for i in input_string:
+    if i not in allowed:
+      return False
+  return True
+
 def is_valid_date(input_string=''):
   allowed = set("0123456789/")
   for i in input_string:

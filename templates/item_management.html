@@ -26,24 +26,25 @@
     <div class="logo">
       <img src="{{ assets_url }}/logo.png" style="width:100%">
     </div>
-    <div class="menuitem">
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
-    </div>
-    <div class="menuitem">
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-    </div>
-    <div class="menuitem">
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-    </div>
-    <div class="menuitem">
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+    <div class="menu">
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+      </div>
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </div>
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </div>
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </div>
     </div>
   </div>
   <div class="mainbody">
-    <h1>{{ instance_name }} Inventory Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="topbar">
-      <div style="text-align:left"><form method="post"><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
+      <div style="text-align:left"><form method="post"><label>Scan:</label><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
       <div style="text-align:left">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
       {% if 'superuser' in permissions %}
       <div style="text-align:right">
@@ -65,28 +66,6 @@
             <input type="text" class="value" title="Enter a name" name="name">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="submit" name="function" value="change_name" hidden>
-          </form>
-        </div>
-      </div>
-      <div class="property">
-        <div class="key"><button class="key" onclick="switch_visible('description')">Description:</button></div>
-        <div id="description_value" class="value">{{ scanned_item['description'] }}</div>
-        <div id="description_input" class="input">
-          <form class="change" method="post">
-            <input type="text" class="value" title="Enter a description" name="description">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_description" hidden>
-          </form>
-        </div>
-      </div>
-      <div class="property">
-        <div class="key"><button class="key" onclick="switch_visible('receipt_alias')">Receipt Alias:</button></div>
-        <div id="receipt_alias_value" class="value">{{ scanned_item['receipt_alias'] }}</div>
-        <div id="receipt_alias_input" class="input">
-          <form class="change" method="post">
-            <input type="text" class="value" title="Enter a receipt alias" name="receipt_alias">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="submit" name="function" value="change_receipt_alias" hidden>
           </form>
         </div>
       </div>
@@ -124,7 +103,7 @@
         </div>
 
         <div class="price_combo_key">Calculated Cost Per:</div>
-        <div class="price_combo_value">{{ cost_per }}</div>
+        <div class="price_combo_value">{{ scanned_item['cost_per'] }}</div>
 
         <div class="price_combo_key"><button class="key" onclick="switch_visible('employee_discount')">Employee Discount:</button></div>
         <div id="employee_discount_value" class="price_combo_value">{{ scanned_item['employee_discount'] }}</div>
@@ -147,12 +126,12 @@
         </div>
 
         <div class="price_combo_key">Calculated Suggested Margin:</div>
-        <div class="price_combo_value">{{ suggested_margin }}</div>
+        <div class="price_combo_value">{{ scanned_item['suggested_margin'] }}</div>
 
 
       </div>
 
-      {% for location in locations_collection %}
+      {% for location in scanned_item['locations'] %}
       <div class="location_specific">
         <div class="location_specific_header">Location: {{ location['location_id'] }}</div>
         <div class="location_specific_key"><button class="key" onclick="switch_visible('{{ location['location_id'] }}_regular_price')">Regular Price:</button></div>
@@ -378,6 +357,28 @@
             <input type="text" class="price" title="Enter an age, 0 for non-restricted" name="age_restricted">
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="submit" name="function" value="change_age_restricted" hidden>
+          </form>
+        </div>
+      </div>
+      <div class="property">
+        <div class="key"><button class="key" onclick="switch_visible('description')">Description:</button></div>
+        <div id="description_value" class="value">{{ scanned_item['description'] }}</div>
+        <div id="description_input" class="input">
+          <form class="change" method="post">
+            <input type="text" class="value" title="Enter a description" name="description">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_description" hidden>
+          </form>
+        </div>
+      </div>
+      <div class="property">
+        <div class="key"><button class="key" onclick="switch_visible('receipt_alias')">Receipt Alias:</button></div>
+        <div id="receipt_alias_value" class="value">{{ scanned_item['receipt_alias'] }}</div>
+        <div id="receipt_alias_input" class="input">
+          <form class="change" method="post">
+            <input type="text" class="value" title="Enter a receipt alias" name="receipt_alias">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_receipt_alias" hidden>
           </form>
         </div>
       </div>

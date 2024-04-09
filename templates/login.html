@@ -3,7 +3,7 @@
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
-  <link rel="stylesheet" href="{{ assets_url }}/style_landing.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_login.css">
   <title>Welcome to {{ instance_name }}</title>
 </head>
 <body>
@@ -22,11 +22,11 @@
     <h2>{{ message }}</h2>
     {% endif %}
     <form method="post">
-      <h2>Username:</h2>
-      <input type="text" id="username" name="username"><br>
-      <h2>Password:</h2>
-      <input type="password" id="password" name="password"><br><br>
-      <input type="submit" name="function" value="login">
+      <div class="login">Username:</div>
+      <div class="input"><input class="login" type="text" id="username" name="username" autofocus></div>
+      <div class="login">Password:</div>
+      <div class="input"><input class="login" type="password" id="password" name="password"></div>
+      <div class="input"><button class="login" type="submit" name="function" value="login">Log in</button></div>
     </form>
 
   </div>

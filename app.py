@@ -13,9 +13,9 @@ from pymongo.mongo_client import MongoClient
 # import local files
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
-from calculations_and_conversions import calculate_worked_hours
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection
+from calculations_and_conversions import calculate_worked_hours, price_to_float
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item
 
 
 
@@ -265,6 +265,7 @@ def admin(session_key):
 @app.route('/item_management/<session_key>', methods=['POST', 'GET'])
 def item_management(session_key):
   result = validate_session_key(db, session_key)
+  message = None
   scanned_item = None
   supplier_list= []
   locations_collection = []
@@ -314,15 +315,114 @@ def item_management(session_key):
     
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': request.form['item_id']})
+    elif request.form['function'] == 'change_name':
+      if is_valid_string(request.form['name']) == False:
+        message = 'Invalid name'
+      elif len(request.form['name']) < 6:
+        message = 'Name too short, must be 6 or more characters'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'name': request.form['name']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_description':
+      if is_valid_string(request.form['description']) == False:
+        message = 'Invalid description'
+      elif len(request.form['description']) < 6:
+        message = 'Description too short, must be 6 or more characters'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'description': request.form['description']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_receipt_alias':
+      if is_valid_string(request.form['receipt_alias']) == False:
+        message = 'Invalid receipt alias'
+      elif len(request.form['receipt_alias']) < 3:
+        message = 'Receipt alias too short, must be 3 or more characters'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'receipt_alias': request.form['receipt_alias']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_memo':
+      if is_valid_string(request.form['memo']) == False:
+        message = 'Invalid memo'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'memo': request.form['memo']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_order_code':
+      if is_valid_string(request.form['order_code']) == False:
+        message = 'Invalid order code'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'order_code': request.form['order_code']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_case_cost':
+      if is_valid_price(request.form['case_cost']) == False:
+        message = 'Invalid price'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'case_cost': price_to_float(request.form['case_cost'])}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_case_quantity':
+      valid = False
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      if scanned_item['unit'] == 'each':
+        if is_valid_int(request.form['case_quantity']) == False:
+          message = 'Invalid quantity, must be whole number'
+        else:
+          valid = True
+      else:
+        if is_valid_float(request.form['case_quantity']) == False:
+          message = 'Invalid quantity, must be a valid number'
+        else:
+          valid = True
+      if valid == True:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'case_quantity': float(request.form['case_quantity'])}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_suggested_retail_price':
+      if is_valid_price(request.form['suggested_retail_price']) == False:
+        message = 'Invalid price'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'suggested_retail_price': price_to_float(request.form['suggested_retail_price'])}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_regular_price':
+      if is_valid_price(request.form['regular_price']) == False:
+        message = 'Invalid price'
+      else:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['regular_price'] = price_to_float(request.form['regular_price'])
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_quantity_on_hand':
+      valid = False
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      if scanned_item['unit'] == 'each':
+        if is_valid_int(request.form['quantity_on_hand']) == False:
+          message = 'Invalid quantity, must be whole number'
+        else:
+          valid = True
+      else:
+        if is_valid_float(request.form['quantity_on_hand']) == False:
+          message = 'Invalid quantity, must be a valid number'
+        else:
+          valid = True
+      if valid == True:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['quantity_on_hand'] = float(request.form['quantity_on_hand'])
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+        scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+
+
+
   
   if scanned_item is not None:
-        cost_per = scanned_item['case_cost'] / scanned_item['case_quantity']
-        cost_per = round(cost_per, 2)
-        suggested_margin = (scanned_item['suggested_retail_price'] / cost_per) - 1
-        locations_collection = calculate_item_locations_collection(scanned_item['locations'], cost_per)
+    scanned_item = beautify_item(scanned_item)
+  
 
 
-  return render_template('item_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, location_list=location_list, permissions=permissions, locations_collection=locations_collection, cost_per=cost_per, suggested_margin=suggested_margin)
+  return render_template('item_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, location_list=location_list, permissions=permissions, locations_collection=locations_collection, cost_per=cost_per, suggested_margin=suggested_margin, message=message)
 
 
 @app.route('/inventory_management/<session_key>', methods=['POST', 'GET'])
