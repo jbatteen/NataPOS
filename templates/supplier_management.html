@@ -70,7 +70,7 @@
           <form class="change" method="post">
             <input type="text" class="wide" title="Enter a phone number" name="phone">
             <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
+            <input type="submit" name="function" value="change_phone" hidden>
           </form>
         </div>
         
@@ -80,7 +80,7 @@
           <form class="change" method="post">
             <input type="text" class="wide" title="Enter an address" name="address">
             <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
+            <input type="submit" name="function" value="change_address" hidden>
           </form>
         </div>
         
@@ -90,7 +90,7 @@
           <form class="change" method="post">
             <input type="text" class="wide" title="Enter a contact name" name="contact_name">
             <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
+            <input type="submit" name="function" value="change_contact_name" hidden>
           </form>
         </div>
         
@@ -100,11 +100,17 @@
           <form class="change" method="post">
             <input type="text" class="wide" title="Enter an email address" name="email">
             <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
+            <input type="submit" name="function" value="change_email" hidden>
           </form>
         </div>
-
-
+        {% if 'superuser' in permissions %}
+        <div class="delete_button">
+          <form class="change" method="post">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <button class="change" type="submit" name="function" value="delete_supplier">Delete</button>
+          </form>
+        </div>
+        {% endif %}
       </div>
     {% endfor %}
     {% endif %}
@@ -113,12 +119,12 @@
         <div class="new_supplier_top">Create a New Supplier:</div>
         <form method="post">
           <div class="new_supplier_info">
-            <div class="supplier_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the supplier" name="supplier_id"></div>
-            <div class="supplier_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
-            <div class="supplier_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
-            <div class="supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
-            <div class="supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
-            <div class="supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
+            <div class="new_supplier_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the supplier" name="supplier_id"></div>
+            <div class="new_supplier_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
+            <div class="new_supplier_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
+            <div class="new_supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
+            <div class="new_supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
+            <div class="new_supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
             <div class="new_supplier_button"><button class="change" type="submit" name="function" value="create_supplier">Create</button></div>
           </div>
         </form>

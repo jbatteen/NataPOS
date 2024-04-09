@@ -39,8 +39,18 @@ div.new_supplier_button {
   margin-top: 0.4em;
   text-align: center;
   grid-column: 1 / span 2;
+  margin-bottom: 0.2em;
 }
+div.delete_button{
+  grid-column: 1 / span 2;
+  text-align: right;
+}
+
 div.supplier_key {
+  text-align: right;
+  margin-right: 0.5em;
+}
+div.new_supplier_key {
   text-align: right;
   margin-right: 0.5em;
 }

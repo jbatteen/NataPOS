@@ -4,7 +4,7 @@ import random
 import time
 
 def validate_login(db, username, password):
-  document = db.employees.find_one({'username' : username})
+  document = db.employees.find_one({'type': 'user', 'username' : username})
   if document is not None:
     check_hash = password.encode('utf-8')
     hash = document['password']
@@ -42,5 +42,5 @@ def create_user(db, username, password, permissions=[]):
   bytes = password.encode('utf-8')
   salt = bcrypt.gensalt()
   hash = bcrypt.hashpw(bytes, salt)
-  result = db.employees.insert_one({'username': username, 'password': hash, 'permissions': permissions, 'status': 'current'})
+  result = db.employees.insert_one({'type': 'user', 'username': username, 'password': hash, 'permissions': permissions, 'status': 'current'})
   return {'success' : True}

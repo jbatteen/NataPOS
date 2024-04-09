@@ -24,7 +24,6 @@ div.other_functions {
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
-  height: 2.5em;
 }
 div.other_functions div {
 }
@@ -32,6 +31,7 @@ button.wide {
   padding: 1em, 1em;
   width: 95%;
   height: 2em;
+  margin: 0.3em;
 }
 input.wide {
   width: 95%;

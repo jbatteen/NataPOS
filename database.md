@@ -6,7 +6,7 @@
 - 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the 1st and the pay_period_rolloverth, defaults to 15 on instance spinup
 - 'tax_types': list of str ('Sales', 'Alcohol') (not sure if we're using this field yet)
 
-## employees
+## employees (employees collection, 'type': 'user')
 - 'username': str (username for this system)
 - 'password': str (bcrypt hash of password)
 - 'name': str (employee's name, however you want to format it)
@@ -118,7 +118,6 @@
 - 'description': str (long form description, visible to customer in places)
 - 'memo': str (internal, never visible to customer)
 - 'picture': str (url to picture)
-- 'regular_price_$location_id': float (base $price to the customer per unit) at $location_id
 - 'suggested_retail_price': float ($price)
 - 'unit': str ('ea', 'lb', 'oz', etc)
 - 'supplier': str ('supplier_id')
@@ -133,9 +132,13 @@
 - 'discontinued': bool
 - 'employee_discount': float (percent)   if present, overrides department/category defaults
 - 'age_restricted': int (0 if no, other if age)
-- 'quantity_on_hand_$location_id': float    qoh at $location_id
-- 'most_recent_delivery_$location_id': str (MMDDYY) at $location_id
-- 'quantity_low_alert_$location_id': float (quantity to alert at $location_id)
+- 'locations' list of:
+  - 'location_id': str (unique identifier for location)
+  - 'regular_price': float (price at this location)
+  - 'quantity_on_hand': float (quantity at this location)
+  - 'most_recent_delivery': str (MMDDYY)
+  - 'quantity_low': float (low alert quantity)
+  - 'quantity_high': float (plenty on hand quantity)
 
 ## item_groups
 - 'item_group_id': str (unique group identifier)
@@ -146,7 +149,7 @@
 - 'local': bool   default for new items
 - 'supplier': str (default supplier_id for new items)
 
-## suppliers
+## suppliers  (inventory_management collection,  'type': 'supplier')
 - 'supplier_id': str (unique supplier identifer eg 'UNFI')
 - 'website': str (website url for ordering)
 - 'phone': str (phone number)

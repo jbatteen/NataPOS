@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_create_new_item.css">
+  <title>{{ instance_name }} Inventory Management</title>
+</head>
+<body>
+
+  <div class="body">
+    <div class="header"><h1>{{ scan }} Not in system.  Create new item?</h1></div>
+    <div class="buttons">
+      <div>
+        <form method="post"><button class="wide" type="submit" name="function" value="item_management">Cancel</button></form>
+      </div>
+      <div>
+        <form method="post">
+          <input type="hidden" name="scan" value="{{ scan }}">
+          <div>Add to inventory at location:</div>
+          <div>
+            {% for i in location_list %}
+            <input type="checkbox" name="add_to_location[]" value="{{ i }}" checked>{{ i }}</option>
+            {% endfor %}
+          </div>
+          <button class="wide" type="submit" name="function" value="create_new_item">Yes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

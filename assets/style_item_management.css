@@ -50,25 +50,63 @@ div.price_combo div {
 }
 
 
-div.quantity_combo_key {
+div.location_specific_key {
+  display: grid;
+  align-items: center;
+  width: 28vw;
+  justify-content: end;
+}
+div.location_specific_header {
+  text-align: center;
+  align-items: center;
+  grid-column: 1 / span 4;
+}
+div.location_specific_input{
+  display: none;
+}
+div.location_specific_value {
+  display: grid;
+}
+div.location_specific_input, div.location_specific_value {
+  align-items: center;
+  width: 10vw;
+  justify-content: left;
+}
+div.location_specific {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.location_specific div {
+  align-items: center;
+  height: 2em;
+}
+
+
+
+div.unit_combo_key {
   display: grid;
   align-items: center;
 /*  width: 10vw; */
   justify-content: end;
   margin-right: 1em;
 }
-div.quantity_combo_value {
+div.unit_combo_value {
   display: grid;
 }
-div.quantity_combo_input {
+div.unit_combo_input {
   display: none;
 }
-div.quantity_combo_input, div.quantity_combo_value {
+div.unit_combo_input, div.unit_combo_value {
   align-items: center;
   width: 15vw;
   justify-content: left;
 }
-div.quantity_combo {
+div.unit_combo {
   align-items: center;
   margin-top: 0.1em;
   display: grid;
@@ -77,7 +115,7 @@ div.quantity_combo {
   border-style: solid;
   padding: 0.3em;
 }
-div.quantity_combo div {
+div.unit_combo div {
   align-items: center;
   height: 2em;
 }

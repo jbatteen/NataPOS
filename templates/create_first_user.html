@@ -12,18 +12,25 @@
   </div>
 
   <div class="mainbody">
-    <h1>Welcome to {{ instance_name }}.  Create your first user.</h1>
+    <h1>Welcome to {{ instance_name }}.  Fill in some defaults.</h1>
+    <h2>After submitting, you will be redirected to instance config where you are recommended to configure the pay period.</h2>
     {% if message %}
       <h2>{{ message }}</h2>
     {% endif %}
     <form method="post">
-      <h2>Username:</h2>
-      <input type="text" id="username" name="username"><br>
-      <h2>Password:</h2>
-      <input type="password" id="password" name="password">
-      <h2>Re-enter Password:</h2>
-      <input type="password" id="password2" name="password2"><br><br>
-      <button type="submit" name="function" value="create_first_user">Create</button>
+      <div class="input_form">
+        <div>Instance Name:</div>
+        <div><input type="text" title="Enter a name at least 4 characters long" name="instance_name" value="NataPOS"></div>
+        <div>Location Name:</div>
+        <div><input type="text" id="location_id" name="location_id" value="Default Location"></div>
+        <div>Superuser Username:</div>
+        <div><input type="text" id="username" name="username"></div>
+        <div>Password:</div>
+        <div><input type="password" id="password" name="password"></div>
+        <div>Re-enter Password:</div>
+        <div><input type="password" id="password2" name="password2"></div>
+        <div><button type="submit" name="function" value="create_first_user">Create</button></div>
+      </div>
     </form>
 
   </div>

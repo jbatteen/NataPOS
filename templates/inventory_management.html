@@ -26,34 +26,11 @@
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
 
 
-    {% if inventories != [] %}
-    <form class="change" method="post">
-      <div class="select_inventory{% if 'superuser' in permissions %}_superuser{% endif %}">
-        <div>Select Inventory for Item Management:</div>
-        <div>
-          <select name="inventory_id">
-          {% for i in inventories %}
-          <option value="{{ i }}">{{ i }}</option>
-          {% endfor %}
-          </select>
-        </div>
-        <div><button class="wide" type="submit" name="function" value="select_inventory">Select</button></div>
-        {% if 'superuser' in permissions %}
-        <div><button class="wide" type="submit" name="function" value="delete_inventory">Delete</button></div>
-        {% endif %}
-      </div>
-    </form>
-    {% endif %}
-    {% if 'superuser' in permissions %}
-    <form class="change" method="post">
-      <div class="create_inventory">
-        <div>Create Inventory:</div>
-        <div><input class="wide" type="text" title="Enter an inventory name, no spaces only - or _" name="inventory_id"></div>
-        <div><button class="wide" type="submit" name="function" value="create_inventory">Create</button></div>
-      </div>
-    </form>
-    {% endif %}
+
     <div class="other_functions">
+      <div>
+        <form method="post"><button class="wide" type="submit" name="function" value="item_management">Items</button></form>
+      </div>
       <div>
         <form method="post"><button class="wide" type="submit" name="function" value="supplier_management">Suppliers</button></form>
       </div>

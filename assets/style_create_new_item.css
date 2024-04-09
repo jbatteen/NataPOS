@@ -1,0 +1,25 @@
+div.header {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+
+div.buttons {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+button.wide {
+  padding: 1em, 1em;
+  width: 95%;
+  height: 2em;
+}
+
+
