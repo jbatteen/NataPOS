@@ -45,10 +45,6 @@
     <h1>{{ instance_name }} Department Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="department_list">
-
-   
-
-
     {% for i in departments %}
 
       <div class="department">
@@ -67,7 +63,9 @@
         </div>
       </div>
     {% endfor %}
-
+    <div class="create_department">
+      
+    </div>
   
   </div>
 </body>

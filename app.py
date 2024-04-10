@@ -34,7 +34,7 @@ else:
     most_recent_sunday = date.today() + timedelta(days=(0 - int(date.today().isoweekday())))
     two_weeks_from_then = most_recent_sunday + timedelta(days=14)
     current_pay_period = most_recent_sunday.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'pay_period_rollover': 15})
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'pay_period_rollover': 15, 'timesheets_locked': False, 'employee_discount': 0.2})
 
 
 
@@ -106,7 +106,7 @@ def create_first_user():
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
   
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': []})
+        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [], 'default_taxes': []})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'])
         if creation_check['success'] == True:
@@ -186,28 +186,52 @@ def global_config(session_key):
       return redirect('/landing/' + session_key)
     elif request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
+    elif request.form['function'] == 'create_location':
+      if is_valid_string(request.form['location_id']) == False:
+        message = 'invalid location name'
+      else:
+        db.inventory_management.insert_one({'type': 'location', 'location_id': request.form['location_id'], 'phone': '', 'address':'', 'taxes': [], 'default_taxes': []})
+
+    elif request.form['function'] == 'remove_default_tax':
+      location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
+      location_default_taxes = []
+      location_default_taxes = location_document['default_taxes']
+      location_default_taxes.remove(request.form['tax_id'])
+      result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'default_taxes': location_default_taxes}})
+    
+    elif request.form['function'] == 'add_default_tax':
+      location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
+      location_default_taxes = []
+      location_default_taxes = location_document['default_taxes']
+      location_default_taxes.append(request.form['tax_id'])
+      result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'default_taxes': location_default_taxes}})
     elif request.form['function'] == 'create_tax':
       if is_valid_float(request.form['tax_rate']) == False:
         message = 'Invalid tax rate.  Enter a number with no percent sign'
       elif is_valid_string(request.form['tax_id']) == False:
         message = 'Invalid tax ID'
       else:
-        tax_rate = 0.0
-        tax_rate = float(request.form['tax_rate']) / 100
         location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
         location_taxes = []
-        new_tax = {}
         location_taxes = location_document['taxes']
-        new_tax['tax_id'] = request.form['tax_id']
-        new_tax['rate'] = tax_rate
-        location_taxes.append(new_tax)
-        result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
+        valid = True
+        for i in location_taxes:
+          if i['tax_id'] == request.form['tax_id']:
+            message = 'tax already exists'
+            valid = False
+        if valid == True:
+          new_tax = {}
+          new_tax['tax_id'] = request.form['tax_id']
+          tax_rate = 0.0
+          tax_rate = float(request.form['tax_rate']) / 100
+          new_tax['rate'] = tax_rate
+          location_taxes.append(new_tax)
+          result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
   config = db.natapos.find_one({'config': 'global'})
   pay_period_type = config['pay_period_type']
   instance_name = config['instance_name']
   current_pay_period = config['current_pay_period']
   pay_period_rollover = config['pay_period_rollover']
-
   return render_template('global_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period=current_pay_period, current_pay_period_start=current_pay_period.split('-')[0], pay_period_rollover=pay_period_rollover, message=message, locations_collection=get_locations_collection(db))
     
 
@@ -222,6 +246,10 @@ def landing(session_key):
   instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'clock_in':
+      while config['timesheets_locked'] == True:
+        time.sleep(1)
+        config = db.natapos.find_one({'config': 'global'})
+
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
       if timesheet is not None:
@@ -229,6 +257,9 @@ def landing(session_key):
       else:
         db.timesheets.insert_one({'username': username, 'pay_period': current_pay_period, 'worked_hours': 0.0, str(current_time): 'in'})
     if request.form['function'] == 'clock_out':
+      while config['timesheets_locked'] == True:
+        time.sleep(1)
+        config = db.natapos.find_one({'config': 'global'})
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
       if timesheet is not None:
@@ -326,11 +357,13 @@ def item_management(session_key):
       today = date.today()
       today_string = today.strftime('%m/%d/%y')
       scanned_barcode = request.form['scan']
-      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': 0.3, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_upc': '', 'break_pack_quantity': 0.0}
+      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_upc': '', 'break_pack_quantity': 0.0, 'wic_eligible': False}
       db.inventory.insert_one(scanned_item)
       locations_to_add_to = request.form.getlist('add_to_location[]')
       for i in locations_to_add_to:
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': [], 'item_location': '', 'backstock_location': ''})
+        collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
+        default_taxes = collection['default_taxes']
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': ''})
       scanned_item['locations'] = locations_collection
       db.inventory.update_one({'item_id': scanned_barcode}, {'$set': {'locations': locations_collection}})
     
@@ -551,12 +584,18 @@ def item_management(session_key):
         item_group_list.append(request.form['item_group_id'])
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+ 
     elif request.form['function'] == 'remove_from_item_group':
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
       grouplist = []
       grouplist = scanned_item['item_groups']
       grouplist.remove(request.form['item_group_id'])
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
+      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
+      item_list = []
+      item_list = document['items']
+      item_list.remove(request.form['item_id'])
+      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': item_list}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'add_to_item_group':
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
@@ -564,7 +603,13 @@ def item_management(session_key):
       grouplist = scanned_item['item_groups']
       grouplist.append(request.form['item_group_id'])
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'item_groups': grouplist}})
+      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
+      item_list = []
+      item_list = document['items']
+      item_list.append(request.form['item_id'])
+      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': item_list}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+
     elif request.form['function'] == 'change_local':
       if request.form['local'] == 'True':
         local_bool = True

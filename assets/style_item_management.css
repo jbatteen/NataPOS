@@ -286,3 +286,11 @@ input.price {
 input {
   font-size: inherit;
 }
+div.taxes {
+  display: grid;
+  text-align: center;
+  grid-template-columns: 1fr 1fr;
+  grid-column: 1 / span 4;
+  border-width: 1px;
+  border-style: solid;
+}

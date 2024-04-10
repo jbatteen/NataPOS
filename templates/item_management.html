@@ -222,7 +222,20 @@
           </form>
         </div>
 
+        <!-- taxes go here-->
+        <div class="taxes">
+          {% for tax in location['taxes'] %}
+          <div class="tax">
+            {{ tax }} is on
+          </div>
+          {% endfor %}
 
+          {% for tax in location['available_taxes'] %}
+          <div class="tax">
+            {{ tax }} available
+          </div>
+          {% endfor %}
+        </div>
 
 
       </div>

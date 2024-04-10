@@ -83,6 +83,15 @@ def calculate_item_locations_collection(incoming_collection=[], cost_per=1.0):
 
 def beautify_item(db, input_item):
   beautified = {}
+  locations = db.inventory_management.find({'type': 'location'})
+  location_taxes = {}
+  for location in locations:
+    working_tax_list = location['taxes']
+    this_location_tax_list = []
+    for tax in working_tax_list:
+      this_location_tax_list.append(tax['tax_id'])
+    location_taxes[location['location_id']] = this_location_tax_list
+
   cost_per = round((input_item['case_cost'] / input_item['case_quantity']), 2)
   if cost_per == 0.0:
     cost_per = 0.01
@@ -117,9 +126,15 @@ def beautify_item(db, input_item):
       old_locations_collection = input_item[i]
       for j in old_locations_collection:
         new_location = {}
+        available_taxes = location_taxes[j['location_id']]
+        for tax in j['taxes']:
+          available_taxes.remove(tax)
+        new_location['available_taxes'] = available_taxes
         new_location['margin'] = float_to_percent((j['regular_price'] / cost_per) - 1)
         for k in j:
           if k == 'location_id':
+            new_location[k] = j[k]
+          if k == 'taxes':
             new_location[k] = j[k]
           if k == 'item_location':
             new_location[k] = j[k]

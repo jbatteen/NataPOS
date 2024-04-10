@@ -20,14 +20,14 @@ button:hover {
   background-color: #2d5675;
 }
 input {
-  width:95%;
+  width:90%;
 }
 select {
   width: 95%;
 }
 div.location_list {
   align-items: center;
-  margin-top: 0.1em;
+  margin-top: 0.2em;
   display: grid;
   border-width: 1px;
   border-style: solid;
@@ -40,7 +40,13 @@ div.location{
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
+}
+div.location_info {
+  align-items: center;
+  margin-bottom: 0.1em;
+  display: grid;
   grid-template-columns: 1fr 3fr;
+  padding: 0.3em;
 }
 div.location_value {
   display: grid;
@@ -51,4 +57,110 @@ div.location_input {
 div.location_key {
   text-align: right;
   margin-right: 0.5em;
+}
+div.location_taxes {
+  display: grid;
+  align-items: center;
+  padding: 0.2em;
+
+}
+div.create_tax {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+
+}
+
+div.taxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+div.tax {
+  display: grid;
+  grid-template-columns: 4fr 2fr 1fr;
+}
+button.delete {
+  width: 1.3em;
+}
+
+div.create_location {
+  align-items: center;
+  margin-bottom: 0.1em;
+  display: grid;
+  grid-template-columns: 2fr 3fr 1fr;
+  padding: 0.3em;
+}
+div.instance_name {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  margin-top: 0.3em;
+}
+div.instance_input {
+  display: none;
+  margin-left: 1em;
+}
+div.instance_value {
+  margin-left: 1em;
+}
+div.instance_key {
+  text-align: right;
+}
+
+div.pay_period_combo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+  margin-top: 0.3em;
+}
+div.pay_period_type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+div.pay_period_type_input {
+  display: none;
+  margin-left: 1em;
+}
+div.pay_period_type_value {
+  margin-left: 1em;
+}
+div.pay_period_type_key {
+  text-align: right;
+}
+
+div.current_pay_period_start {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+div.current_pay_period_start_input {
+  display: none;
+  margin-left: 1em;
+}
+div.current_pay_period_start_value {
+  margin-left: 1em;
+}
+div.current_pay_period_start_key {
+  text-align: right;
+}
+
+div.pay_period_rollover {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+div.pay_period_rollover_input {
+  display: none;
+  margin-left: 1em;
+}
+div.pay_period_rollover_value {
+  margin-left: 1em;
+}
+div.pay_period_rollover_key {
+  text-align: right;
+}
+div.current_pay_period {
+  display: grid;
+  text-align: center;
+  grid-template-columns: 1fr;
+  grid-column: 1 / span 2;
 }
