@@ -200,6 +200,28 @@
           </form>
         </div>
 
+        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_item_location')">Item Location:</button></div>
+        <div id="{{ location['location_id'] }}_item_location_value" class="location_specific_value">{{ location['item_location'] }}</div>
+        <div id="{{ location['location_id'] }}_item_location_input" class="location_specific_input">
+          <form class="change" method="post">
+            <input type="text" class="value" title="Enter a location" name="item_location">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input type="submit" name="function" value="change_item_location" hidden>
+          </form>
+        </div>
+
+        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_backstock_location')">Backstock Location:</button></div>
+        <div id="{{ location['location_id'] }}_backstock_location_value" class="location_specific_value">{{ location['backstock_location'] }}</div>
+        <div id="{{ location['location_id'] }}_backstock_location_input" class="location_specific_input">
+          <form class="change" method="post">
+            <input type="text" class="value" title="Enter a location" name="backstock_location">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input type="submit" name="function" value="change_backstock_location" hidden>
+          </form>
+        </div>
+
 
 
 
@@ -220,6 +242,26 @@
               <option value="ounces">ounces</option>
             </select>
             <button class="change" type="submit" name="function" value="change_unit">OK</button>
+          </form>
+        </div>
+        
+        <div class="unit_combo_key"><button class="key" onclick="switch_value_input('break_pack_item_id')">Break Pack:</button></div>
+        <div class="unit_combo_value" id="break_pack_item_id_value">{{ scanned_item['break_pack_item_id'] }}</div>
+        <div class="unit_combo_input" id="break_pack_item_id_input">
+          <form class="change" method="post">
+            <input type="text" class="value" title="Scan/enter a barcode" name="break_pack_item_id">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_break_pack_item_id" hidden>
+          </form>
+        </div>
+        
+        <div class="unit_combo_key"><button class="key" onclick="switch_value_input('break_pack_quantity')">Break Pack Quantity:</button></div>
+        <div class="unit_combo_value" id="break_pack_quantity_value">{{ scanned_item['break_pack_quantity'] }}</div>
+        <div class="unit_combo_input" id="break_pack_quantity_input">
+          <form class="change" method="post">
+            <input type="text" class="price" title="Enter a size" name="break_pack_quantity">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="submit" name="function" value="change_break_pack_quantity" hidden>
           </form>
         </div>
 
@@ -357,9 +399,6 @@
           </form>
         </div>
 
-        <div class="small_fields_key"><button class="key"">Active:</button></div>
-        <div class="small_fields_value" id="active_value">{{ scanned_item['active'] }}</div>
-
         <div class="small_fields_key"><button class="key" onclick="switch_value_input('online_ordering')">Online Ordering:</button></div>
         <div class="small_fields_value" id="online_ordering_value">{{ scanned_item['online_ordering'] }}</div>
         <div class="small_fields_input" id="online_ordering_input">
@@ -371,6 +410,32 @@
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_online_ordering">OK</button>
+          </form>
+        </div>
+
+        <div class="small_fields_key"><button class="key" onclick="switch_value_input('food_item')">Food Item:</button></div>
+        <div class="small_fields_value" id="food_item_value">{{ scanned_item['food_item'] }}</div>
+        <div class="small_fields_input" id="food_item_input">
+          <form class="change" method="post">
+            <select name="food_item">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_food_item">OK</button>
+          </form>
+        </div>
+
+        <div class="small_fields_key"><button class="key" onclick="switch_value_input('random_weight_per')">Random Weight:</button></div>
+        <div class="small_fields_value" id="random_weight_per_value">{{ scanned_item['random_weight_per'] }}</div>
+        <div class="small_fields_input" id="random_weight_per_input">
+          <form class="change" method="post">
+            <select name="random_weight_per">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_random_weight_per">OK</button>
           </form>
         </div>
         
@@ -396,6 +461,14 @@
             <input type="submit" name="function" value="change_age_restricted" hidden>
           </form>
         </div>
+
+        <div class="small_fields_key"><button class="key"">Active:</button></div>
+        <div class="small_fields_value" id="active_value">{{ scanned_item['active'] }}</div>
+
+        <div class="small_fields_key"><button class="key"">Date Added:</button></div>
+        <div class="small_fields_value" id="active_value">{{ scanned_item['date_added'] }}</div>
+
+
       </div>
       <div class="property">
         <div class="key"><button class="key" onclick="switch_value_input('description')">Description:</button></div>

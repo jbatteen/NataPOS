@@ -58,8 +58,6 @@ def get_locations_collection(db):
   locations_collection = []
   collection = db.inventory_management.find({'type': 'location'})
   for location in collection:
-    print('location')
-    print(location)
     del location['_id']
     locations_collection.append(location)
   return locations_collection
@@ -83,7 +81,7 @@ def calculate_item_locations_collection(incoming_collection=[], cost_per=1.0):
     calculated_collection.append(i)
   return calculated_collection
 
-def beautify_item(input_item):
+def beautify_item(db, input_item):
   beautified = {}
   cost_per = round((input_item['case_cost'] / input_item['case_quantity']), 2)
   if cost_per == 0.0:
@@ -123,6 +121,10 @@ def beautify_item(input_item):
         for k in j:
           if k == 'location_id':
             new_location[k] = j[k]
+          if k == 'item_location':
+            new_location[k] = j[k]
+          if k == 'backstock_location':
+            new_location[k] = j[k]
           elif k == 'regular_price':
             new_location[k] = float_to_price(j[k])
           elif k == 'quantity_on_hand':
@@ -152,6 +154,17 @@ def beautify_item(input_item):
       beautified[i] = input_item[i]
     elif i == 'department':
       beautified[i] = input_item[i]
+    elif i == 'break_pack_quantity':
+      if input_item['unit'] == 'each':
+        beautified[i] = str(int(input_item[i]))
+      else:
+        beautified[i] = str(input_item[i])
+    elif i == 'break_pack_item_id':
+      if input_item[i] != '':
+        break_pack_item = db.inventory.find_one({'item_id': input_item[i]})
+        beautified[i] = break_pack_item['name']
+      else:
+        beautified[i] = ''
     elif i == 'category':
       beautified[i] = input_item[i]
     elif i == 'subcategory':
@@ -172,6 +185,10 @@ def beautify_item(input_item):
       if input_item[i] == 'no':
         beautified[i] = 'No'
     elif i == 'discontinued':
+      beautified[i] = str(input_item[i])
+    elif i == 'food_item':
+      beautified[i] = str(input_item[i])
+    elif i == 'random_weight_per':
       beautified[i] = str(input_item[i])
     elif i == 'age_restricted':
       beautified[i] = str(input_item[i])

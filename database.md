@@ -4,6 +4,7 @@
 - 'pay_period_type': str ('weekly', 'biweekly', 'bimonthly'), defaults to biweekly on instance spinup
 - 'current_pay_period': str (MM/DD/YY-MM/DD/YY), for weekly/biweekly, defaults to starting on the most recent sunday on instance spinup
 - 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the 1st and the pay_period_rolloverth, defaults to 15 on instance spinup
+
 ## employees (employees collection, 'type': 'user')
 - 'username': str (username for this system)
 - 'password': str (bcrypt hash of password)
@@ -69,12 +70,6 @@
   - 'coupons_applied': str (coupon UPCs, in a list if multiple)
   - 'override_price': float (if  the cashier overrode the calculated price, include this as well)
 
-## locations (inventory_management collection, 'type': 'location')
-- 'location_id': str (unique identifier for store location)
-- 'phone': str (phone number)
-- 'address': str (street address)
-- 'default_taxes': list of str (tax_id applied to new items entered in inventory by default)
-
 
 ## departments
 - 'department_id': str (unique identifier for department)
@@ -101,11 +96,6 @@
 - 'value': float (percent off)
 - 'eligibility': '
 
-## taxes
-- 'tax_type': str ('tax_type') from list of tax types in natapos config db
-- 'locality': str (tax district, eg 'Aberdeen, SD')
-- 'rate': float (tax rate)
-
 ## inventory
 - 'item_id': str (UPC/PLU)
 - 'previous_item_id': str (UPC/PLU) (use this to link items for sales reports, to keep continuous sales data when UPCs change)
@@ -128,22 +118,21 @@
 - 'discontinued': bool
 - 'employee_discount': float (percent)   if present, overrides department/category defaults
 - 'age_restricted': int (0 if no, other if age)
-- 'locations' list of:
+- 'food_item': bool
+- 'random_weight_per': bool
+- 'location': str
+- 'date_added': str MMDDYY
+- 'break_pack_item_id': str (item_id of item this pack contains)
+- 'break_pack_quantity': float (number of items in pack)
+- 'locations' list of dict:
   - 'location_id': str (unique identifier for location)
   - 'regular_price': float (price at this location)
   - 'quantity_on_hand': float (quantity at this location)
   - 'most_recent_delivery': str (MMDDYY)
   - 'quantity_low': float (low alert quantity)
   - 'quantity_high': float (plenty on hand quantity)
-
-## item_groups (inventory_management collection, 'type': 'item_group')
-- 'item_group_id': str (unique group identifier)
-- 'items': list of str (item_id)
-
-## brands
-- 'brand_id': str (unique brand identifier eg 'Kalona')
-- 'local': bool   default for new items
-- 'supplier': str (default supplier_id for new items)
+  - 'item_location': str (location of item in store eg aisle 5)
+  - 'backstock_location': str (location of backstock in store eg dry storage)
 
 ## suppliers  (inventory_management collection,  'type': 'supplier')
 - 'supplier_id': str (unique supplier identifer eg 'UNFI')
@@ -152,6 +141,21 @@
 - 'address':  str (mailing address)
 - 'contact_name': str (name of the human we talk to to order stuff)
 - 'email': str (email address for ordering)
+
+## item_groups (inventory_management collection, 'type': 'item_group')
+- 'item_group_id': str (unique group identifier)
+- 'items': list of str (item_id)
+
+## locations (inventory_management collection, 'type': 'location')
+- 'location_id': str (unique identifier for store location)
+- 'phone': str (phone number)
+- 'address': str (street address)
+- 'taxes': list of dict {'tax_id': str (name of tax), 'rate': float (tax rate)}
+
+## brands
+- 'brand_id': str (unique brand identifier eg 'Kalona')
+- 'local': bool   default for new items
+- 'supplier': str (default supplier_id for new items)
 
 ## timesheets
 - 'username': str (username)

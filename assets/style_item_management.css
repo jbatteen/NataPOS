@@ -10,7 +10,6 @@ div.property {
   border-style: solid;
   padding: 0.3em;
   margin-top: 0.1em;
-  height: 1.8em;
   align-items: center;
 }
 div.input {
@@ -46,21 +45,20 @@ div.price_combo {
 }
 div.price_combo div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 
 div.location_specific_key {
   display: grid;
   align-items: center;
-  width: 28vw;
   justify-content: end;
 }
 div.location_specific_header {
   text-align: center;
   align-items: center;
   grid-column: 1 / span 4;
-  margin-bottom: 0;
+  display: grid;
 }
 div.location_specific_input{
   display: none;
@@ -70,21 +68,20 @@ div.location_specific_value {
 }
 div.location_specific_input, div.location_specific_value {
   align-items: center;
-  width: 10vw;
   justify-content: left;
 }
 div.location_specific {
-  align-items: center;
   margin-top: 0.1em;
+  align-items: center;
   display: grid;
-  grid-template-columns: auto auto auto auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.location_specific div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 
@@ -104,21 +101,20 @@ div.unit_combo_input {
 }
 div.unit_combo_input, div.unit_combo_value {
   align-items: center;
-  width: 15vw;
   justify-content: left;
 }
 div.unit_combo {
   align-items: center;
   margin-top: 0.1em;
   display: grid;
-  grid-template-columns: auto auto auto auto auto auto;
+  grid-template-columns: 1fr 1fr 2fr 5fr 3fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.unit_combo div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 
@@ -153,7 +149,7 @@ div.supplier_combo {
 }
 div.supplier_combo div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 
@@ -186,7 +182,7 @@ div.dropdown_combo {
 }
 div.dropdown_combo div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 div.item_groups {
@@ -200,21 +196,21 @@ div.item_groups {
 }
 div.item_group {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
   display: grid;
   text-align: center;
   grid-template-columns: 3fr 1fr;
 }
 div.item_group_create {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
   display: grid;
   text-align: center;
   grid-template-columns: 3fr 1fr;
 }
 div.div.item_group_add {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
   display: grid;
   text-align: center;
   grid-template-columns: 3fr 1fr;
@@ -222,21 +218,21 @@ div.div.item_group_add {
 div.item_group_heading {
   align-items: center;
   text-align: center;
-  height: 2em;
+  padding: 0.2em;
   display: grid;
 }
 
 div.item_group_addcreate {
   align-items: center;
   text-align: center;
-  height: 2em;
+  padding: 0.2em;
   display: grid;
 }
 
 div.small_fields_key {
   display: grid;
-  align-items: center;
-  width: 10vw;
+  align-items: right;
+  text-align: right;
   justify-content: end;
   margin-right: 1em;
 }
@@ -248,21 +244,20 @@ div.small_fields_input {
 }
 div.small_fields_input, div.small_fields_value {
   align-items: center;
-  width: 15vw;
   justify-content: left;
 }
 div.small_fields {
   align-items: center;
   margin-top: 0.1em;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 2fr 1fr 2fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.small_fields div {
   align-items: center;
-  height: 2em;
+  padding: 0.2em;
 }
 
 
@@ -277,7 +272,7 @@ button.key {
   background-color: #1f2a46;
   border: none;
 /*  border-style: solid; */
-  width: max-content;
+/*  width: max-content; */
 }
 button.key:hover {
   background-color: #1f2a46;

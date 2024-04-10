@@ -323,14 +323,14 @@ def item_management(session_key):
      
         
     elif request.form['function'] == 'create_new_item':
+      today = date.today()
+      today_string = today.strftime('%m/%d/%y')
       scanned_barcode = request.form['scan']
-      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': 0.3, 'suggested_retail_price': 0.01, 'age_restricted': 0}
+      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': 0.3, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_upc': '', 'break_pack_quantity': 0.0}
       db.inventory.insert_one(scanned_item)
       locations_to_add_to = request.form.getlist('add_to_location[]')
       for i in locations_to_add_to:
-        today = date.today()
-        today_string = today.strftime('%m/%d/%y')
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': []})
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': [], 'item_location': '', 'backstock_location': ''})
       scanned_item['locations'] = locations_collection
       db.inventory.update_one({'item_id': scanned_barcode}, {'$set': {'locations': locations_collection}})
     
@@ -484,6 +484,30 @@ def item_management(session_key):
           new_locations_collection.append(i)
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
         scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_item_location':
+      if is_valid_string(request.form['item_location']) == False:
+        message = 'Invalid string'
+      else:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['item_location'] = request.form['item_location']
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_backstock_location':
+      if is_valid_string(request.form['backstock_location']) == False:
+        message = 'Invalid string'
+      else:
+        locations_collection = get_item_locations_collection(db, request.form['item_id'])
+        new_locations_collection = []
+        for i in locations_collection:
+          if i['location_id'] == request.form['location_id']:
+            i['backstock_location'] = request.form['backstock_location']
+          new_locations_collection.append(i)
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_unit':
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'unit': request.form['unit']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
@@ -511,13 +535,11 @@ def item_management(session_key):
     elif request.form['function'] == 'change_brand':
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'brand': request.form['brand']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
-    #### ITEM GROUPS GO HERE
     elif request.form['function'] == 'create_new_item_group':
       if is_valid_string(request.form['item_group_id']) == False:
         message = 'invalid group name'
       elif request.form['item_group_id'] in item_group_list:
         message = 'group already exists'
-        
       else:
         itemlist = []
         itemlist.append(request.form['item_id'])
@@ -560,6 +582,20 @@ def item_management(session_key):
         discontinued_bool = False
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'discontinued': discontinued_bool}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_food_item':
+      if request.form['food_item'] == 'True':
+        food_item_bool = True
+      else:
+        food_item_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'food_item': food_item_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_random_weight_per':
+      if request.form['random_weight_per'] == 'True':
+        random_weight_per_bool = True
+      else:
+        random_weight_per_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'random_weight_per': random_weight_per_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_age_restricted':
       if is_valid_int(request.form['age_restricted']) == False:
         message = 'invalid age'
@@ -570,10 +606,29 @@ def item_management(session_key):
         else:
           db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'age_restricted': age_int}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
-
-
-
-
+    elif request.form['function'] == 'change_break_pack_item_id':
+      break_pack_item = db.inventory.find_one({'item_id': request.form['break_pack_item_id']})
+      if break_pack_item == None:
+        message = 'Item not in system'
+      else:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'break_pack_item_id': request.form['break_pack_item_id']}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_break_pack_quantity':
+      valid = False
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+      if scanned_item['unit'] == 'each':
+        if is_valid_int(request.form['break_pack_quantity']) == False:
+          message = 'Invalid quantity, must be whole number'
+        else:
+          valid = True
+      else:
+        if is_valid_float(request.form['break_pack_quantity']) == False:
+          message = 'Invalid quantity, must be a valid number'
+        else:
+          valid = True
+      if valid == True:
+        db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'break_pack_quantity': float(request.form['break_pack_quantity'])}})
+        scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
 
   
   if scanned_item is not None:
@@ -581,8 +636,7 @@ def item_management(session_key):
     groups_item_is_in = scanned_item['item_groups']
     for group in groups_item_is_in:
       item_group_list.remove(group)
-    scanned_item = beautify_item(scanned_item)
-  
+    scanned_item = beautify_item(db, scanned_item)
 
 
   return render_template('item_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, location_list=location_list, permissions=permissions, locations_collection=locations_collection, cost_per=cost_per, suggested_margin=suggested_margin, message=message)
