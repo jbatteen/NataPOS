@@ -44,3 +44,11 @@ def float_to_percent(input_float):
   newstring = str(percent)
   newstring = newstring + '%'
   return newstring
+
+def percent_to_float(input_string):
+  newstring = ''
+  for i in input_string:
+    if i != '%':
+      newstring = newstring + i
+  percent = float(newstring) / 100
+  return percent

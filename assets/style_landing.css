@@ -1,1 +1,6 @@
-/* nothing unique? */
+div.functions {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.functions div {
+  text-align: center;
+}

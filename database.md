@@ -19,6 +19,7 @@
 - 'status': str (current, former, other?)
 - 'permissions': list of str (permission names the user does/doesn't have)
 - 'authorized_locations': list of str (location_id) where the employee is authorized to work
+- 'timesheet': { str (YYMMDDHHMMSS timestamp: str('in', 'out'))}
 
 ### permissions:
 - 'superuser': all permissions, program checks for this first before checking individual permissions
@@ -60,6 +61,7 @@
 - 'break_pack_item_id': str (item_id of item this pack contains)
 - 'break_pack_quantity': float (number of items in pack)
 - 'wic_elegible': bool(WIC eligible)
+- 'ebt_eligible': bool(EBT eligible)
 - 'locations' list of dict:
   - 'location_id': str (unique identifier for location)
   - 'regular_price': float (price at this location)
@@ -69,6 +71,8 @@
   - 'quantity_high': float (plenty on hand quantity)
   - 'item_location': str (location of item in store eg aisle 5)
   - 'backstock_location': str (location of backstock in store eg dry storage)
+  - 'last_sold': str(MMDDYY)
+  - 'active': bool(to keep buying or not)
   - 'taxes': list of [str(tax_id)] this item gets charged
 
 ## suppliers  (inventory_management collection,  'type': 'supplier')
@@ -94,10 +98,9 @@
 
 ## departments  (inventory_management collection,  'type': 'department')
 - 'department_id': str (unique identifier for department)
-- 'default_taxes': if present, overrides store default
+- 'default_taxes': list [str (tax_id)]
 - 'employee_discount': float (percent off for employees)
-- 'categories': dictionary of
-  - 'category_id' str (eg 'Chips', 'Diapers')
+- 'categories': dict {'category_id': ['subcategory_id', 'subcategory_id']}
 
 # to do
 

@@ -1,24 +1,23 @@
 body {
 	color: #d4d0ab;
 	background-color: #1f2a46;
-	font-size: 16pt;
 	font-weight: 100;
 	font-family: Sans-Serif;
 }
 h1 {
 	font-weight: 400;
-	font-size: 1.5em;
+	font-size: 2.6vw;
 	text-align: center;
 }
 h2 {
 	font-weight: 400;
-	font-size: 1.3em;
+	font-size: 2.4vw;
 	text-align: left;
 }
 h3 {
 	font-weight: 400;
 	margin-top: 0em;
-	font-size: 1.2em;
+	font-size: 2.2vw;
 	text-align: left;
 }
 a:visited, a:link {
@@ -29,8 +28,16 @@ div.mainbody {
   right: 0;
   top: 0;
   position: absolute;
-  width: 83vw;
-  padding: 1em;
+  width: 85vw;
+  padding: 0.5vw;
+}
+div.configbody {
+  right: 0;
+  top: 0;
+  position: absolute;
+  width: 85vw;
+  padding: 0.5vw;
+  font-size: 1.4vw;
 }
 div.sidebar {
   width: 15vw;
@@ -38,12 +45,14 @@ div.sidebar {
   position: fixed;
   left: 0;
   top: 0;
-  padding: 0.2em;
-  display: grid;
+  padding: 0.1vw;
   grid-template-columns: 14vw;
   grid-template-rows: auto;
 }
-
+ div {
+  display: grid;
+  align-items: center;
+}
 div.menu {
   position: fixed;
   left: 0;
@@ -62,5 +71,13 @@ button:hover {
 button.menu {
   width: 14vw;
   height: 12vh;
-  font-size: 3vmin;
+  font-size: 2vw;
+}
+
+button.function {
+  padding: 1em, 1em;
+  width: 16vw;
+  height: 7vw;
+  margin: 1vw;
+  font-size: 2vw;
 }

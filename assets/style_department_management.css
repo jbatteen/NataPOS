@@ -22,34 +22,34 @@ div.supplier_value {
 div.supplier_input {
   display: none;
 }
-div.supplier_key {
+div.department_key {
   text-align: right;
   margin-right: 0.5em;
 }
 
-div.new_supplier {
+div.new_department {
   border-width: 1px;
   border-style: solid;
 
 }
-div.new_supplier_info {
-  display: grid;
+div.new_department_info {
   grid-template-columns: 1fr 3fr;
 }
-div.new_supplier_top {
+div.new_department_header {
   text-align: center;
 }
-div.new_supplier_button {
+div.new_department_button {
   margin-top: 0.4em;
   text-align: center;
   grid-column: 1 / span 2;
   margin-bottom: 0.2em;
+  justify-content: center;
 }
 div.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
 }
-div.new_supplier_key {
+div.new_department_key {
   text-align: right;
   margin-right: 0.5em;
 }

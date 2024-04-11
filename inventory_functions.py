@@ -111,7 +111,7 @@ def beautify_item(db, input_item):
     elif i == 'case_cost':
       beautified[i] = float_to_price(input_item[i])
     elif i == 'case_quantity':
-      if input_item['unit'] == 'each':
+      if input_item[i] % 1 == 0.0:
         beautified[i] = str(int(input_item[i]))
       else:
         beautified[i] = str(input_item[i])
@@ -136,29 +136,35 @@ def beautify_item(db, input_item):
             new_location[k] = j[k]
           if k == 'taxes':
             new_location[k] = j[k]
+          if k == 'available_taxes':
+            new_location[k] = j[k]
           if k == 'item_location':
             new_location[k] = j[k]
           if k == 'backstock_location':
             new_location[k] = j[k]
+          if k == 'last_sold':
+            new_location[k] = j[k]
+          if k == 'active':
+            new_location[k] = str(j[k])
           elif k == 'regular_price':
             new_location[k] = float_to_price(j[k])
           elif k == 'quantity_on_hand':
-            if input_item['unit'] == 'each':
-              new_location[k] = str(int(j[k]))
+            if j[k] % 1 == 0.0:
+              new_location[k] = str(int(round(j[k], 0)))
             else:
-              new_location[k] = str(j[k])
+              new_location[k] = str(int(round(j[k], 0)))
           elif k == 'most_recent_delivery':
             new_location[k] = j[k]
           elif k == 'quantity_low':
-            if input_item['unit'] == 'each':
-              new_location[k] = str(int(j[k]))
+            if j[k] % 1 == 0.0:
+              new_location[k] = str(int(round(j[k], 0)))
             else:
-              new_location[k] = str(j[k])
+              new_location[k] = str(int(round(j[k], 0)))
           elif k == 'quantity_high':
-            if input_item['unit'] == 'each':
-              new_location[k] = str(int(j[k]))
+            if j[k] % 1 == 0.0:
+              new_location[k] = str(int(round(j[k], 0)))
             else:
-              new_location[k] = str(j[k])
+              new_location[k] = str(int(round(j[k], 0)))
         new_locations_collection.append(new_location)
       beautified[i] = new_locations_collection
     elif i == 'unit':
@@ -170,7 +176,7 @@ def beautify_item(db, input_item):
     elif i == 'department':
       beautified[i] = input_item[i]
     elif i == 'break_pack_quantity':
-      if input_item['unit'] == 'each':
+      if input_item[i] % 1 == 0.0:
         beautified[i] = str(int(input_item[i]))
       else:
         beautified[i] = str(input_item[i])
@@ -190,8 +196,12 @@ def beautify_item(db, input_item):
       beautified[i] = input_item[i]
     elif i == 'local':
       beautified[i] = str(input_item[i])
-    elif i == 'active':
+    elif i == 'wic_eligible':
       beautified[i] = str(input_item[i])
+    elif i == 'ebt_eligible':
+      beautified[i] = str(input_item[i])
+    elif i == 'date_added':
+      beautified[i] = input_item[i]
     elif i == 'online_ordering':
       if input_item[i] == 'yes':
         beautified[i] = 'Yes'
@@ -220,3 +230,28 @@ def get_item_group_list(db):
   for item_group in collection:
     item_group_list.append(item_group['item_group_id'])
   return item_group_list
+
+
+def get_department_list(db):
+  try:
+    db.validate_collection("inventory_management")
+  except:
+    return []
+  collection = db.inventory_management.find({'type': 'department'})
+  department_list= []
+  for department in collection:
+    department_list.append(department['department_id'])
+  return department_list
+
+
+def get_department_collection(db):
+  try:
+    db.validate_collection("inventory_management")
+  except:
+    return []
+  department_collection = []
+  collection = db.inventory_management.find({'type': 'department'})
+  for department in collection:
+    del department['_id']
+    department_collection.append(department)
+  return department_collection

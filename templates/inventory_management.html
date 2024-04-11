@@ -24,23 +24,23 @@
     </div>
   </div>
   <div class="mainbody">
-    <h1>{{ instance_name }} Inventory Management</h1>
+    <h1>Inventory Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
 
 
 
     <div class="other_functions">
       <div>
-        <form method="post"><button class="wide" type="submit" name="function" value="item_management">Items</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="item_management">Items</button></form>
       </div>
       <div>
-        <form method="post"><button class="wide" type="submit" name="function" value="supplier_management">Suppliers</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
       </div>
       <div>
-        <form method="post"><button class="wide" type="submit" name="function" value="department_management">Departments & Categories</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="department_management">Departments & Categories</button></form>
       </div>
       <div>
-        <form method="post"><button class="wide" type="submit" name="function" value="brand_management">Brands</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
       </div>
 
     </div>

@@ -1,262 +1,203 @@
 div.topbar {
-  display: grid;
   grid-template-columns: 50% 40% 10%;
   margin-bottom: 2em;
 }
 div.property {
-  display: grid;
-  grid-template-columns: 20% 80%;
+  grid-template-columns: 1fr 4fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
   margin-top: 0.1em;
-  align-items: center;
 }
 div.input {
-  width: 100%;
   display: none;
   grid-template-columns: auto;
 }
+input.value {
+  width: 90%;
+}
+div.key {
+  justify-content: end;
+  padding: 0.2em;
+  margin-right: 0.2em;
+}
+
 div.price_combo_key {
-  display: grid;
-  align-items: center;
-  width: 28vw;
   justify-content: end;
 }
 div.price_combo_input{
   display: none;
 }
 div.price_combo_value {
-  display: grid;
 }
 div.price_combo_input, div.price_combo_value {
-  align-items: center;
-  width: 10vw;
   justify-content: left;
 }
 div.price_combo {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
   grid-template-columns: auto auto auto auto;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.price_combo div {
-  align-items: center;
   padding: 0.2em;
 }
 
 
 div.location_specific_key {
-  display: grid;
-  align-items: center;
   justify-content: end;
 }
 div.location_specific_header {
-  text-align: center;
-  align-items: center;
   grid-column: 1 / span 4;
-  display: grid;
+  text-align: center;
 }
 div.location_specific_input{
   display: none;
 }
 div.location_specific_value {
-  display: grid;
 }
 div.location_specific_input, div.location_specific_value {
-  align-items: center;
   justify-content: left;
 }
 div.location_specific {
   margin-top: 0.1em;
-  align-items: center;
-  display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.location_specific div {
-  align-items: center;
   padding: 0.2em;
 }
 
 
 
 div.unit_combo_key {
-  display: grid;
-  align-items: center;
-/*  width: 10vw; */
   justify-content: end;
-  margin-right: 1em;
+  margin-right: .2em;
 }
 div.unit_combo_value {
-  display: grid;
 }
 div.unit_combo_input {
   display: none;
 }
 div.unit_combo_input, div.unit_combo_value {
-  align-items: center;
   justify-content: left;
 }
 div.unit_combo {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
-  grid-template-columns: 1fr 1fr 2fr 5fr 3fr 1fr;
+  grid-template-columns: 1fr 2fr 2fr 4fr 4fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.unit_combo div {
-  align-items: center;
-  padding: 0.2em;
+  padding: 0.1em;
 }
-
+input.break_pack_item_id {
+  width: 100%;
+}
 
 
 
 div.supplier_combo_key {
-  display: grid;
-  align-items: center;
-  width: 10vw;
   justify-content: end;
-  margin-right: 1em;
+  margin-right: 0.2em;
 }
 div.supplier_combo_value {
-  display: grid;
 }
 div.supplier_combo_input {
   display: none;
 }
 div.supplier_combo_input, div.supplier_combo_value {
-  align-items: center;
-  width: 30vw;
   justify-content: left;
 }
 div.supplier_combo {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
   grid-template-columns: auto auto auto auto;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.supplier_combo div {
-  align-items: center;
   padding: 0.2em;
 }
 
 
 div.dropdown_combo_key {
-  display: grid;
-  align-items: center;
-  width: 10vw;
   justify-content: end;
-  margin-right: 1em;
+  margin-right: 0.2em;
 }
 div.dropdown_combo_value {
-  display: grid;
+
 }
 div.dropdown_combo_input {
   display: none;
 }
 div.dropdown_combo_input, div.dropdown_combo_value {
-  align-items: center;
-  width: 15vw;
   justify-content: left;
 }
 div.dropdown_combo {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
   grid-template-columns: auto auto auto auto auto auto;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.dropdown_combo div {
-  align-items: center;
   padding: 0.2em;
 }
 
 div.item_groups {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.item_group {
-  align-items: center;
   padding: 0.2em;
-  display: grid;
-  text-align: center;
   grid-template-columns: 3fr 1fr;
 }
 div.item_group_create {
-  align-items: center;
   padding: 0.2em;
-  display: grid;
-  text-align: center;
   grid-template-columns: 3fr 1fr;
 }
-div.div.item_group_add {
-  align-items: center;
+div.item_group_add {
   padding: 0.2em;
-  display: grid;
-  text-align: center;
   grid-template-columns: 3fr 1fr;
 }
 div.item_group_heading {
-  align-items: center;
-  text-align: center;
   padding: 0.2em;
-  display: grid;
 }
 
 div.item_group_addcreate {
-  align-items: center;
-  text-align: center;
   padding: 0.2em;
-  display: grid;
 }
 
 div.small_fields_key {
-  display: grid;
   align-items: right;
   text-align: right;
   justify-content: end;
-  margin-right: 1em;
+  margin-right: 0.2em;
 }
 div.small_fields_value {
-  display: grid;
 }
 div.small_fields_input {
   display: none;
 }
 div.small_fields_input, div.small_fields_value {
-  align-items: center;
   justify-content: left;
 }
 div.small_fields {
-  align-items: center;
   margin-top: 0.1em;
-  display: grid;
   grid-template-columns: 2fr 1fr 2fr 1fr 2fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3em;
 }
 div.small_fields div {
-  align-items: center;
   padding: 0.2em;
 }
 
@@ -277,9 +218,6 @@ button.key {
 button.key:hover {
   background-color: #1f2a46;
 }
-input.value {
-  width: 90%;
-}
 input.price {
   width: 3em;
 }
@@ -287,10 +225,13 @@ input {
   font-size: inherit;
 }
 div.taxes {
-  display: grid;
-  text-align: center;
   grid-template-columns: 1fr 1fr;
   grid-column: 1 / span 4;
+  border-width: 1px;
+  border-style: solid;
+}
+div.tax {
+  grid-template-columns: 1fr 1fr;
   border-width: 1px;
   border-style: solid;
 }

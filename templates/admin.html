@@ -21,27 +21,27 @@
     </div>
   </div>
   <div class="mainbody">
-    <h1>{{ instance_name }} Admin</h1>
-    <h3>{{ message|safe }}</h3>
+    <h1>Admin</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="admin_list">
       {% if 'superuser' in permissions %}
       <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
       </div>
       <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="global_config">Global Config</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
       </div>
       {% else %}
       {% for i in permissions %}
       {% if i == 'inventory_management' %}
       <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
       </div>
       {% endif %}
       {% endfor %}
       {% endif %}
       <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="change_password">Change Password</button></form>
+        <form method="post"><button class="function" type="submit" name="function" value="change_password">Change Password</button></form>
       </div>
     </div>
   </div>

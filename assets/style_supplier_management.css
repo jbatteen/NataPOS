@@ -44,6 +44,7 @@ div.new_supplier_button {
   text-align: center;
   grid-column: 1 / span 2;
   margin-bottom: 0.2em;
+  justify-content: center;
 }
 div.delete_button{
   grid-column: 1 / span 2;

@@ -1,42 +1,6 @@
-div.select_inventory, div.select_inventory_superuser, div.create_inventory {
-  align-items: center;
-  margin-top: 0.1em;
-  display: grid;
-  border-width: 1px;
-  border-style: solid;
-  padding: 0.3em;
-}
-div.select_inventory, div.create_inventory {
-  grid-template-columns: auto auto auto;
-}
-div.select_inventory_superuser {
-  grid-template-columns: auto auto auto auto;
-}
-div.select_inventory, div.select_inventory_superuser, div.create_inventory div{
-  padding: .3em;
-}
-
 div.other_functions {
-  align-items: center;
-  margin-top: 0.1em;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  border-width: 1px;
-  border-style: solid;
-  padding: 0.3em;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 div.other_functions div {
+  text-align: center;
 }
-button.wide {
-  padding: 1em, 1em;
-  width: 95%;
-  height: 2em;
-  margin: 0.3em;
-}
-input.wide {
-  width: 95%;
-}
-select {
-  width: 95%;
-}
-

@@ -11,12 +11,15 @@
       value_id = property.concat("_value");
       var input_id = "";
       input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
       if (document.getElementById(value_id).style.display == "none") {
         document.getElementById(value_id).style.display = "grid";
         document.getElementById(input_id).style.display = "none";
       } else {
         document.getElementById(value_id).style.display = "none";
         document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
       }
     }
   </script>
@@ -38,8 +41,8 @@
       </div>
     </div>
   </div>
-  <div class="mainbody">
-    <h1>{{ instance_name }} Global Configuration</h1>
+  <div class="configbody">
+    <h1>Global Configuration</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="location_list">
       {% for i in locations_collection %}
@@ -52,7 +55,7 @@
           <div class="location_value" id="{{ i['location_id'] }}_phone_value" style="width:fit-content">{{ i['phone'] }}</div>
           <div class="location_input" id="{{ i['location_id'] }}_phone_input">
             <form class="change" method="post">
-              <input type="text" class="wide" title="Enter a phone" name="phone">
+              <input type="text" id="{{ i['location_id'] }}_phone_focus" class="wide" title="Enter a phone" name="phone">
               <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
               <input type="submit" name="function" value="change_phone" hidden>
             </form>
@@ -62,7 +65,7 @@
           <div class="location_value" id="{{ i['location_id'] }}_address_value" style="width:fit-content">{{ i['address'] }}</div>
           <div class="location_input" id="{{ i['location_id'] }}_address_input">
             <form class="change" method="post">
-              <input type="text" class="wide" title="Enter an address" name="address">
+              <input type="text" id="{{ i['location_id'] }}_address_focus" class="wide" title="Enter an address" name="address">
               <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
               <input type="submit" name="function" value="change_address" hidden>
             </form>
@@ -84,9 +87,23 @@
           <div class="taxes">
             {% for tax in i['taxes'] %}
             <div class="tax">
-              <div>{{ tax['tax_id'] }}: {{ (100 * tax['rate']) }}%</div>
+              <div class="tax_rate">
+                <div class="tax_rate_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate')">{{ tax['tax_id'] }}</button> </div>
+                <div class="tax_rate_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_value">{{ (100 * tax['rate']) }}%</div>
+                <div class="tax_rate_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_input">
+                  <form class="change" method="post">
+                    <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+                    <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+                    <input id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_focus" type="text" title="Enter a percentage" name="rate">
+                    <input type="submit" name="function" value="change_tax_rate" hidden>
+                  </form>
+                </div>  
+                
+                <!-- {{ tax['tax_id'] }}: {{ (100 * tax['rate']) }}% -->
+              
+              </div>
               {% if tax['tax_id'] in i['default_taxes'] %}
-              <div>
+              <div class="tax_default">
                 <form method="post">
                   <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
                   <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
@@ -94,7 +111,7 @@
                 </form>
               </div>
               {% else %}
-              <div>
+              <div class="tax_default">
                 <form method="post">
                   <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
                   <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
@@ -102,9 +119,10 @@
                 </form>
               </div>
               {% endif %}
-              <div>
+              <div class="delete_tax">
                 <form method="post">
                   <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+                  <input type="hidden" name="rate" value="{{ tax['rate'] }}">
                   <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
                   <button class="delete" type="submit" name="function" value="delete_tax">X</button>
                 </form>
@@ -135,7 +153,7 @@
           <form class="change" method="post">
             <div style="display:grid;grid-template-columns: 3fr 1fr;">
               <div>
-                <select name="pay_period_type">
+                <select id="pay_period_type_focus" name="pay_period_type">
                   <option value="weekly">Weekly</option>
                   <option value="biweekly">Biweekly</option>
                   <option value="bimonthly">Bimonthly</option>
@@ -153,7 +171,7 @@
         <div class="current_pay_period_start_input" id="current_pay_period_start_input">
           <form class="change" method="post">
             <div style="display:grid;grid-template-columns: 3fr 1fr;">
-              <div><input type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start"></div>
+              <div><input id="current_pay_period_start_focus" type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start"></div>
               <div><button class="change" type="submit" name="function" value="change_current_pay_period_start">Change</button></div>
             </div>
           </form>
@@ -168,23 +186,34 @@
         <div class="pay_period_rollover_input" id="pay_period_rollover_input">
           <form class="change" method="post">
             <div style="display:grid;grid-template-columns: 3fr 1fr;">
-              <div><input type="text" title="Enter a number between 10 and 19" name="pay_period_rollover"></div>
+              <div><input id="pay_period_rollover_focus" type="text" title="Enter a number between 10 and 19" name="pay_period_rollover"></div>
               <div><button class="change" type="submit" name="function" value="change_pay_period_rollover">Change</button></div>
             </div>
           </form>
         </div>
       </div>
       {% endif %}
-      <div class="current_pay_period">Current Pay Period: {{ current_pay_period }}</div>
     </div>
 
+    <div class="small_fields">
+      <div class="small_fields_key"><button class="key" onclick="switch_value_input('employee_discount')">Employee Discount</button> </div>
+      <div class="small_fields_value" id="employee_discount_value">{{ employee_discount }}</div>
+      <div class="small_fields_input" id="employee_discount_input">
+        <form class="change" method="post">
+          <div style="display:grid;grid-template-columns: 3fr 1fr;">
+            <div><input id="employee_discount_focus" type="text" title="Enter a percentage" name="employee_discount"></div>
+            <div><button class="change" type="submit" name="function" value="change_employee_discount">Change</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <div class="instance_name">
       <div class="instance_key"><button class="key" onclick="switch_value_input('instance_name')">Instance Name:</button></div>
       <div class="instance_value" id="instance_name_value">{{ instance_name }}</div>
       <div class="instance_input" id="instance_name_input">
         <form class="change" method="post">
-          <input type="text" title="Enter a name at least 4 characters long" name="instance_name">
+          <input type="text" id="instance_name_focus" title="Enter a name at least 4 characters long" name="instance_name">
           <input type="submit" name="function" value="change_phone" hidden>
         </form>
       </div>

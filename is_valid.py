@@ -21,53 +21,113 @@ def is_valid_password(input_string=''):
   return True
 
 def is_valid_price(input_string=''):
+  if len(input_string) == 0:
+    return False
   allowed = set("1234567890.$")
-  newstring = ''
+  numbers = set("1234567890")
   decimal_count = 0
+  number_count = 0
+  dollar_count = 0
   for i in input_string:
     if i not in allowed:
       return False
-    if i != '$':
-      newstring = newstring + i
+    if i in numbers:
+      number_count +=1
+    else:
+      dollar_count += 1
     if i == '.':
       decimal_count += 1
   if decimal_count > 1:
     return False
-  elif decimal_count == 1:
-    price_split = newstring.split('.')
-    if len(price_split[1]) > 2:
-      return False
-    if len(price_split[0]) > 5:
-      return False
+  if number_count == 0:
+    return False
+  if dollar_count > 1:
+    return False
+  elif dollar_count == 1 and input_string[0] != '$':
+    return False
   return True
 
-
+def is_valid_percent(input_string=''):
+  if len(input_string) == 0:
+    return False
+  allowed = set("1234567890.%-")
+  numbers = set("1234567890")
+  decimal_count = 0
+  minus_count = 0
+  number_count = 0
+  percent_count = 0
+  strpos = 0
+  for i in input_string:
+    strpos +=1
+    if i not in allowed:
+      return False
+    if i in numbers:
+      number_count += 1
+    else:
+      percent_count += 1
+    if i == '.':
+      decimal_count += 1
+    if i == '-':
+      minus_count +=1
+  if decimal_count > 1:
+    return False
+  if percent_count > 1:
+    return False
+  elif percent_count == 1: 
+    if input_string[-1] not in numbers and input_string[-1] != '%':
+      return False
+  if number_count == 0:
+    return False
+  if minus_count > 1:
+    return False
+  elif minus_count == 1 and input_string[0] != '-':
+    return False
+  return True
 
 def is_valid_float(input_string=''):
-  allowed = set("1234567890.")
+  if len(input_string) == 0:
+    return False
+  allowed = set("1234567890.-")
+  numbers = set("1234567890")
   decimal_count = 0
+  number_count = 0
+  minus_count = 0
   for i in input_string:
     if i not in allowed:
       return False
+    if i in numbers:
+      number_count += 1
     if i == '.':
       decimal_count += 1
+    if i == '-':
+      minus_count += 1
   if decimal_count > 1:
     return False
-  elif decimal_count == 1:
-    price_split = input_string.split('.')
-    if len(price_split[1]) > 3:
-      return False
-    if len(price_split[0]) > 5:
-      return False
+  if minus_count > 1:
+    return False
+  elif minus_count == 1 and input_string[0] != '-':
+    return False
   return True
 
 
 def is_valid_int(input_string=''):
-  allowed = set("1234567890")
-  decimal_count = 0
+  if len(input_string) == 0:
+    return False
+  allowed = set("1234567890-")
+  numbers = set("1234567890")
+  number_count = 0
+  minus_count = 0
   for i in input_string:
     if i not in allowed:
       return False
+    if i in numbers:
+      number_count += 1
+    if i == '-':
+      minus_count += 1
+  if minus_count > 1:
+    return False
+  if number_count == 0:
+    return False
   return True
 
 def is_valid_date(input_string=''):

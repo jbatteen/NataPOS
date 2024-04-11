@@ -11,12 +11,15 @@
       value_id = property.concat("_value");
       var input_id = "";
       input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
       if (document.getElementById(value_id).style.display == "none") {
         document.getElementById(value_id).style.display = "grid";
         document.getElementById(input_id).style.display = "none";
       } else {
         document.getElementById(value_id).style.display = "none";
         document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
       }
     }
   </script>
@@ -45,7 +48,7 @@
     <h1>{{ instance_name }} Department Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="department_list">
-    {% for i in departments %}
+    {% for i in department_collection %}
 
       <div class="department">
 
@@ -63,7 +66,17 @@
         </div>
       </div>
     {% endfor %}
-    <div class="create_department">
+
+      <div class="new_department">
+        <div class="new_department_header">Create Department</div>
+        <form method="post">
+          <div class="new_department_info">
+            <div class="new_department_key">Department Name:</div>
+            <div class="new_department_input"><input type="text" title="Enter a website" name="website"></div>
+          </div>
+          
+        </form>
+      </div>
       
     </div>
   

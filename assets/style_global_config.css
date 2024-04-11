@@ -13,7 +13,6 @@ div.instance_name, div.pay_period_type, div.current_pay_period_start, div.pay_pe
 }
 button.change {
   padding: 1em, 1em;
-  font-size: 1.2em;
   width: 100%;
 }
 button:hover {
@@ -74,11 +73,51 @@ div.taxes {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-
 div.tax {
   display: grid;
   grid-template-columns: 4fr 2fr 1fr;
+  border-width: 1px;
+  border-style: solid;
 }
+
+
+div.tax_rate_key {
+  display: grid;
+  align-items: right;
+  text-align: right;
+  justify-content: end;
+  margin-right: 0.2em;
+}
+div.tax_rate_value {
+  display: grid;
+}
+div.tax_rate_input {
+  display: none;
+}
+div.tax_rate_input, div.tax_rate_value {
+  align-items: center;
+  justify-content: left;
+}
+div.tax_rate {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  padding: 0.3em;
+}
+div.tax_rate div {
+  align-items: center;
+  padding: 0.2em;
+}
+div.tax_default, div.delete_tax {
+  display: grid;
+  align-items: center;
+  padding: 0.2em;
+}
+
+
+
+
 button.delete {
   width: 1.3em;
 }
@@ -163,4 +202,34 @@ div.current_pay_period {
   text-align: center;
   grid-template-columns: 1fr;
   grid-column: 1 / span 2;
+}
+div.small_fields_key {
+  display: grid;
+  align-items: right;
+  text-align: right;
+  justify-content: end;
+  margin-right: 0.2em;
+}
+div.small_fields_value {
+  display: grid;
+}
+div.small_fields_input {
+  display: none;
+}
+div.small_fields_input, div.small_fields_value {
+  align-items: center;
+  justify-content: left;
+}
+div.small_fields {
+  align-items: center;
+  margin-top: 0.1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3em;
+}
+div.small_fields div {
+  align-items: center;
+  padding: 0.2em;
 }

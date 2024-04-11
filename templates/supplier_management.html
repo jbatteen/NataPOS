@@ -11,12 +11,15 @@
       value_id = property.concat("_value");
       var input_id = "";
       input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
       if (document.getElementById(value_id).style.display == "none") {
         document.getElementById(value_id).style.display = "grid";
         document.getElementById(input_id).style.display = "none";
       } else {
         document.getElementById(value_id).style.display = "none";
         document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
       }
     }
   </script>
@@ -127,7 +130,7 @@
             <div class="new_supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
             <div class="new_supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
             <div class="new_supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
-            <div class="new_supplier_button"><button class="change" type="submit" name="function" value="create_supplier">Create</button></div>
+            <div class="new_supplier_button"><button style="width:fit-content" type="submit" name="function" value="create_supplier">Create</button></div>
           </div>
         </form>
       </div>

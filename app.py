@@ -13,9 +13,9 @@ from pymongo.mongo_client import MongoClient
 # import local files
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
-from calculations_and_conversions import calculate_worked_hours, price_to_float
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item
+from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection
 
 
 
@@ -31,10 +31,7 @@ else:
     db.validate_collection("natapos")
   except:
     instance_name = 'NataPOS'
-    most_recent_sunday = date.today() + timedelta(days=(0 - int(date.today().isoweekday())))
-    two_weeks_from_then = most_recent_sunday + timedelta(days=14)
-    current_pay_period = most_recent_sunday.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period': current_pay_period, 'pay_period_rollover': 15, 'timesheets_locked': False, 'employee_discount': 0.2})
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'pay_period_rollover': 15, 'timesheets_locked': False, 'employee_discount': 0.2})
 
 
 
@@ -156,21 +153,13 @@ def global_config(session_key):
         config = db.natapos.find_one({'config': 'global'})
         pay_period_type = config['pay_period_type']
         if pay_period_type == 'weekly':
-          if is_date_within_range(request.form['current_pay_period_start'], 6) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
-            date_split = request.form['current_pay_period_start'].split('/')
-            current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
-            one_week_from_then = current_pay_period_start_time_object + timedelta(days=7)
-            current_pay_period = current_pay_period_start_time_object.strftime('%m/%d/%y') + "-" + str(one_week_from_then.strftime('%m/%d/%y'))
-            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period': current_pay_period}})
+          if is_date_within_range(request.form['current_pay_period_start'], 6) == True and is_date_in_future(request.form['current_pay_period_start']) == False:  
+            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': request.form['current_pay_period_start']}})
           else:
             message = 'Error: date out of range'
         elif pay_period_type == 'biweekly':
           if is_date_within_range(request.form['current_pay_period_start'], 13) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
-            date_split = request.form['current_pay_period_start'].split('/')
-            current_pay_period_start_time_object = date(int(date_split[2]), int(date_split[0]), int(date_split[1]))
-            two_weeks_from_then = current_pay_period_start_time_object + timedelta(days=14)
-            current_pay_period = current_pay_period_start_time_object.strftime('%m/%d/%y') + "-" + str(two_weeks_from_then.strftime('%m/%d/%y'))
-            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period': current_pay_period}})
+            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': current_pay_period_start}})
           else:
             message = 'Error: date out of range'
       else:
@@ -186,6 +175,15 @@ def global_config(session_key):
       return redirect('/landing/' + session_key)
     elif request.form['function'] == 'admin':
       return redirect('/admin/' + session_key)
+    elif request.form['function'] == 'change_employee_discount':
+      if is_valid_percent(request.form['employee_discount']) == False:
+        message = 'invalid percentage'
+      else:
+        new_employee_discount = percent_to_float(request.form['employee_discount'])
+        if new_employee_discount < 0:
+          message = 'percentage must be non-negative'
+        else: db.natapos.update_one({'config': 'global'}, { '$set': {'employee_discount': new_employee_discount}})
+
     elif request.form['function'] == 'create_location':
       if is_valid_string(request.form['location_id']) == False:
         message = 'invalid location name'
@@ -206,8 +204,8 @@ def global_config(session_key):
       location_default_taxes.append(request.form['tax_id'])
       result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'default_taxes': location_default_taxes}})
     elif request.form['function'] == 'create_tax':
-      if is_valid_float(request.form['tax_rate']) == False:
-        message = 'Invalid tax rate.  Enter a number with no percent sign'
+      if is_valid_percent(request.form['tax_rate']) == False:
+        message = 'Invalid percentage'
       elif is_valid_string(request.form['tax_id']) == False:
         message = 'Invalid tax ID'
       else:
@@ -223,26 +221,49 @@ def global_config(session_key):
           new_tax = {}
           new_tax['tax_id'] = request.form['tax_id']
           tax_rate = 0.0
-          tax_rate = float(request.form['tax_rate']) / 100
+          tax_rate = percent_to_float(request.form['tax_rate'])
           new_tax['rate'] = tax_rate
           location_taxes.append(new_tax)
           result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
+    elif request.form['function'] == 'delete_tax':
+      result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$pullAll': {'taxes': [{'tax_id': request.form['tax_id'], 'rate': float(request.form['rate'])}]}})
+    elif request.form['function'] == 'change_tax_rate':
+      if is_valid_percent(request.form['rate']) == False:
+        message = 'invalid tax rate'
+      else:
+        new_rate = percent_to_float(request.form['rate'])
+        if new_rate <= 0:
+          message = 'tax rate must be above zero'
+        else:
+
+          document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
+          taxes = document['taxes']
+          new_taxes = []
+          for i in taxes:
+            if i['tax_id'] == request.form['tax_id']:
+              new_taxes.append({'tax_id': request.form['tax_id'], 'rate': new_rate})
+            else:
+              new_taxes.append(i)
+          result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': new_taxes}})
   config = db.natapos.find_one({'config': 'global'})
   pay_period_type = config['pay_period_type']
   instance_name = config['instance_name']
-  current_pay_period = config['current_pay_period']
+  current_pay_period_start = config['current_pay_period_start']
   pay_period_rollover = config['pay_period_rollover']
-  return render_template('global_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period=current_pay_period, current_pay_period_start=current_pay_period.split('-')[0], pay_period_rollover=pay_period_rollover, message=message, locations_collection=get_locations_collection(db))
+  employee_discount = str(config['employee_discount'] * 100)
+  employee_discount = employee_discount + '%'
+
+  return render_template('global_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period_start=current_pay_period_start, pay_period_rollover=pay_period_rollover, employee_discount=employee_discount, message=message, locations_collection=get_locations_collection(db))
     
 
 @app.route('/landing/<session_key>', methods=['POST', 'GET'])
 def landing(session_key):
+  message = ''
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
   username = result['username']
   config = db.natapos.find_one({'config': 'global'})
-  current_pay_period = config['current_pay_period']
   instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'clock_in':
@@ -251,21 +272,21 @@ def landing(session_key):
         config = db.natapos.find_one({'config': 'global'})
 
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
+      timesheet = db.timesheets.find_one({'username': username})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username, 'pay_period': current_pay_period}, {'$set': {str(current_time): 'in'}})
+        db.timesheets.update_one({'username': username}, {'$set': {str(current_time): 'in'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': current_pay_period, 'worked_hours': 0.0, str(current_time): 'in'})
+        db.timesheets.insert_one({'username': username, str(current_time): 'in'})
     if request.form['function'] == 'clock_out':
       while config['timesheets_locked'] == True:
         time.sleep(1)
         config = db.natapos.find_one({'config': 'global'})
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
+      timesheet = db.timesheets.find_one({'username': username})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username, 'pay_period': current_pay_period}, {'$set': {str(current_time): 'out'}})
+        db.timesheets.update_one({'username': username}, {'$set': {str(current_time): 'out'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': current_pay_period, 'worked_hours': 0.0, str(current_time): 'out'})
+        db.timesheets.insert_one({'username': username, str(current_time): 'out'})
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
@@ -273,10 +294,10 @@ def landing(session_key):
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
-  timesheet = db.timesheets.find_one({'username': username, 'pay_period': current_pay_period})
+  timesheet = db.timesheets.find_one({'username': username})
   if timesheet is not None:
-    worked_hours = str(calculate_worked_hours(timesheet))
-
+    del timesheet['username']
+    del timesheet['_id']
     timestamps = sorted(timesheet)
     last_punch = timesheet[timestamps[-1]]
     message = 'Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))
@@ -284,9 +305,7 @@ def landing(session_key):
       second_to_last_punch = timesheet[timestamps[-2]]
       if last_punch == second_to_last_punch:
         message = message + "<br><br>Missing punch, see a manager.<br><br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
-    message = message + '<br><br>Hours on this time sheet: ' + worked_hours
-  else:
-    message = 'First day worked in the pay period!'
+
   return render_template('landing.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, message=message)
 
 @app.route('/admin/<session_key>', methods=['POST', 'GET'])
@@ -357,15 +376,13 @@ def item_management(session_key):
       today = date.today()
       today_string = today.strftime('%m/%d/%y')
       scanned_barcode = request.form['scan']
-      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'active': True, 'online_ordering': 'yes', 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_upc': '', 'break_pack_quantity': 0.0, 'wic_eligible': False}
-      db.inventory.insert_one(scanned_item)
       locations_to_add_to = request.form.getlist('add_to_location[]')
       for i in locations_to_add_to:
         collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
         default_taxes = collection['default_taxes']
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': ''})
-      scanned_item['locations'] = locations_collection
-      db.inventory.update_one({'item_id': scanned_barcode}, {'$set': {'locations': locations_collection}})
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True})
+      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'online_ordering': 'yes', 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible':False}
+      db.inventory.insert_one(scanned_item)
     
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': request.form['item_id']})
@@ -541,6 +558,49 @@ def item_management(session_key):
           new_locations_collection.append(i)
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_active':
+      if request.form['active'] == 'True':
+        active_bool = True
+      else:
+        active_bool = False
+      locations_collection = get_item_locations_collection(db, request.form['item_id'])
+      new_locations_collection = []
+      for i in locations_collection:
+        if i['location_id'] == request.form['location_id']:
+          i['active'] = active_bool
+        new_locations_collection.append(i)
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'remove_tax':
+      locations_collection = get_item_locations_collection(db, request.form['item_id'])
+      new_locations_collection = []
+      for i in locations_collection:
+        if i['location_id'] == request.form['location_id']:
+          tax_list = i['taxes']
+          tax_list.remove(request.form['tax_id'])
+          i['taxes'] = tax_list
+        new_locations_collection.append(i)
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    
+
+    elif request.form['function'] == 'add_tax':
+      locations_collection = get_item_locations_collection(db, request.form['item_id'])
+      new_locations_collection = []
+      for i in locations_collection:
+        if i['location_id'] == request.form['location_id']:
+          tax_list = i['taxes']
+          tax_list.append(request.form['tax_id'])
+          i['taxes'] = tax_list
+        new_locations_collection.append(i)
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': new_locations_collection}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+
+
+
+
+
+
     elif request.form['function'] == 'change_unit':
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'unit': request.form['unit']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
@@ -641,6 +701,20 @@ def item_management(session_key):
         random_weight_per_bool = False
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'random_weight_per': random_weight_per_bool}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_ebt_eligible':
+      if request.form['ebt_eligible'] == 'True':
+        ebt_eligible_bool = True
+      else:
+        ebt_eligible_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'ebt_eligible': ebt_eligible_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+    elif request.form['function'] == 'change_wic_eligible':
+      if request.form['wic_eligible'] == 'True':
+        wic_eligible_bool = True
+      else:
+        wic_eligible_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'wic_eligible': wic_eligible_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_age_restricted':
       if is_valid_int(request.form['age_restricted']) == False:
         message = 'invalid age'
@@ -652,16 +726,19 @@ def item_management(session_key):
           db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'age_restricted': age_int}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_break_pack_item_id':
-      break_pack_item = db.inventory.find_one({'item_id': request.form['break_pack_item_id']})
-      if break_pack_item == None:
-        message = 'Item not in system'
-      else:
+      if request.form['break_pack_item_id'] == '':
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'break_pack_item_id': request.form['break_pack_item_id']}})
+      else:
+        break_pack_item = db.inventory.find_one({'item_id': request.form['break_pack_item_id']})
+        if break_pack_item == None:
+          message = 'Item not in system'
+        else:
+          db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'break_pack_item_id': request.form['break_pack_item_id']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_break_pack_quantity':
       valid = False
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
-      if scanned_item['unit'] == 'each':
+      break_pack_item = db.inventory.find_one({'item_id' : request.form['break_pack_item_id']})
+      if break_pack_item['unit'] == 'each':
         if is_valid_int(request.form['break_pack_quantity']) == False:
           message = 'Invalid quantity, must be whole number'
         else:
@@ -841,6 +918,12 @@ def department_management(session_key):
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
     return redirect('/landing/' + session_key)
+  department_list = get_department_list(db)
+  selected_department = None
+  selected_category = ''
+  selected_subcategory = ''
+  category_list = []
+  subcategory_list = []
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -851,4 +934,7 @@ def department_management(session_key):
       return redirect('/admin/' + session_key)
     elif request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/' + session_key)
-  return render_template('department_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)
+    #elif request.form['function'] == 'select_department':
+
+
+  return render_template('department_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
