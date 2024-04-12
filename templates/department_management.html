@@ -31,6 +31,9 @@
     </div>
     <div class="menu">
       <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="department_list">Department List</button></form>
+      </div>
+      <div>
         <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
       </div>
       <div>
@@ -47,38 +50,149 @@
   <div class="mainbody">
     <h1>{{ instance_name }} Department Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div class="department_list">
-    {% for i in department_collection %}
 
-      <div class="department">
+    <div class="department">
+      <div class="department_info">
+        <div class="department_key">Department Name:</div>
+        <div class="department_value" id="department_id_value">{{ department_document['department_id'] }}</div>
+        <div class="department_key"><button class="key" onclick="switch_value_input('default_margin')">Default Margin:</button></div>
+        <div class="department_value" id="default_margin_value">{{ (department_document['default_margin'] * 100)|round(5) }}%</div>
+        <div class="department_input" id="default_margin_input">
 
-        <div class="department_key">Name:</div>
-        <div class="department_value">{{ i['department_id'] }}</div>
-        
-        <div class="department_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
-        <div class="department_value" id="{{ i['department_id'] }}_website_value" style="width:fit-content">{{ i['website'] }}</div>
-        <div class="department_input" id="{{ i['department_id'] }}_website_input">
-          <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a website" name="website">
-            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
+          <form method="post">
+            <input id="default_margin_focus" type="text" class="department" title="Enter a percentage" name="default_margin">
+            <input type="submit" name="function" value="set_default_food_item" hidden>
+            <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+          </form>
+          
+        </div>
+        <div class="department_key"><button class="key" onclick="switch_value_input('default_employee_discount')">Default Employee Discount:</button></div>
+        <div class="department_value" id="default_employee_discount_value">{{ (department_document['default_employee_discount'] * 100)|round(5) }}%</div>
+        <div class="department_input" id="default_employee_discount_input">
+
+          <form method="post">
+            <input id="default_margin_focus" type="text" class="department title="Enter a percentage" name="default_employee_discount">
+            <input type="submit" name="function" value="set_default_employee_discount" hidden>
+            <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+          </form>
+        </div>
+        <div class="department_key"><button class="key" onclick="switch_value_input('default_food_item')">Default Food Item:</button></div>
+        <div class="department_value" id="default_food_item_value">{{ department_document['default_food_item'] }}</div>
+        <div class="department_input" id="default_food_item_input">
+          <form method="post">
+            <select id="default_food_item_focus" name="default_food_item">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <button type="submit" name="function" value="set_default_food_item">OK</button>
+            <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+          </form>
+        </div>
+        <div class="department_key"><button class="key" onclick="switch_value_input('default_ebt_eligible')">Default EBT Eligible:</button></div>
+        <div class="department_value" id="default_ebt_eligible_value">{{ department_document['default_ebt_eligible'] }}</div>
+        <div class="department_input" id="default_ebt_eligible_input">
+          <form method="post">
+            <select id="default_ebt_eligible_focus" name="default_ebt_eligible">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <button type="submit" name="function" value="set_default_ebt_eligible">OK</button>
+            <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
           </form>
         </div>
       </div>
-    {% endfor %}
-
-      <div class="new_department">
-        <div class="new_department_header">Create Department</div>
-        <form method="post">
-          <div class="new_department_info">
-            <div class="new_department_key">Department Name:</div>
-            <div class="new_department_input"><input type="text" title="Enter a website" name="website"></div>
+      {% for location in department_document['location_defaults'] %}
+      <div class="location" >
+        <div class="location_info">
+          <div class="location_heading">{{ location['location_id'] }}</div>
+          <div class="location_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_default_online_ordering')">Default Online Ordering</button></div>
+          <div class="location_value" id="{{ location['location_id'] }}_default_online_ordering_value">{{ location['default_online_ordering'] }}</div>
+          <div class="location_input" id="{{ location['location_id'] }}_default_online_ordering_input">
+            <form method="post">
+              <select name="default_online_ordering" id="{{ location['location_id'] }}_default_online_ordering_focus">
+                <option value="yes">Yes</option>
+                <option value="member">Member</option>
+                <option value="no">No</option>
+              </select>
+              <button type="submit" name="function" value="set_default_online_ordering">OK</button>
+              <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+              <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            </form>
           </div>
-          
-        </form>
+        </div>
+        <div class="tax_info">
+          {% for tax in location['default_taxes'] %}
+          <div class="tax">
+            <div class="tax_id">{{ tax }}</div>
+            <div class="default_button">
+              <form method="post">
+                <button type="submit" name="function" value="remove_tax">Default: On</button>
+                <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+                <input type="hidden" name="tax_id" value="{{ tax }}">
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+          {% for tax in location['available_taxes'] %}
+          <div class="tax">
+            <div class="tax_id">{{ tax }}</div>
+            <div class="default_button">
+              <form method="post">
+                <button type="submit" name="function" value="add_tax">Default: Off</button>
+                <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+                <input type="hidden" name="tax_id" value="{{ tax }}">
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
-      
+      {% endfor %}
+      <div class="categories">
+        <div class="categories_header">Categories: (Select to view/edit subcategories)</div>      
+        <div class="category">
+          <form method="post">
+            <div class="add_category">
+              <div class="category_name"><input type="text" class="category" title="Enter a category" name="category_id"></div>
+              <div class="category_button"><button type="submit" name="function" value="add_category">Add</button></div>
+              <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+            </div>
+          </form>
+        </div>
+        {% for category in categories_list %}
+        <div class="category">
+          {{ category }}
+        </div>
+        {% endfor %}
+      </div>
+      {% if selected_category != '' %}
+      <div class="categories">
+        <div class="category_header">Subcategories:</div>
+        <div class="category">
+          <form method="post">
+            <div class="add_category">
+              <div class="category_name"><input type="text" class="category" title="Enter a subcategory" name="subcategory_id"></div>
+              <div class="category_button"><button type="submit" name="function" value="add_subcategory">Add</button></div>
+              <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+            </div>
+          </form>
+
+        </div>
+
+        {% for subcategory in subcategories_list %}
+        <div class="category">
+          {{ subcategory }}
+        </div>
+        {% endfor %}
+
+
+      </div>
+      {% endif %}
     </div>
+
+    
   
   </div>
 </body>

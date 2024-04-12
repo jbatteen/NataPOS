@@ -33,7 +33,7 @@ def is_valid_price(input_string=''):
       return False
     if i in numbers:
       number_count +=1
-    else:
+    if i == '$':
       dollar_count += 1
     if i == '.':
       decimal_count += 1
@@ -63,7 +63,7 @@ def is_valid_percent(input_string=''):
       return False
     if i in numbers:
       number_count += 1
-    else:
+    if i == '%':
       percent_count += 1
     if i == '.':
       decimal_count += 1
@@ -73,9 +73,8 @@ def is_valid_percent(input_string=''):
     return False
   if percent_count > 1:
     return False
-  elif percent_count == 1: 
-    if input_string[-1] not in numbers and input_string[-1] != '%':
-      return False
+  elif percent_count == 1 and input_string[-1] != '%':
+    return False
   if number_count == 0:
     return False
   if minus_count > 1:

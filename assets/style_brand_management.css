@@ -1,19 +1,19 @@
 
 div.supplier_list {
   align-items: center;
-  margin-top: 0.1em;
+  margin-top: 0.1vw;
   display: grid;
   border-width: 1px;
   border-style: solid;
-  padding: 0.3em;
+  padding: 0.3vw;
 }
 div.supplier{
   align-items: center;
-  margin-bottom: 0.1em;
+  margin-bottom: 0.1vw;
   display: grid;
   border-width: 1px;
   border-style: solid;
-  padding: 0.3em;
+  padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
 div.supplier_value {
@@ -24,7 +24,7 @@ div.supplier_input {
 }
 div.supplier_key {
   text-align: right;
-  margin-right: 0.5em;
+  margin-right: 0.5vw;
 }
 
 div.new_supplier {
@@ -40,10 +40,10 @@ div.new_supplier_top {
   text-align: center;
 }
 div.new_supplier_button {
-  margin-top: 0.4em;
+  margin-top: 0.4vw;
   text-align: center;
   grid-column: 1 / span 2;
-  margin-bottom: 0.2em;
+  margin-bottom: 0.2vw;
 }
 div.delete_button{
   grid-column: 1 / span 2;
@@ -51,12 +51,12 @@ div.delete_button{
 }
 div.new_supplier_key {
   text-align: right;
-  margin-right: 0.5em;
+  margin-right: 0.5vw;
 }
 button.wide {
-  padding: 1em, 1em;
+  padding: 1vw, 1vw;
   width: 95%;
-  height: 2em;
+  height: 2vw;
 }
 input.wide {
   width: 95%;

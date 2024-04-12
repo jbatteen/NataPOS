@@ -1,0 +1,62 @@
+
+div.new_department {
+  border-width: 1px;
+  border-style: solid;
+  grid-column: 1 / span 4;
+}
+div.new_department_info {
+  grid-template-columns: 1fr 3fr 1fr;
+}
+div.new_department_header {
+  text-align: center;
+}
+div.new_department_button {
+  margin-top: 0.4vw;
+  text-align: center;
+  grid-column: 1 / span 2;
+  margin-bottom: 0.2vw;
+  justify-content: center;
+}
+div.new_department_name {
+  text-align: right;
+}
+
+div.department_list {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.department {
+  text-align: center;
+}
+
+/*
+div.department_key {
+  text-align: right;
+  margin-right: 0.5vw;
+}
+
+div.delete_button{
+  grid-column: 1 / span 2;
+  text-align: right;
+}
+div.new_department_key {
+  text-align: right;
+  margin-right: 0.5vw;
+}
+div.location {
+  grid-column: 1 / span 2;
+  border-width: 1px;
+  border-style: solid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.location_heading {
+  grid-column: 1 / span 4;
+  text-align: center;
+}
+div.location_key {
+  text-align: right;
+}
+div.new_location_input{
+
+}
+
+*/

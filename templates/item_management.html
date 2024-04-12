@@ -245,11 +245,26 @@
           </form>
         </div>
 
+        <div class="location_specific_key"><button class="key" onclick="switch_value_input('location['location_id'] }}_online_ordering')">Online Ordering:</button></div>
+        <div class="location_specific_value" id="location['location_id'] }}_online_ordering_value">{{ location['online_ordering'] }}</div>
+        <div class="location_specific_input" id="location['location_id'] }}_online_ordering_input">
+          <form class="change" method="post">
+            <select id="location['location_id'] }}_online_ordering_focus" name="online_ordering">
+              <option value="yes">Yes</option>
+              <option value="members">Members</option>
+              <option value="no">No</option>
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <button class="change" type="submit" name="function" value="change_online_ordering">OK</button>
+          </form>
+        </div>
+
 
         <div class="taxes">
           {% for tax in location['taxes'] %}
           <div class="tax">
-            <div>{{ tax }} is on</div>
+            <div class="tax_name">{{ tax }} is on</div>
             <div>
               <form method="post">
                 <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
@@ -263,7 +278,7 @@
 
           {% for tax in location['available_taxes'] %}
           <div class="tax">
-            <div>{{ tax }} is off</div>
+            <div class="tax_name">{{ tax }} is off</div>
             <div>
               <form method="post">
                 <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
@@ -279,7 +294,22 @@
 
       </div>
       {% endfor %}
-
+      {% if not_carried_location_list != [] %}
+      <div class="add_to_location">
+        <div class="add_to_location_key">Add to location:</div>
+        <div>
+          <form method="post">
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <select name="location_id">
+              {% for location in not_carried_location_list %}
+              <option value="{{ location }}">{{ location }}</option>
+              {% endfor %}
+            </select>
+            <button class="delete" type="submit" name="function" value="add_to_location">Add</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
       <div class="unit_combo">
 
         
@@ -453,20 +483,6 @@
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_local">OK</button>
-          </form>
-        </div>
-
-        <div class="small_fields_key"><button class="key" onclick="switch_value_input('online_ordering')">Online Ordering:</button></div>
-        <div class="small_fields_value" id="online_ordering_value">{{ scanned_item['online_ordering'] }}</div>
-        <div class="small_fields_input" id="online_ordering_input">
-          <form class="change" method="post">
-            <select id="online_ordering_focus" name="online_ordering">
-              <option value="yes">Yes</option>
-              <option value="members">Members</option>
-              <option value="no">No</option>
-            </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <button class="change" type="submit" name="function" value="change_online_ordering">OK</button>
           </form>
         </div>
 

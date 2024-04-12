@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/style_department_list.css">
+  <title>{{ instance_name }} Department List</title>
+  <script>
+    function switch_value_input(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{{ assets_url }}/logo.png" style="width:100%">
+    </div>
+    <div class="menu">
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
+      </div>
+    </div>
+  </div>
+  <div class="mainbody">
+    <h1>{{ instance_name }} Department List</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <div class="department_list">
+      {% for department in department_list %}
+      <div class="department">
+        <form method="post"><button class="function" type="submit" name="function" value="go_to_department">{{ department }}</button><input type="hidden" name="department_id" value="{{ department }}"></form>        
+      </div>
+      {% endfor %}
+
+     <!--
+    {% for i in departments_collection %}
+
+      <div class="department">
+        <div class="department_info">
+          <div class="department_key">Department Name:</div>
+          <div class="department_input"><input type="text" title="Enter a name" name="department_id"></div>
+          <div class="department_key">Default Margin:</div>
+          <div class="department_input"><input type="text" title="Enter a percentage" name="default_margin"></div>
+          <div class="department_key">Default Employee Discount:</div>
+          <div class="department_input"><input type="text" title="Enter a percentage" name="default_employee_discount"></div>
+          <div class="department_key">Default Food Item:</div>
+          <div class="department_input">
+            <form method="post">
+              <select name="default_food_item">
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+              <button type="submit" name="function" value="set_default_food_item">OK</button>
+              <input type="hidden" name="department_id" value="{{ i['department_id'] }}">
+            </form>
+          </div>
+          <div class="department_key">Default EBT Eligible:</div>
+          <div class="department_input">
+            <form method="post">
+              <select name="default_ebt_eligible">
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+              <button type="submit" name="function" value="set_default_ebt_eligible">OK</button>
+              <input type="hidden" name="department_id" value="{{ i['department_id'] }}">
+            </form>
+          </div>
+          {% for location in locations_collection %}
+          <div class="location" >
+            <div class="location_heading">{{ location['location_id'] }}</div>
+            <div class="location_key">Default Online Ordering</div>
+            <div class="location_input">
+              <form method="post">
+                <select name="default_online_ordering">
+                  <option value="yes">Yes</option>
+                  <option value="member">Member</option>
+                  <option value="no">No</option>
+                </select>
+                <button type="submit" name="function" value="set_default_online_ordering">OK</button>
+                <input type="hidden" name="department_id" value="{{ i['department_id'] }}">
+              </form>
+            </div>
+            {% for tax in location['taxes'] %}
+            <div class="location_key">Default {{ tax['tax_id'] }}</div>
+            <div class="location_input">
+              <form method="post">
+                <button type="submit" name="function" value="change">change</button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+--> 
+      <div class="new_department">
+        <div class="new_department_header">Create Department</div>
+        <form method="post">
+          <div class="new_department_info">
+            <div class="new_department_name">Department Name:</div>
+            <div><input type="text" title="Enter a name" name="department_id"></div>
+            <div><button type="submit" name="function" value="create_department">Create</button></div>
+          </div>
+          
+        </form>
+      </div>
+      
+  
+  </div>
+</body>
+</html>

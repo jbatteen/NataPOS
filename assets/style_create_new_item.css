@@ -1,25 +1,25 @@
 div.header {
   align-items: center;
-  margin-top: 0.1em;
+  margin-top: 0.1vw;
   display: grid;
   border-width: 1px;
   border-style: solid;
-  padding: 0.3em;
+  padding: 0.3vw;
 }
 
 div.buttons {
   align-items: center;
-  margin-top: 0.1em;
+  margin-top: 0.1vw;
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-width: 1px;
   border-style: solid;
-  padding: 0.3em;
+  padding: 0.3vw;
 }
 button.wide {
-  padding: 1em, 1em;
+  padding: 1vw, 1vw;
   width: 95%;
-  height: 2em;
+  height: 2vw;
 }
 
 

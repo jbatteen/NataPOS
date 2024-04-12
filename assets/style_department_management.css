@@ -1,67 +1,102 @@
 
-div.supplier_list {
-  align-items: center;
-  margin-top: 0.1em;
-  display: grid;
+div.department_info {
+  text-align: center;
+  grid-template-columns: 2fr 1fr 2fr 1fr;
   border-width: 1px;
   border-style: solid;
-  padding: 0.3em;
 }
-div.supplier{
-  align-items: center;
-  margin-bottom: 0.1em;
-  display: grid;
-  border-width: 1px;
-  border-style: solid;
-  padding: 0.3em;
-  grid-template-columns: 1fr 3fr;
-}
-div.supplier_value {
-  display: grid;
-}
-div.supplier_input {
-  display: none;
-}
+
+
 div.department_key {
   text-align: right;
-  margin-right: 0.5em;
+  margin-right: 0.5vw;
+  justify-content: end;
 }
-
-div.new_department {
-  border-width: 1px;
-  border-style: solid;
-
+div.department_input {
+  display: none;
+  text-align: left;
 }
-div.new_department_info {
-  grid-template-columns: 1fr 3fr;
-}
-div.new_department_header {
-  text-align: center;
-}
-div.new_department_button {
-  margin-top: 0.4em;
-  text-align: center;
-  grid-column: 1 / span 2;
-  margin-bottom: 0.2em;
-  justify-content: center;
+div.department_value {
+  text-align: left;
+  margin-left: 0.3vw;
 }
 div.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
 }
-div.new_department_key {
+div.location {
+  border-width: 1px;
+  border-style: solid;
+  margin-top: .3vw;
+}
+div.location_input {
+  margin-left: 0.3vw;
+  display: none;
+}
+div.location_value{
+  margin-left: 0.3vw;
+}
+div.location_info{
+
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.location_heading {
+  grid-column: 1 / span 4;
+  text-align: center;
+  padding: 0.3vw;
+}
+div.location_key {
   text-align: right;
-  margin-right: 0.5em;
 }
-button.wide {
-  padding: 1em, 1em;
-  width: 95%;
-  height: 2em;
+div.tax_info {
+  grid-template-columns: 1fr 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
 }
-input.wide {
-  width: 95%;
+div.tax {
+  grid-template-columns: 3fr 2fr;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3vw;
 }
-select {
-  width: 95%;
+div.tax_id {
+  text-align: right;
+  margin-right: 0.3vw;
+}
+button.key {
+  margin: 0.3vw;
+  padding: 0.1vw;
+  background-color: #1f2a46;
+  border: none;
+}
+button.key:hover {
+  background-color: #1f2a46;
+}
+input.department {
+  font-size: inherit;
+  width: 12vw;
 }
 
+div.categories {
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3vw;
+  grid-template-columns: 1fr 1fr;
+}
+div.add_category {
+  grid-template-columns: 3fr 1fr;
+}
+div.select_category {
+  grid-template-columns: 3fr 1fr;
+}
+input.category {
+  width: 35vw;
+}
+
+
+div.subcategories {
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.3vw;
+  grid-template-columns: 1fr 1fr;
+}

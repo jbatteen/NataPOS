@@ -1,5 +1,18 @@
 
 .login {
   font-size: inherit;
-  margin-top: 0.5em;
+  margin-top: 1vh;
+}
+button.login {
+  width: fit-content;
+}
+div.login {
+  justify-content: end;
+  margin-right: 1vw;
+}
+div.login_form {
+  grid-template-columns: 1fr 5fr;
+}
+input.login {
+  width: 10vw;
 }

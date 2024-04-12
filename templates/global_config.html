@@ -48,6 +48,7 @@
       {% for i in locations_collection %}
       <div class="location">
         <div class="location_info">
+          
           <div class="location_key">Name:</div>
           <div class="location_value">{{ i['location_id'] }}</div>
           
@@ -87,9 +88,10 @@
           <div class="taxes">
             {% for tax in i['taxes'] %}
             <div class="tax">
+              {% if tax['tax_id'] != 'exempt' %}
               <div class="tax_rate">
                 <div class="tax_rate_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate')">{{ tax['tax_id'] }}</button> </div>
-                <div class="tax_rate_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_value">{{ (100 * tax['rate']) }}%</div>
+                <div class="tax_rate_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_value">{{ (100 * tax['rate'])|round(5) }}%</div>
                 <div class="tax_rate_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_input">
                   <form class="change" method="post">
                     <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
@@ -98,10 +100,15 @@
                     <input type="submit" name="function" value="change_tax_rate" hidden>
                   </form>
                 </div>  
-                
-                <!-- {{ tax['tax_id'] }}: {{ (100 * tax['rate']) }}% -->
-              
               </div>
+              {% else %}
+              <div class="tax">
+                <div class="tax_rate">
+                  <div class="tax_rate_key">Exempt</div>
+                  <div class="tax_rate_value">0%</div>
+                </div>
+              </div>
+              {% endif %}
               {% if tax['tax_id'] in i['default_taxes'] %}
               <div class="tax_default">
                 <form method="post">
@@ -110,6 +117,7 @@
                   <button class="set_default_tax" type="submit" name="function" value="remove_default_tax">Default: Yes</button>
                 </form>
               </div>
+
               {% else %}
               <div class="tax_default">
                 <form method="post">
@@ -119,6 +127,8 @@
                 </form>
               </div>
               {% endif %}
+
+              {% if tax['tax_id'] != 'exempt' %}
               <div class="delete_tax">
                 <form method="post">
                   <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
@@ -127,6 +137,7 @@
                   <button class="delete" type="submit" name="function" value="delete_tax">X</button>
                 </form>
               </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>

@@ -16,7 +16,7 @@ h2 {
 }
 h3 {
 	font-weight: 400;
-	margin-top: 0em;
+	margin-top: 0vw;
 	font-size: 2.2vw;
 	text-align: left;
 }
@@ -30,6 +30,7 @@ div.mainbody {
   position: absolute;
   width: 85vw;
   padding: 0.5vw;
+  font-size: 1.6vw;
 }
 div.configbody {
   right: 0;
@@ -75,9 +76,13 @@ button.menu {
 }
 
 button.function {
-  padding: 1em, 1em;
+  padding: 1vw, 1vw;
   width: 16vw;
   height: 7vw;
   margin: 1vw;
   font-size: 2vw;
+}
+
+input, select {
+  font-size: inherit;
 }
