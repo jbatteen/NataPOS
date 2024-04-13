@@ -2,8 +2,8 @@
 <html>
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
-  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
-  <link rel="stylesheet" href="{{ assets_url }}/style_brand_management.css">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/brand_management.css">
   <title>Brand Management</title>
   <script>
     function switch_value_input(property) {
@@ -47,30 +47,94 @@
   <div class="mainbody">
     <h1>Brand Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div class="department_list">
+    <div class="brand_list">
 
    
 
+    {% if brands != [] %}
+    {% for i in brands_collection %}
 
-    {% for i in departments %}
+      <div class="brand">
 
-      <div class="department">
-
-        <div class="department_key">Name:</div>
-        <div class="department_value">{{ i['department_id'] }}</div>
+        <div class="brand_key">Name:</div>
+        <div class="brand_value">{{ i['brand_id'] }}</div>
         
-        <div class="department_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
-        <div class="department_value" id="{{ i['department_id'] }}_website_value" style="width:fit-content">{{ i['website'] }}</div>
-        <div class="department_input" id="{{ i['department_id'] }}_website_input">
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_website')">Website:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_website_input">
           <form class="change" method="post">
             <input type="text" class="wide" title="Enter a website" name="website">
-            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
             <input type="submit" name="function" value="change_website" hidden>
           </form>
         </div>
+        
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_phone')">Phone:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_phone_value">{{ i['phone'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_phone_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a phone number" name="phone">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+            <input type="submit" name="function" value="change_phone" hidden>
+          </form>
+        </div>
+        
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_address')">Address:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_address_value">{{ i['address'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_address_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter an address" name="address">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+            <input type="submit" name="function" value="change_address" hidden>
+          </form>
+        </div>
+        
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_contact_name')">Contact Name:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_contact_name_value">{{ i['contact_name'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_contact_name_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a contact name" name="contact_name">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+            <input type="submit" name="function" value="change_contact_name" hidden>
+          </form>
+        </div>
+        
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_email')">Email:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_email_value">{{ i['email'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_email_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter an email address" name="email">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+            <input type="submit" name="function" value="change_email" hidden>
+          </form>
+        </div>
+        {% if 'superuser' in permissions %}
+        <div class="delete_button">
+          <form class="change" method="post">
+            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+            <button class="change" type="submit" name="function" value="delete_brand">Delete</button>
+          </form>
+        </div>
+        {% endif %}
       </div>
     {% endfor %}
+    {% endif %}
 
+      <div class="new_brand">
+        <div class="new_brand_top">Create a New brand:</div>
+        <form method="post">
+          <div class="new_brand_info">
+            <div class="new_brand_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the brand" name="brand_id"></div>
+            <div class="new_brand_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
+            <div class="new_brand_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
+            <div class="new_brand_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
+            <div class="new_brand_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
+            <div class="new_brand_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
+            <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
   
   </div>
 </body>

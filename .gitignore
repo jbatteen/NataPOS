@@ -1,0 +1,12 @@
+__pycache__/
+.venv/
+test.py
+reset.py
+reset
+assets/favicon.ico
+assets/logo.png
+db_explorer
+db_explorer.py
+templates.txt
+.vscode/
+moddb.py

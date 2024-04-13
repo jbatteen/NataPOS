@@ -414,7 +414,7 @@ def item_management(item_id):
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/item_management/' + item_id + '/')
+        response = redirect('/item_management/' + item_id + '/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
@@ -428,11 +428,14 @@ def item_management(item_id):
   supplier_list= get_supplier_list(db)
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   locations_collection = []
+  permissions = []
   permissions = employee_info['permissions']
   if 'inventory_management' not in permissions and 'superuser' not in permissions:
     return redirect('/')
   scanned_item = db.inventory.find_one({'item_id' : item_id})
-  permissions = []
+  if scanned_item is None:
+    #  TO DO:  VALIDATE THIS INPUT BEFORE ACTING
+    return redirect('/create_item/' + item_id + '/')
   item_group_list = get_item_group_list(db)
   not_carried_location_list = []
   location_list = get_location_list(db)
@@ -449,21 +452,11 @@ def item_management(item_id):
     elif request.form['function'] == 'scan':
       scanned_item = db.inventory.find_one({'item_id' : request.form['scan']})
       if scanned_item is None:
-        scanned_barcode = request.form['scan']
-        #  TO DO:  VALIDATE THIS INPUT BEFORE ACTING
-        return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=scanned_barcode, supplier_list=supplier_list, location_list=location_list, permissions=permissions)   
+        return redirect('/create_item/' + request.form['scan'] + '/')
+      
+        
 
-    elif request.form['function'] == 'create_new_item':
-      today = date.today()
-      today_string = today.strftime('%m/%d/%y')
-      scanned_barcode = request.form['scan']
-      locations_to_add_to = request.form.getlist('add_to_location[]')
-      for i in locations_to_add_to:
-        collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
-        default_taxes = collection['default_taxes']
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': 'yes'})
-      scanned_item = {'item_id': scanned_barcode, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible':False}
-      db.inventory.insert_one(scanned_item)   
+    
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': request.form['item_id']})
     elif request.form['function'] == 'change_name':
@@ -750,6 +743,14 @@ def item_management(item_id):
         local_bool = False
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'local': local_bool}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
+
+    elif request.form['function'] == 'change_consignment':
+      if request.form['consignment'] == 'True':
+        consignment_bool = True
+      else:
+        consignment_bool = False
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'consignment': consignment_bool}})
+      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_online_ordering':
       locations_collection = get_item_locations_collection(db, request.form['item_id'])
       new_locations_collection = []
@@ -868,6 +869,50 @@ def item_management(item_id):
 
   return render_template('item_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message)
 
+@app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
+def create_item(item_id):
+  session_key = request.cookies.get('natapos_session_key')
+  config = db.natapos.find_one({'config': 'global'})
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      username = request.form['username']
+      password = request.form['password']
+      login_check = {}
+      login_check = validate_login(db, username, password)
+      if login_check['success'] == False:
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response =  redirect('/create_item/' + item_id + '/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'inventory_management' not in permissions and 'superuser' not in permissions:
+    return redirect('/')
+  scanned_item = db.inventory.find_one({'item_id' : item_id})
+  if scanned_item is not None:
+    return redirect('/item_management/' + item_id + '/')
+  if request.method == 'POST':
+    if request.form['function'] == 'item_management':
+      return redirect('/item_management/')
+    if request.form['function'] == 'create_new_item':
+      today = date.today()
+      today_string = today.strftime('%m/%d/%y')
+      locations_to_add_to = request.form.getlist('add_to_location[]')
+      locations_collection = []
+      for i in locations_to_add_to:
+        collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
+        default_taxes = collection['default_taxes']
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': 'yes'})
+      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible':False}
+      db.inventory.insert_one(scanned_item)
+      return redirect('/item_management/' + item_id + '/')
+  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), permissions=employee_info['permissions'])   
 
 @app.route('/inventory_management/', methods=['POST', 'GET'])
 def inventory_management():
@@ -1289,3 +1334,42 @@ def category_management(department_id, category_id):
           new_categories.append(category)
         db.inventory_management.update_one({'type': 'department', 'department_id': department_id}, {'$set': {'categories': new_categories}})
   return render_template('category_management.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message, category_id=category_id, department_id=department_id, subcategories=subcategories)
+
+@app.route('/brand_management/', methods=['POST', 'GET'])
+def brand_management():
+  session_key = request.cookies.get('natapos_session_key')
+  config = db.natapos.find_one({'config': 'global'})
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      username = request.form['username']
+      password = request.form['password']
+      login_check = {}
+      login_check = validate_login(db, username, password)
+      if login_check['success'] == False:
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response =  redirect('/supplier_management/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+  message = None
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+    return redirect('/')
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'inventory_management':
+      return redirect('/inventory_management/')
+    
+  return render_template('brand_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, supplier_list=get_supplier_list(db), session_key=session_key, permissions=permissions, message=message)

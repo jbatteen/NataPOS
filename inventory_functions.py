@@ -198,6 +198,8 @@ def beautify_item(db, input_item):
       beautified[i] = str(input_item[i])
     elif i == 'ebt_eligible':
       beautified[i] = str(input_item[i])
+    elif i == 'consignment':
+      beautified[i] = str(input_item[i])
     elif i == 'date_added':
       beautified[i] = input_item[i]
     elif i == 'online_ordering':

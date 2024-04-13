@@ -2,8 +2,8 @@
 <html>
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
-  <link rel="stylesheet" href="{{ assets_url }}/style_item_management.css">
-  <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/item_management.css">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
   <title>Item Management</title>
   <script>
     function switch_value_input(property) {
@@ -486,6 +486,19 @@
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_local">OK</button>
+          </form>
+        </div>
+
+        <div class="small_fields_key"><button class="key" onclick="switch_value_input('consignment')">Consignment:</button></div>
+        <div class="small_fields_value" id="consignment_value">{{ scanned_item['local'] }}</div>
+        <div class="small_fields_input" id="consignment_input">
+          <form class="change" method="post">
+            <select id="consignment_focus" name="consignment">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
+            <button class="change" type="submit" name="function" value="change_consignment">OK</button>
           </form>
         </div>
 
