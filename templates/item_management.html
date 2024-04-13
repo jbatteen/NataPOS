@@ -262,8 +262,11 @@
 
 
         <div class="taxes">
-          {% for tax in location['taxes'] %}
+
+          {% for tax in location['available_taxes'] %}
           <div class="tax">
+            {% if tax in location['taxes'] %}
+
             <div class="tax_name">{{ tax }} is on</div>
             <div>
               <form method="post">
@@ -273,11 +276,7 @@
                 <button class="delete" type="submit" name="function" value="remove_tax">Remove</button>
               </form>
             </div>
-          </div>
-          {% endfor %}
-
-          {% for tax in location['available_taxes'] %}
-          <div class="tax">
+            {% else %}
             <div class="tax_name">{{ tax }} is off</div>
             <div>
               <form method="post">
@@ -287,6 +286,7 @@
                 <button class="delete" type="submit" name="function" value="add_tax">Add</button>
               </form>
             </div>
+            {% endif %}
           </div>
           {% endfor %}
         </div>

@@ -103,7 +103,7 @@ def create_first_user():
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
   
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'exempt', 0.0}], 'default_taxes': []})
+        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'])
         if creation_check['success'] == True:
@@ -188,7 +188,7 @@ def global_config(session_key):
       if is_valid_string(request.form['location_id']) == False:
         message = 'invalid location name'
       else:
-        db.inventory_management.insert_one({'type': 'location', 'location_id': request.form['location_id'], 'phone': '', 'address':'', 'taxes': ['exempt'], 'default_taxes': []})
+        db.inventory_management.insert_one({'type': 'location', 'location_id': request.form['location_id'], 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []})
 
     elif request.form['function'] == 'remove_default_tax':
       location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
@@ -363,6 +363,7 @@ def item_management(session_key):
   permissions = employee_info['permissions']
   item_group_list = get_item_group_list(db)
   not_carried_location_list = []
+  location_list = get_location_list(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -962,18 +963,12 @@ def department_list(session_key):
       elif request.form['department_id'] in department_list:
         message = "Department already exists"
       else:
-        
-          
         new_location_defaults = []
         locations_collection = get_locations_collection(db)
         for location in locations_collection:
           new_location_defaults.append({'location_id': location['location_id'], 'default_taxes': location['default_taxes'], 'default_online_ordering': 'yes'})
-
-        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': {}, 'location_defaults': new_location_defaults, 'default_margin': 0.2, 'default_food_item': True, 'default_ebt_eligible': True, 'default_employee_discount': config['employee_discount']})
-
+        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'location_defaults': new_location_defaults, 'default_margin': 0.2, 'default_food_item': True, 'default_ebt_eligible': True, 'default_employee_discount': config['employee_discount']})
         department_list = get_department_list(db)
-
-
   return render_template('department_list.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
 
 
@@ -991,27 +986,12 @@ def department_management(session_key, department_id):
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
     return redirect('/landing/' + session_key)
+  
   locations_collection = get_locations_collection(db)
-  selected_department = None
   selected_category = ''
   selected_subcategory = ''
   categories_list = []
   subcategory_list = []
-  department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
-  department_location_defaults = department_document['location_defaults']
-  new_department_location_defaults = []
-  for location in department_location_defaults:
-    
-    available_taxes = []
-    location_document = db.inventory_management.find_one({'type': 'location', 'location_id': location['location_id']})
-    for tax in location_document['taxes']:
-      available_taxes.append(tax['tax_id'])
-    location['available_taxes'] = available_taxes
-    for tax in available_taxes:
-      if tax in location['default_taxes']:
-        available_taxes.remove(tax)
-    new_department_location_defaults.append(location)
-  department_document['location_defaults'] = new_department_location_defaults
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -1024,6 +1004,87 @@ def department_management(session_key, department_id):
       return redirect('/inventory_management/' + session_key)
     elif request.form['function'] == 'department_list':
       return redirect('/department_list/' + session_key)
+    elif request.form['function'] == 'set_default_employee_discount':
+      if is_valid_percent(request.form['default_employee_discount']) == False:
+        message = 'invalid percentage'
+      else:
+        new_default_employee_discount = percent_to_float(request.form['set_default_employee_discount'])
+        if new_default_employee_discount < 0:
+          message = 'percentage must be positive'
+        else:
+          db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_employee_discount': new_default_employee_discount}})
+    elif request.form['function'] == 'set_default_margin':
+      if is_valid_percent(request.form['default_margin']) == False:
+        message = 'invalid percentage'
+      else:
+        new_default_margin = percent_to_float(request.form['default_margin'])
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_margin': new_default_margin}})
+    elif request.form['function'] == 'set_default_food_item':
+      if request.form['default_food_item'] == "True":
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_food_item': True}})
+      else:
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_food_item': False}})
+    elif request.form['function'] == 'set_default_ebt_eligible':
+      if request.form['default_ebt_eligible'] == "True":
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_ebt_eligible': True}})
+      else:
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_ebt_eligible': False}})
+    elif request.form['function'] == 'set_default_online_ordering':
+      department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
+      department_location_defaults = department_document['location_defaults']
+      new_department_location_defaults = []
+      for location in department_location_defaults:
+        if location['location_id'] == request.form['location_id']:
+          location['default_online_ordering'] = request.form['default_online_ordering']
+        new_department_location_defaults.append(location)
+      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
+    elif request.form['function'] == 'remove_tax':
+      department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
+      department_location_defaults = department_document['location_defaults']
+      new_department_location_defaults = []
+      for location in department_location_defaults:
+        if location['location_id'] == request.form['location_id']:
+          location['default_taxes'].remove(request.form['tax_id'])
+        new_department_location_defaults.append(location)
+      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
+    elif request.form['function'] == 'add_tax':
+      department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
+      department_location_defaults = department_document['location_defaults']
+      new_department_location_defaults = []
+      for location in department_location_defaults:
+        if location['location_id'] == request.form['location_id']:
+          if request.form['tax_id'] == 'exempt':
+            location['default_taxes'] = ['exempt']
+          else:
+            location['default_taxes'].append(request.form['tax_id'])
+        new_department_location_defaults.append(location)
+      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
+    elif request.form['function'] == 'add_category':
+      if is_valid_string(request.form['category_id']) == False:
+        message = 'Invalid category name'
+      else:
+        print('category id')
+        print(request.form['category_id'])
+        db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$push': {'categories': {'category_id': request.form['category_id'], 'subcategories': []}}})
+    
 
 
-  return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=categories_list, subcategory_list=subcategory_list, selected_department=selected_department, locations_collection=locations_collection, instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
+  department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
+  department_location_defaults = department_document['location_defaults']
+  categories_list = department_document['categories']
+
+  new_department_location_defaults = []
+  for location in department_location_defaults:
+    location_taxes = []
+    location_document = db.inventory_management.find_one({'type': 'location', 'location_id': location['location_id']})
+    for tax in location_document['taxes']:
+      location_taxes.append(tax['tax_id'])
+
+    location['available_taxes'] = location_taxes
+
+    new_department_location_defaults.append(location)
+  department_document['location_defaults'] = new_department_location_defaults
+
+
+
+  return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=categories_list, subcategory_list=subcategory_list, locations_collection=locations_collection, instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)

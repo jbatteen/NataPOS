@@ -127,8 +127,6 @@ def beautify_item(db, input_item):
       for j in old_locations_collection:
         new_location = {}
         available_taxes = location_taxes[j['location_id']]
-        for tax in j['taxes']:
-          available_taxes.remove(tax)
         new_location['available_taxes'] = available_taxes
         new_location['margin'] = float_to_percent((j['regular_price'] / cost_per) - 1)
         for k in j:

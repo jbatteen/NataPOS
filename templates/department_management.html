@@ -61,7 +61,7 @@
 
           <form method="post">
             <input id="default_margin_focus" type="text" class="department" title="Enter a percentage" name="default_margin">
-            <input type="submit" name="function" value="set_default_food_item" hidden>
+            <input type="submit" name="function" value="set_default_margin" hidden>
             <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
           </form>
           
@@ -71,7 +71,7 @@
         <div class="department_input" id="default_employee_discount_input">
 
           <form method="post">
-            <input id="default_margin_focus" type="text" class="department title="Enter a percentage" name="default_employee_discount">
+            <input id="default_employee_discount_focus" type="text" class="department title="Enter a percentage" name="default_employee_discount">
             <input type="submit" name="function" value="set_default_employee_discount" hidden>
             <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
           </form>
@@ -121,25 +121,17 @@
           </div>
         </div>
         <div class="tax_info">
-          {% for tax in location['default_taxes'] %}
-          <div class="tax">
-            <div class="tax_id">{{ tax }}</div>
-            <div class="default_button">
-              <form method="post">
-                <button type="submit" name="function" value="remove_tax">Default: On</button>
-                <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
-                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-                <input type="hidden" name="tax_id" value="{{ tax }}">
-              </form>
-            </div>
-          </div>
-          {% endfor %}
           {% for tax in location['available_taxes'] %}
           <div class="tax">
             <div class="tax_id">{{ tax }}</div>
             <div class="default_button">
               <form method="post">
+                {% if tax in location['default_taxes'] %}
+                
+                <button type="submit" name="function" value="remove_tax">Default: On</button>
+                {% else %}
                 <button type="submit" name="function" value="add_tax">Default: Off</button>
+                {% endif %}
                 <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
                 <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
                 <input type="hidden" name="tax_id" value="{{ tax }}">
@@ -163,7 +155,7 @@
         </div>
         {% for category in categories_list %}
         <div class="category">
-          {{ category }}
+          {{ category['category_id'] }}
         </div>
         {% endfor %}
       </div>
