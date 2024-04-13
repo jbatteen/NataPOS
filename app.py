@@ -56,7 +56,10 @@ def login():
       if login_check['success'] == False: # invalid combo, send back to main page
         return render_template('login.html', instance_name=instance_name, assets_url=assets_url, error=login_check['error'])
       else:
-        return redirect('/landing/' + login_check['session_key'])
+        response =  redirect('/landing/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+
     else: # this shouldn't ever happen but it's here in case i decide to add/change anything later
       return render_template('login.html', instance_name=instance_name, assets_url=assets_url)
 
@@ -109,10 +112,10 @@ def create_first_user():
         if creation_check['success'] == True:
           result = {}
           result = validate_login(db, username=username, password=password)
-          session_key = ''
           if result['success'] == True:
-            session_key = result['session_key']
-            return redirect('/global_config/' + session_key)
+            response = redirect('/global_config/')
+            response.set_cookie('natapos_session_key', result['session_key'])
+            return response
           else:
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='validation error')
         else:
@@ -122,9 +125,10 @@ def create_first_user():
   else:
     return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url)
 
-@app.route('/global_config/<session_key>', methods=['POST', 'GET'])
-def global_config(session_key):
+@app.route('/global_config/', methods=['POST', 'GET'])
+def global_config():
   message = None
+  session_key = request.cookies.get('natapos_session_key')
   current_pay_period_start = None
   result = validate_session_key(db, session_key)
   if result['success'] == False:
@@ -135,7 +139,7 @@ def global_config(session_key):
   permissions = []
   permissions = employee_info['permissions']
   if 'superuser' not in permissions:
-    return redirect('/landing/' + session_key)
+    return redirect('/landing/')
   if request.method == 'POST':
     if request.form['function'] == 'change_instance_name':
       if len(request.form['instance_name']) < 4:
@@ -172,9 +176,9 @@ def global_config(session_key):
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'change_employee_discount':
       if is_valid_percent(request.form['employee_discount']) == False:
         message = 'invalid percentage'
@@ -227,7 +231,6 @@ def global_config(session_key):
           new_tax['tax_id'] = request.form['tax_id']
           tax_rate = 0.0
           tax_rate = percent_to_float(request.form['tax_rate'])
-          print(tax_rate)
           new_tax['rate'] = tax_rate
           location_taxes.append(new_tax)
           result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
@@ -265,9 +268,10 @@ def global_config(session_key):
   return render_template('global_config.html', instance_name=instance_name, assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period_start=current_pay_period_start, pay_period_rollover=pay_period_rollover, employee_discount=employee_discount, message=message, locations_collection=get_locations_collection(db))
     
 
-@app.route('/landing/<session_key>', methods=['POST', 'GET'])
-def landing(session_key):
+@app.route('/landing/', methods=['POST', 'GET'])
+def landing():
   message = ''
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -299,7 +303,7 @@ def landing(session_key):
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
@@ -317,8 +321,9 @@ def landing(session_key):
 
   return render_template('landing.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, message=message)
 
-@app.route('/admin/<session_key>', methods=['POST', 'GET'])
-def admin(session_key):
+@app.route('/admin/', methods=['POST', 'GET'])
+def admin():
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -328,13 +333,13 @@ def admin(session_key):
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'change_password':
-      return redirect('/change_password/' + session_key)
+      return redirect('/change_password/')
     elif request.form['function'] == 'inventory_management':
-      return redirect('/inventory_management/' + session_key)
+      return redirect('/inventory_management/')
     elif request.form['function'] == 'global_config':
-      return redirect('/global_config/' + session_key)
+      return redirect('/global_config/')
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -342,11 +347,42 @@ def admin(session_key):
   permissions = employee_info['permissions']
   return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
 
-@app.route('/item_management/<session_key>', methods=['POST', 'GET'])
-def item_management(session_key):
+
+@app.route('/item_management/', methods=['POST', 'GET'])
+def scan_search():
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   message = None
-  scanned_item = None
+  if result['success'] == False:
+    return redirect('/')
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  username = result['username']
+  permissions = []
+  permissions = employee_info['permissions']
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/')
+    elif request.form['function'] == 'inventory_management':
+      return redirect('/inventory_management/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'scan':
+      return redirect('/item_management/' + request.form['scan'] + '/')
+  return render_template('scan_item.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message)
+
+@app.route('/item_management/<item_id>/', methods=['POST', 'GET'])
+def item_management(item_id):
+  if item_id is None:
+    print ('none')
+  session_key = request.cookies.get('natapos_session_key')
+  result = validate_session_key(db, session_key)
+  message = None
   supplier_list= []
   cost_per = 0.0
   suggested_margin = 0.0
@@ -358,9 +394,12 @@ def item_management(session_key):
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   username = result['username']
-  permissions = []
   locations_collection = []
   permissions = employee_info['permissions']
+  if 'inventory_management' not in permissions and 'superuser' not in permissions:
+    return redirect('/landing/')
+  scanned_item = db.inventory.find_one({'item_id' : item_id})
+  permissions = []
   item_group_list = get_item_group_list(db)
   not_carried_location_list = []
   location_list = get_location_list(db)
@@ -369,17 +408,18 @@ def item_management(session_key):
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'inventory_management':
-      return redirect('/inventory_management/' + session_key)
+      return redirect('/inventory_management/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'scan':
       scanned_item = db.inventory.find_one({'item_id' : request.form['scan']})
       if scanned_item is None:
         scanned_barcode = request.form['scan']
         #  TO DO:  VALIDATE THIS INPUT BEFORE ACTING
         return render_template('create_new_item.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scan=scanned_barcode, supplier_list=supplier_list, location_list=location_list, permissions=permissions)   
+
     elif request.form['function'] == 'create_new_item':
       today = date.today()
       today_string = today.strftime('%m/%d/%y')
@@ -431,7 +471,6 @@ def item_management(session_key):
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_case_quantity':
       valid = False
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
       if scanned_item['unit'] == 'each':
         if is_valid_int(request.form['case_quantity']) == False:
           message = 'Invalid quantity, must be whole number'
@@ -465,7 +504,6 @@ def item_management(session_key):
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_quantity_on_hand':
       valid = False
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
       if scanned_item['unit'] == 'each':
         if is_valid_int(request.form['quantity_on_hand']) == False:
           message = 'Invalid quantity, must be whole number'
@@ -499,7 +537,6 @@ def item_management(session_key):
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_quantity_low':
       valid = False
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
       if scanned_item['unit'] == 'each':
         if is_valid_int(request.form['quantity_low']) == False:
           message = 'Invalid quantity, must be whole number'
@@ -521,7 +558,6 @@ def item_management(session_key):
         scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_quantity_high':
       valid = False
-      scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
       if scanned_item['unit'] == 'each':
         if is_valid_int(request.form['quantity_high']) == False:
           message = 'Invalid quantity, must be whole number'
@@ -591,9 +627,7 @@ def item_management(session_key):
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'add_tax':
       locations_collection = get_item_locations_collection(db, request.form['item_id'])
-      new_locations_collection = []
-      
-      
+      new_locations_collection = []      
       for i in locations_collection:
         if i['location_id'] == request.form['location_id']:
           if request.form['tax_id'] == 'exempt':
@@ -620,16 +654,16 @@ def item_management(session_key):
         db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'order_code': request.form['order_code']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_department':
-      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'department': request.form['department']}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'department': request.form['department_id']}})
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'category': ''}})
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': ''}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_category':
-      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'category': request.form['category']}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'category': request.form['category_id']}})
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': ''}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_subcategory':
-      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': request.form['subcategory']}})
+      db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'subcategory': request.form['subcategory_id']}})
       scanned_item = db.inventory.find_one({'item_id' : request.form['item_id']})
     elif request.form['function'] == 'change_brand':
       db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'brand': request.form['brand']}})
@@ -775,21 +809,36 @@ def item_management(session_key):
       locations_collection.append({'location_id': request.form['location_id'], 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True})
       result = db.inventory.update_one({'item_id': request.form['item_id']}, {'$set': {'locations': locations_collection}})
       scanned_item = db.inventory.find_one({'item_id': request.form['item_id']})
-  if scanned_item is not None:
-    groups_item_is_in = []
-    groups_item_is_in = scanned_item['item_groups']
-    for group in groups_item_is_in:
-      item_group_list.remove(group)
-    scanned_item = beautify_item(db, scanned_item)
-    not_carried_location_list = get_location_list(db)
-    for location in scanned_item['locations']:
-      not_carried_location_list.remove(location['location_id'])
+  
+  groups_item_is_in = []
+  groups_item_is_in = scanned_item['item_groups']
+  for group in groups_item_is_in:
+    item_group_list.remove(group)
+  scanned_item = beautify_item(db, scanned_item)
+  not_carried_location_list = get_location_list(db)
+  for location in scanned_item['locations']:
+    not_carried_location_list.remove(location['location_id'])
+  categories = []
+  subcategories = []
+  if scanned_item['department'] != '':
+    department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
+    categories_list = department_collection['categories']
+    
+    for category in categories_list:
+      categories.append(category['category_id'])
+      if scanned_item['category'] == category['category_id']:
+        subcategories = category['subcategories']
+        
 
-  return render_template('item_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message)
 
 
-@app.route('/inventory_management/<session_key>', methods=['POST', 'GET'])
-def inventory_management(session_key):
+
+  return render_template('item_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message)
+
+
+@app.route('/inventory_management/', methods=['POST', 'GET'])
+def inventory_management():
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -801,28 +850,29 @@ def inventory_management(session_key):
   permissions = []
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
-    return redirect('/landing/' + session_key)
+    return redirect('/landing/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'item_management':
-      return redirect('/item_management/' + '/' + session_key)
+      return redirect('/item_management/')
     elif request.form['function'] == 'supplier_management':
-      return redirect('/supplier_management/' +  session_key)
+      return redirect('/supplier_management/')
     elif request.form['function'] == 'department_list':
-      return redirect('/department_list/' + session_key)
+      return redirect('/department_list/')
     elif request.form['function'] == 'brand_management':
-      return redirect('/brand_management/' + session_key)
+      return redirect('/brand_management/')
       
   return render_template('inventory_management.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)
 
-@app.route('/supplier_management/<session_key>', methods=['POST', 'GET'])
-def supplier_management(session_key):
+@app.route('/supplier_management/', methods=['POST', 'GET'])
+def supplier_management():
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -834,7 +884,7 @@ def supplier_management(session_key):
   permissions = []
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
-    return redirect('/landing/' + session_key)
+    return redirect('/landing/')
   suppliers_collection = []
   suppliers_collection = get_supplier_collection(db)
   if request.method == 'POST':
@@ -842,11 +892,11 @@ def supplier_management(session_key):
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'inventory_management':
-      return redirect('/inventory_management/' + session_key)
+      return redirect('/inventory_management/')
     elif request.form['function'] == 'change_website':
       supplier_id = request.form['supplier_id']
       website = request.form['website']
@@ -928,8 +978,9 @@ def supplier_management(session_key):
 
 
 
-@app.route('/department_list/<session_key>', methods=['POST', 'GET'])
-def department_list(session_key):
+@app.route('/department_list/', methods=['POST', 'GET'])
+def department_list():
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -941,20 +992,20 @@ def department_list(session_key):
   permissions = []
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
-    return redirect('/landing/' + session_key)
+    return redirect('/landing/')
   department_list = get_department_list(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'inventory_management':
-      return redirect('/inventory_management/' + session_key)
+      return redirect('/inventory_management/')
     elif request.form['function'] == 'go_to_department':
-      return redirect('/department_management/' + request.form['department_id'] + '/' + session_key)
+      return redirect('/department_management/' + request.form['department_id'] + '/')
     elif request.form['function'] == 'create_department':
       if is_valid_string(request.form['department_id']) == False:
         message = "Invalid name"
@@ -972,8 +1023,9 @@ def department_list(session_key):
   return render_template('department_list.html', instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
 
 
-@app.route('/department_management/<department_id>/<session_key>', methods=['POST', 'GET'])
-def department_management(session_key, department_id):
+@app.route('/department_management/<department_id>/', methods=['POST', 'GET'])
+def department_management(department_id):
+  session_key = request.cookies.get('natapos_session_key')
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return redirect('/')
@@ -985,7 +1037,7 @@ def department_management(session_key, department_id):
   permissions = []
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'inventory_management' not in permissions:
-    return redirect('/landing/' + session_key)
+    return redirect('/landing/')
   
   locations_collection = get_locations_collection(db)
   selected_category = ''
@@ -997,13 +1049,15 @@ def department_management(session_key, department_id):
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
     elif request.form['function'] == 'main_menu':
-      return redirect('/landing/' + session_key)
+      return redirect('/landing/')
     elif request.form['function'] == 'admin':
-      return redirect('/admin/' + session_key)
+      return redirect('/admin/')
     elif request.form['function'] == 'inventory_management':
-      return redirect('/inventory_management/' + session_key)
+      return redirect('/inventory_management/')
     elif request.form['function'] == 'department_list':
-      return redirect('/department_list/' + session_key)
+      return redirect('/department_list/')
+    elif request.form['function'] == 'go_to_category':
+      return redirect('/category_management/' + department_id + '/' + request.form['category_id'] + '/')
     elif request.form['function'] == 'set_default_employee_discount':
       if is_valid_percent(request.form['default_employee_discount']) == False:
         message = 'invalid percentage'
@@ -1060,13 +1114,18 @@ def department_management(session_key, department_id):
         new_department_location_defaults.append(location)
       db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
     elif request.form['function'] == 'add_category':
+      department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
+      categories_list = department_document['categories']
+      category_id_list = []
+      for category in categories_list:
+        category_id_list.append(category['category_id'])
       if is_valid_string(request.form['category_id']) == False:
         message = 'Invalid category name'
+      elif request.form['category_id'] in category_id_list:
+        message = 'category already exists'
       else:
-        print('category id')
-        print(request.form['category_id'])
         db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$push': {'categories': {'category_id': request.form['category_id'], 'subcategories': []}}})
-    
+
 
 
   department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
@@ -1088,3 +1147,55 @@ def department_management(session_key, department_id):
 
 
   return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=categories_list, subcategory_list=subcategory_list, locations_collection=locations_collection, instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)
+
+
+
+@app.route('/category_management/<department_id>/<category_id>/', methods=['POST', 'GET'])
+def category_management(department_id, category_id):
+  session_key = request.cookies.get('natapos_session_key')
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return redirect('/')
+  message = None
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+    return redirect('/landing/')
+  subcategories = []
+  department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
+  categories = department_document['categories']
+  for category in categories:
+    if category['category_id'] == category_id:
+      subcategories = category['subcategories']
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/landing/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'inventory_management':
+      return redirect('/inventory_management/')
+    elif request.form['function'] == 'go_to_department':
+      return redirect('/department_management/' + department_id + '/')
+    elif request.form['function'] == 'add_subcategory':
+      if is_valid_string(request.form['subcategory_id']) == False:
+        message = "Invalid name"
+      elif len(request.form['subcategory_id']) < 3:
+        message = "Subcategory name must be 3 or more characters"
+      elif request.form['subcategory_id'] in subcategories:
+        message = "Subcategory already exists"
+      else:
+        subcategories.append(request.form['subcategory_id'])
+        new_categories = []
+        for category in categories:
+          if category['category_id'] == category_id:
+            category['subcategories'] = subcategories
+          new_categories.append(category)
+        db.inventory_management.update_one({'type': 'department', 'department_id': department_id}, {'$set': {'categories': new_categories}})
+  return render_template('category_management.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message, category_id=category_id, department_id=department_id, subcategories=subcategories)

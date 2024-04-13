@@ -3,8 +3,8 @@
 <head>
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
-  <link rel="stylesheet" href="{{ assets_url }}/style_brand_management.css">
-  <title>{{ instance_name }} Department Management</title>
+  <link rel="stylesheet" href="{{ assets_url }}/style_category_management.css">
+  <title>Category Management</title>
   <script>
     function switch_value_input(property) {
       var value_id = "";
@@ -31,6 +31,12 @@
     </div>
     <div class="menu">
       <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="go_to_department">{{ department_id}}</button></form>
+      </div>
+      <div>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="department_list">Departments</button></form>
+      </div>
+      <div>
         <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory</button></form>
       </div>
       <div>
@@ -45,33 +51,27 @@
     </div>
   </div>
   <div class="mainbody">
-    <h1>{{ instance_name }} Department Management</h1>
+    <h1>Category Management</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div class="department_list">
-
-   
-
-
-    {% for i in departments %}
-
-      <div class="department">
-
-        <div class="department_key">Name:</div>
-        <div class="department_value">{{ i['department_id'] }}</div>
-        
-        <div class="department_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
-        <div class="department_value" id="{{ i['department_id'] }}_website_value" style="width:fit-content">{{ i['website'] }}</div>
-        <div class="department_input" id="{{ i['department_id'] }}_website_input">
-          <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a website" name="website">
-            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
-          </form>
-        </div>
-      </div>
-    {% endfor %}
+    <h3>Category: {{ category_id }}</h3>
+    <div class="subcategory_list">
 
   
+    {% for i in subcategories %}
+
+      <div class="subcategory_name">{{ i }}</div>
+
+    {% endfor %}
+    </div>
+    <div class="add_subcategory">
+      <form method="post">  
+        <div class="add_form">
+          <div><input type="text" title="Enter a subcategory name" name="subcategory_id"></div>
+          <div><button class="add_subcategory" type="submit" name="function" value="add_subcategory">Add Subcategory</button></div>
+        </div>
+      </form>
+    </div>
+
   </div>
 </body>
 </html>

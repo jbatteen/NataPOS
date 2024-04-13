@@ -1,0 +1,23 @@
+div.add_form {
+  grid-template-columns: 3fr 1fr;
+}
+div.add_form div {
+  text-align: center;
+  align-content: center;
+}
+div.add_subcategory {
+  margin: 0.5vw;
+}
+button.add_subcategory {
+  width: fit-content;
+  margin-left: 1vw;
+}
+div.subcategory_list {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+div.subcategory_name {
+  text-align: center;
+  margin: 0.5vw;
+  border-width: 1px;
+  border-style: solid;
+}

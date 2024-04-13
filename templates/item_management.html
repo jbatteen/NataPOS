@@ -31,7 +31,7 @@
     </div>
     <div class="menu">
       <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory</button></form>
       </div>
       <div>
         <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
@@ -385,9 +385,10 @@
         <div class="dropdown_combo_input" id="department_input">
           <form class="change" method="post">
             <select id="department_focus" name="department_id">
-            {% for i in departments %}
-            <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
+              <option value=""> </option>
+              {% for i in departments %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_department">OK</button>
@@ -399,9 +400,10 @@
         <div class="dropdown_combo_input" id="category_input">
           <form class="change" method="post">
             <select id="category_focus" name="category_id">
-            {% for i in categories %}
-            <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
+              <option value=""> </option>
+              {% for i in categories %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_category">OK</button>
@@ -413,9 +415,10 @@
         <div class="dropdown_combo_input" id="subcategory_input">
           <form class="change" method="post">
             <select id="subcategory_focus" name="subcategory_id">
-            {% for i in subcategories %}
-            <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
+              <option value=""> </option>
+              {% for i in subcategories %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
             </select>
             <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_subcategory">OK</button>

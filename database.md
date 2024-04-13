@@ -62,6 +62,7 @@
 - 'break_pack_quantity': float (number of items in pack)
 - 'wic_elegible': bool(WIC eligible)
 - 'ebt_eligible': bool(EBT eligible)
+- 'consignment': bool(on consignment)
 - 'locations' list of dict:
   - 'location_id': str (unique identifier for location)
   - 'regular_price': float (price at this location)
@@ -94,16 +95,18 @@
 - 'taxes': list of dict {'tax_id': str (name of tax), 'rate': float (tax rate)}
 - 'default_taxes': list of [str('tax_id')]
 
-# in progress
-
 ## departments  (inventory_management collection,  'type': 'department')
 - 'department_id': str (unique identifier for department)
 - 'employee_discount': float (percent off for employees)
-- 'categories': dict {'category_id': ['subcategory_id', 'subcategory_id']}
+- 'categories': list of[{'category_id': str (category id), 'subcategories': ['subcategory_id', 'subcategory_id']}]
 - 'location_defaults': [list] of dict:
   - 'location_id': str (location_id)
   - 'default_online_ordering': str ('yes' or 'no')
-  - 'default_taxes: [list of tax_id]
+  - 'default_taxes': [list of tax_id]
+  - 'default_margin': float (percentage)
+  - 'default_ebt_eligible': bool
+  - 'default_food_item': bool
+  - 'default_employee_discount': float (percentage)
 # to do
 
 ## brands

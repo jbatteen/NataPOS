@@ -31,10 +31,10 @@
     </div>
     <div class="menu">
       <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="department_list">Department List</button></form>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="department_list">Departments</button></form>
       </div>
       <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory Management</button></form>
+        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="inventory_management">Inventory</button></form>
       </div>
       <div>
         <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
@@ -155,33 +155,17 @@
         </div>
         {% for category in categories_list %}
         <div class="category">
-          {{ category['category_id'] }}
-        </div>
-        {% endfor %}
-      </div>
-      {% if selected_category != '' %}
-      <div class="categories">
-        <div class="category_header">Subcategories:</div>
-        <div class="category">
           <form method="post">
-            <div class="add_category">
-              <div class="category_name"><input type="text" class="category" title="Enter a subcategory" name="subcategory_id"></div>
-              <div class="category_button"><button type="submit" name="function" value="add_subcategory">Add</button></div>
-              <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
+            <div class="category_button">
+              <button type="submit" name="function" value="go_to_category">{{ category['category_id'] }}</button>
+              
             </div>
+            <input type="hidden" name="category_id" value="{{ category['category_id'] }}">
           </form>
-
-        </div>
-
-        {% for subcategory in subcategories_list %}
-        <div class="category">
-          {{ subcategory }}
+          
         </div>
         {% endfor %}
-
-
       </div>
-      {% endif %}
     </div>
 
     
