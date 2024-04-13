@@ -7,27 +7,6 @@
 - 'timesheets_locked': bool (used to lock the timesheets to perform pay period rollover safely wrt clocking in/out)
 - 'employee_discount': float (default employee discount for new items)
 
-## employees (employees collection, 'type': 'user')
-- 'username': str (username for this system)
-- 'password': str (bcrypt hash of password)
-- 'name': str (employee's name, however you want to format it)
-- 'short_name': str (name to print on receipts and display in register mode)
-- 'title': str (job title, does nothing for the program just for your records)
-- 'phone': str (phone number)
-- 'email': str (email address)
-- 'hire_date': str (hire date YY/MM/DD)
-- 'status': str (current, former, other?)
-- 'permissions': list of str (permission names the user does/doesn't have)
-- 'authorized_locations': list of str (location_id) where the employee is authorized to work
-- 'timesheet': { str (YYMMDDHHMMSS timestamp: str('in', 'out'))}
-
-### permissions:
-- 'superuser': all permissions, program checks for this first before checking individual permissions
-- 'change_users': add/modify users
-- 'remove_users': remove users
-- 'inventory_management': add/remove/modify items in inventory
-- 'shrink': shrink items
-
 ## timesheets
 - 'username': str (username)
 - 'pay_period': str (pay period identifier)
@@ -107,7 +86,29 @@
   - 'default_ebt_eligible': bool
   - 'default_food_item': bool
   - 'default_employee_discount': float (percentage)
+  
 # to do
+
+## employees (employees collection, 'type': 'user')
+- 'username': str (username for this system)
+- 'password': str (bcrypt hash of password)
+- 'name': str (employee's name, however you want to format it)
+- 'short_name': str (name to print on receipts and display in register mode)
+- 'title': str (job title, does nothing for the program just for your records)
+- 'phone': str (phone number)
+- 'email': str (email address)
+- 'hire_date': str (hire date YY/MM/DD)
+- 'status': str (current, former, other?)
+- 'permissions': list of str (permission names the user does/doesn't have)
+- 'authorized_locations': list of str (location_id) where the employee is authorized to work
+- 'timesheet': { str (YYMMDDHHMMSS timestamp: str('in', 'out'))}
+
+### permissions:
+- 'superuser': all permissions, program checks for this first before checking individual permissions
+- 'change_users': add/modify users
+- 'remove_users': remove users
+- 'inventory_management': add/remove/modify items in inventory
+- 'shrink': shrink items
 
 ## brands
 - 'brand_id': str (unique brand identifier eg 'Kalona')

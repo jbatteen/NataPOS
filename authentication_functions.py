@@ -21,11 +21,13 @@ def validate_login(db, username, password):
     return {'success': False, 'error': 'no such user in system'}
 
 def validate_session_key(db, session_key):
+  if session_key == '':
+    return({'success': False})
   document = db.session_keys.find_one({'session_key': session_key})
   if document is not None:
     current_time = int(round(time.time()))
     time_stamp = int(document['time_stamp'])
-    if current_time - time_stamp < 9000:
+    if current_time - time_stamp < 3600:
       db.session_keys.update_one({'session_key': session_key}, {'$set': {'time_stamp': current_time}})
       return({'success': True, 'username': document['username']})
     else:

@@ -4,7 +4,7 @@
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/style_common.css">
   <link rel="stylesheet" href="{{ assets_url }}/style_department_list.css">
-  <title>{{ instance_name }} Department List</title>
+  <title>Department List</title>
   <script>
     function switch_value_input(property) {
       var value_id = "";
@@ -45,7 +45,7 @@
     </div>
   </div>
   <div class="mainbody">
-    <h1>{{ instance_name }} Department List</h1>
+    <h1>Department List</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="department_list">
       {% for department in department_list %}
