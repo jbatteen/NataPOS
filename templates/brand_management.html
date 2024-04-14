@@ -51,8 +51,8 @@
 
    
 
-    {% if brands != [] %}
-    {% for i in brands_collection %}
+    
+    {% for i in brand_collection %}
 
       <div class="brand">
 
@@ -69,56 +69,44 @@
           </form>
         </div>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_phone')">Phone:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_phone_value">{{ i['phone'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_phone_input">
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_local')">Local:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_local_value">{{ i['local'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_local_input">
           <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a phone number" name="phone">
+            <div class="selection">
+              <div>
+                <select name="local">
+                  <option value="True">True</option>
+                  <option value="False">False</option>                  
+                </select>
+              </div>
+              <div><button class="change" type="submit" name="function" value="change_local">OK</button></div>
+            </div>
             <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <input type="submit" name="function" value="change_phone" hidden>
           </form>
         </div>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_address')">Address:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_address_value">{{ i['address'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_address_input">
+        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_supplier')">Supplier:</button></div>
+        <div class="brand_value" id="{{ i['brand_id'] }}_supplier_value">{{ i['supplier'] }}</div>
+        <div class="brand_input" id="{{ i['brand_id'] }}_supplier_input">
           <form class="change" method="post">
-            <input type="text" class="wide" title="Enter an address" name="address">
+            <div class="selection">
+              <div>
+                <select name="supplier_id">
+                  <option value=""> </option>
+                  {% for supplier in supplier_list %}
+                  <option value="{{ supplier }}">{{ supplier }}</option>    
+                  {% endfor %}              
+                </select>
+              </div>
+              <div><button class="change" type="submit" name="function" value="change_supplier">OK</button></div>
+            </div>
             <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <input type="submit" name="function" value="change_address" hidden>
           </form>
         </div>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_contact_name')">Contact Name:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_contact_name_value">{{ i['contact_name'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_contact_name_input">
-          <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a contact name" name="contact_name">
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <input type="submit" name="function" value="change_contact_name" hidden>
-          </form>
-        </div>
-        
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_email')">Email:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_email_value">{{ i['email'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_email_input">
-          <form class="change" method="post">
-            <input type="text" class="wide" title="Enter an email address" name="email">
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <input type="submit" name="function" value="change_email" hidden>
-          </form>
-        </div>
-        {% if 'superuser' in permissions %}
-        <div class="delete_button">
-          <form class="change" method="post">
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <button class="change" type="submit" name="function" value="delete_brand">Delete</button>
-          </form>
-        </div>
-        {% endif %}
       </div>
     {% endfor %}
-    {% endif %}
 
       <div class="new_brand">
         <div class="new_brand_top">Create a New brand:</div>
@@ -126,12 +114,24 @@
           <div class="new_brand_info">
             <div class="new_brand_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the brand" name="brand_id"></div>
             <div class="new_brand_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
-            <div class="new_brand_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
-            <div class="new_brand_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
-            <div class="new_brand_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
-            <div class="new_brand_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
-            <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
+            <div class="new_brand_key">Supplier:</div>
+            <div>
+              <select name="supplier_id">
+                <option value=""> </option>
+                {% for supplier in supplier_list %}
+                <option value="{{ supplier }}">{{ supplier }}</option>"
+                {% endfor %}
+              </select>
+            </div>
+            <div class="new_brand_key">Local:</div>
+            <div>
+              <select name="local">
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            </div>
           </div>
+          <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
         </form>
       </div>
     </div>

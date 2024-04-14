@@ -121,16 +121,17 @@
           </div>
         </div>
         <div class="tax_info">
+          <div class="tax_heading">Default Taxes:</div>
           {% for tax in location['available_taxes'] %}
           <div class="tax">
-            <div class="tax_id">{{ tax }}</div>
-            <div class="default_button">
+            <div class="tax_id"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}</button></div>
+            <div class="tax_default" id="{{ location['location_id'] }}_{{ tax }}_value">{% if tax in location['default_taxes'] %}on{% else %}off{% endif %}</div>
+            <div class="tax_input" id="{{ location['location_id'] }}_{{ tax }}_input">
               <form method="post">
-                {% if tax in location['default_taxes'] %}
-                
-                <button type="submit" name="function" value="remove_tax">Default: On</button>
+                {% if tax in location['default_taxes'] %}                
+                <button type="submit" name="function" value="remove_tax">Remove</button>
                 {% else %}
-                <button type="submit" name="function" value="add_tax">Default: Off</button>
+                <button type="submit" name="function" value="add_tax">Add</button>
                 {% endif %}
                 <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
                 <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
@@ -143,11 +144,12 @@
       </div>
       {% endfor %}
       <div class="categories">
-        <div class="categories_header">Categories: (Select to view/edit subcategories)</div>      
-        <div class="category">
+        <div class="categories_header"><button class="key" onclick="switch_value_input('categories')">Categories:</button></div>      
+        <div class="add_category_value" id="categories_value">Select to view and add subcategories</div>
+        <div class="add_category" id="categories_input">
           <form method="post">
-            <div class="add_category">
-              <div class="category_name"><input type="text" class="category" title="Enter a category" name="category_id"></div>
+            <div class="category_input">
+              <div class="category_name"id="categories_focus"><input type="text" class="category" title="Enter a category" name="category_id"></div>
               <div class="category_button"><button type="submit" name="function" value="add_category">Add</button></div>
               <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
             </div>
@@ -157,7 +159,7 @@
         <div class="category">
           <form method="post">
             <div class="category_button">
-              <button type="submit" name="function" value="go_to_category">{{ category['category_id'] }}</button>
+              <button class="category" type="submit" name="function" value="go_to_category">{{ category['category_id'] }}</button>
               
             </div>
             <input type="hidden" name="category_id" value="{{ category['category_id'] }}">

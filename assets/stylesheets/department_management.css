@@ -53,6 +53,10 @@ div.tax_info {
   border-width: 1px;
   border-style: solid;
 }
+div.tax_heading {
+  grid-column: 1 / span 3;
+  text-align: center;
+}
 div.tax {
   grid-template-columns: 3fr 2fr;
   border-width: 1px;
@@ -63,28 +67,36 @@ div.tax_id {
   text-align: right;
   margin-right: 0.3vw;
 }
-button.key {
-  margin: 0.3vw;
-  padding: 0.1vw;
-  background-color: #1f2a46;
-  border: none;
-}
-button.key:hover {
-  background-color: #1f2a46;
+div.tax_input {
+  display: none;
 }
 input.department {
   font-size: inherit;
   width: 12vw;
 }
-
+div.categories_header {
+  text-align: center;
+}
 div.categories {
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+div.category {
+  margin: 0.2vw;
+  text-align: center;
+  justify-content: center;
+}
+div.category_input {
+  grid-template-columns: 3fr 1fr;
+}
+div.add_category, div.add_category_value {
+  grid-column: 2 / span 2;
 }
 div.add_category {
-  grid-template-columns: 3fr 1fr;
+  display: none;
 }
 div.select_category {
   grid-template-columns: 3fr 1fr;
@@ -93,7 +105,10 @@ input.category {
   width: 35vw;
 }
 
-
+button.category {
+  width: fit-content;
+  padding: 0.5vw;
+}
 div.subcategories {
   border-width: 1px;
   border-style: solid;

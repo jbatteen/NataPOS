@@ -27,36 +27,3 @@ div.department_list {
 div.department {
   text-align: center;
 }
-
-/*
-div.department_key {
-  text-align: right;
-  margin-right: 0.5vw;
-}
-
-div.delete_button{
-  grid-column: 1 / span 2;
-  text-align: right;
-}
-div.new_department_key {
-  text-align: right;
-  margin-right: 0.5vw;
-}
-div.location {
-  grid-column: 1 / span 2;
-  border-width: 1px;
-  border-style: solid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-}
-div.location_heading {
-  grid-column: 1 / span 4;
-  text-align: center;
-}
-div.location_key {
-  text-align: right;
-}
-div.new_location_input{
-
-}
-
-*/

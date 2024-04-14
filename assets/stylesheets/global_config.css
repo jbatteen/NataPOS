@@ -23,6 +23,9 @@ input {
 select {
   width: 95%;
 }
+div.location_heading {
+  text-align: center;
+}
 div.location_list {
   align-items: center;
   margin-top: 0.2vw;
@@ -50,25 +53,33 @@ div.location_input {
 }
 div.location_key {
   text-align: right;
+  justify-content: right;
   margin-right: 0.5vw;
 }
 div.location_taxes {
   align-items: center;
   padding: 0.2vw;
+  border-width: 1px;
+  border-style: solid;
 }
-
-div.create_tax {
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+div.create_tax_input {
+  display: none;
+}
+div.create_tax_form {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 
 }
-
+div.create_taxes {
+  grid-template-columns: 1fr 5fr;
+}
 div.taxes {
   grid-template-columns: 1fr 1fr;
 }
 div.tax {
-  grid-template-columns: 4fr 2fr 1fr;
+  grid-template-columns: 3fr 1fr 2fr 1fr 2fr 1fr;
   border-width: 1px;
   border-style: solid;
+  margin: 0.3vw;
 }
 
 
@@ -80,8 +91,11 @@ div.tax_rate_key {
 }
 div.tax_rate_value {
 }
-div.tax_rate_input {
+div.tax_rate_input, div.default_input, div.delete_tax_input, div.create_location_input {
   display: none;
+}
+div.create_location_ {
+  grid-template-columns: 3fr 1fr;
 }
 div.tax_rate_input, div.tax_rate_value {
   align-items: center;
@@ -109,11 +123,14 @@ button.delete {
   width: 1.3vw;
 }
 
-div.create_location {
+div.create_location_form {
   align-items: center;
   margin-bottom: 0.1vw;
-  grid-template-columns: 2fr 3fr 1fr;
+  grid-template-columns: 3fr 1fr;
   padding: 0.3vw;
+}
+div.create_location {
+  grid-template-columns: 1fr 3fr;
 }
 div.instance_name {
   grid-template-columns: 1fr 3fr;
@@ -127,7 +144,7 @@ div.instance_value {
   margin-left: 1vw;
 }
 div.instance_key {
-  text-align: right;
+  justify-content: right;
 }
 
 div.pay_period_combo {
@@ -148,7 +165,7 @@ div.pay_period_type_value {
   margin-left: 1vw;
 }
 div.pay_period_type_key {
-  text-align: right;
+  justify-content: right;
 }
 
 div.current_pay_period_start {
@@ -162,7 +179,7 @@ div.current_pay_period_start_value {
   margin-left: 1vw;
 }
 div.current_pay_period_start_key {
-  text-align: right;
+  justify-content: right;
 }
 
 div.pay_period_rollover {
@@ -176,7 +193,7 @@ div.pay_period_rollover_value {
   margin-left: 1vw;
 }
 div.pay_period_rollover_key {
-  text-align: right;
+  justify-content: right;
 }
 div.current_pay_period {
   text-align: center;

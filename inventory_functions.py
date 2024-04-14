@@ -25,6 +25,29 @@ def get_supplier_collection(db):
     supplier_collection.append(supplier)
   return supplier_collection
 
+def get_brand_list(db):
+  try:
+    db.validate_collection("inventory_management")
+  except:
+    return []
+  collection = db.inventory_management.find({'type': 'brand'})
+  brand_list= []
+  for brand in collection:
+    brand_list.append(brand['brand_id'])
+  return brand_list
+
+
+def get_brand_collection(db):
+  try:
+    db.validate_collection("inventory_management")
+  except:
+    return []
+  brand_collection = []
+  collection = db.inventory_management.find({'type': 'brand'})
+  for brand in collection:
+    del brand['_id']
+    brand_collection.append(brand)
+  return brand_collection
 def get_item_group_list(db):
   try:
     db.validate_collection("inventory_management")

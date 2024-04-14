@@ -40,7 +40,7 @@ def float_to_price(input_float = 0.0):
   return newstring
   
 def float_to_percent(input_float):
-  percent = round((input_float * 100), 5)
+  percent = round((input_float * 100), 3)
   newstring = str(percent)
   newstring = newstring + '%'
   return newstring

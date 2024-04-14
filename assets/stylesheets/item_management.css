@@ -35,7 +35,7 @@ div.price_combo_input, div.price_combo_value {
 }
 div.price_combo {
   margin-top: 0.2vw;
-  grid-template-columns: auto auto auto auto;
+  grid-template-columns: 3fr 2fr 3fr 2fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
@@ -115,7 +115,7 @@ div.supplier_combo_input, div.supplier_combo_value {
 }
 div.supplier_combo {
   margin-top: 0.2vw;
-  grid-template-columns: auto auto auto auto;
+  grid-template-columns: 1fr 2fr 1fr 2fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
@@ -140,7 +140,7 @@ div.dropdown_combo_input, div.dropdown_combo_value {
 }
 div.dropdown_combo {
   margin-top: 0.2vw;
-  grid-template-columns: auto auto auto auto auto auto;
+  grid-template-columns: 2fr 3fr 2fr 3fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
@@ -148,13 +148,15 @@ div.dropdown_combo {
 div.dropdown_combo div {
   padding: 0.2vw;
 }
-
 div.item_groups {
-  margin-top: 0.2vw;
-  grid-template-columns: 1fr 1fr 1fr;
+
   border-width: 1px;
   border-style: solid;
-  padding: 0.3vw;
+}
+div.item_group_list {
+  margin-top: 0.2vw;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0.2vw;
 }
 div.item_group {
   padding: 0.2vw;
@@ -168,8 +170,15 @@ div.item_group_add {
   padding: 0.2vw;
   grid-template-columns: 3fr 1fr;
 }
+div.item_group_input {
+  display: none;
+}
 div.item_group_heading {
-  padding: 0.2vw;
+  padding: 0.3vw;
+  grid-template-columns: 1fr 4fr;
+}
+div.item_group_combo {
+  grid-template-columns: 1fr 1fr;
 }
 
 div.item_group_addcreate {
@@ -209,13 +218,6 @@ input.wide {
 select {
   /* width: 95%; */
 }
-button.key {
-  background-color: #1f2a46;
-  border: none;
-}
-button.key:hover {
-  background-color: #1f2a46;
-}
 input.price {
   width: 3vw;
 }
@@ -225,6 +227,8 @@ input {
 div.taxes {
   grid-template-columns: 1fr 1fr;
   grid-column: 1 / span 4;
+  border-width: 1px;
+  border-style: solid;
 }
 div.tax {
   grid-template-columns: 1fr 1fr;
@@ -232,6 +236,13 @@ div.tax {
 div.tax_name{
   justify-content: end;
   margin-right: 0.5vw;
+}
+div.tax_input {
+  display: none;
+}
+div.taxes_heading {
+  grid-column: 1 / span 2;
+  text-align: center;
 }
 div.add_to_location {
   padding: 0.3vw;

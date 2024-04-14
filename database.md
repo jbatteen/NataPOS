@@ -86,7 +86,13 @@
   - 'default_ebt_eligible': bool
   - 'default_food_item': bool
   - 'default_employee_discount': float (percentage)
-  
+
+## brands  (inventory_management collection,  'type': 'brand')
+- 'brand_id': str (unique brand identifier eg 'Kalona')
+- 'website': str (http://)
+- 'supplier': str (supplier_id)
+- 'local': bool (default for new items)
+
 # to do
 
 ## employees (employees collection, 'type': 'user')
@@ -110,16 +116,13 @@
 - 'inventory_management': add/remove/modify items in inventory
 - 'shrink': shrink items
 
-## brands
-- 'brand_id': str (unique brand identifier eg 'Kalona')
-- 'local': bool   default for new items
-- 'supplier': str (default supplier_id for new items)
-
 ## gift_cards
 - 'gift_card_id': str (scan code for gift card)
 - 'value': float ($ value remaining)
 - 'purchased': str (MMDDYY)
-- 'owner': str (member_id or phone number for nonmember or '' for these people trust themselves not to lose it)
+- 'tied_member_account': str (member_id or '' for none)
+- 'tied_online_account': str (account_id or '' for none)
+- 'alternate id': str (any other way to tie this to an owner, or '')
 
 ## members
 - 'member_id': str (member number)
@@ -149,13 +152,13 @@
 - 'url': str (http://xxxxxx)
 
 ## transactions
-- 'transaction_id': str (YYMMDDHHMMSS-$register) (while transaction is unpaid or if voided, this is the timestamp of transaction creation.  when it is paid, the id changes to become the time of transaction completion)
 - 'time_started': str (YYMMDDHHMMSS) time transaction started
-- 'register': str (register name)
-- 'customer': str (member_id)
+- 'time_completed': str (YYMMDDHHMMSS) time transaction completed or '' for incomplete
+- 'register': str (register_id or 'online')
+- 'member_id': str (member_id) or ''
 - 'status': str ('unpaid', 'paid', 'background', 'voided')
-- 'clerk': str (username of employee making the transaction)
-- 'location': str (location_identifier, store location)
+- 'clerk': str (username of employee making the transaction or account_id of online account)
+- 'location': str (location_id or 'online')
 - 'payments': dictionary of
   - str (payment type, 'credit', 'debit', 'ebt', 'cash', 'gift_card', 'check'): float ($ paid)
 - str (item_id): dictionary of

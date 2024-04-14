@@ -83,6 +83,15 @@ button.function {
   font-size: 2vw;
 }
 
+button.key {
+  background-color: #1f2a46;
+  color: hwb(32 25% 16%);
+  border: none;
+}
+
+button.key:hover {
+  background-color: #1f2a46;
+}
 input, select {
   font-size: inherit;
 }

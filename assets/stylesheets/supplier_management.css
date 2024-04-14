@@ -62,14 +62,3 @@ select {
   width: 60vw;
 }
 
-
-button.key {
-  margin: 0.3vw;
-  padding: 0.1vw;
-  background-color: #1f2a46;
-  border: none;
-  width: fit-content;
-}
-button.key:hover {
-  background-color: #1f2a46;
-}
