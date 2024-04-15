@@ -1,25 +1,34 @@
 div.header {
   align-items: center;
   margin-top: 0.1vw;
-  display: grid;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
+  grid-template-columns: 1fr 4fr;
 }
 
-div.buttons {
+div.create {
   align-items: center;
   margin-top: 0.1vw;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
 }
-button.wide {
-  padding: 1vw, 1vw;
-  width: 95%;
-  height: 2vw;
+
+button {
+  padding: 2vw;
+  width: fit-content;
+  font-size: 2.5vw;
 }
 
-
+div.input {
+  grid-template-columns: 2fr 2fr 1fr;
+}
+div.location_check {
+  align-items: center;
+  grid-template-columns: 1fr 4fr;
+}
+div.buttons {
+  justify-content: center;
+  text-align: center;
+}

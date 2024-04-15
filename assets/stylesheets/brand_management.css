@@ -60,3 +60,6 @@ select {
   width: 60vw;
 }
 
+div.create_brand_input {
+  display: none;
+}

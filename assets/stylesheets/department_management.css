@@ -52,16 +52,18 @@ div.tax_info {
   grid-template-columns: 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
+  margin: 0.3vw;
 }
 div.tax_heading {
   grid-column: 1 / span 3;
   text-align: center;
 }
 div.tax {
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 3fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
+  margin: 0.3vw;
 }
 div.tax_id {
   text-align: right;

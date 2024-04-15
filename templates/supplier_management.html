@@ -59,6 +59,16 @@
         <div class="supplier_key">Name:</div>
         <div class="supplier_value">{{ i['supplier_id'] }}</div>
         
+        <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_account')">Account:</button></div>
+        <div class="supplier_value" id="{{ i['supplier_id'] }}_account_value" style="width:fit-content">{{ i['account'] }}</div>
+        <div class="supplier_input" id="{{ i['supplier_id'] }}_account_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter account name or number" name="account">
+            <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
+            <input type="submit" name="function" value="change_account" hidden>
+          </form>
+        </div>
+        
         <div class="supplier_key"><button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button></div>
         <div class="supplier_value" id="{{ i['supplier_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></div>
         <div class="supplier_input" id="{{ i['supplier_id'] }}_website_input">
@@ -121,18 +131,22 @@
     {% endif %}
 
       <div class="new_supplier">
-        <div class="new_supplier_top">Create a New Supplier:</div>
-        <form method="post">
-          <div class="new_supplier_info">
-            <div class="new_supplier_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the supplier" name="supplier_id"></div>
-            <div class="new_supplier_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
-            <div class="new_supplier_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
-            <div class="new_supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
-            <div class="new_supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
-            <div class="new_supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
-            <div class="new_supplier_button"><button style="width:fit-content" type="submit" name="function" value="create_supplier">Create</button></div>
-          </div>
-        </form>
+        <div class="new_supplier_top"><button class="key" onclick="switch_value_input('create_supplier')">Create a New Supplier:</button></div>
+        <div id="create_supplier_value">&emsp;</div>
+        <div class="create_supplier_input" id="create_supplier_input">
+          <form method="post">
+            <div class="new_supplier_info">
+              <div class="new_supplier_key">Name:</div><div><input type="text" id="create_supplier_focus" class="wide" title="Enter a unique name for the supplier" name="supplier_id"></div>
+              <div class="new_supplier_key">Account:</div><div><input type="text" class="wide" title="Enter an account name or number" name="account"></div>
+              <div class="new_supplier_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
+              <div class="new_supplier_key">Phone:</div><div><input type="text" class="wide" title="Enter a phone number" name="phone"></div>
+              <div class="new_supplier_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
+              <div class="new_supplier_key">Contact Name:</div><div><input type="text" class="wide" title="Enter a contact name" name="contact_name"></div>
+              <div class="new_supplier_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
+              <div class="new_supplier_button"><button style="width:fit-content" type="submit" name="function" value="create_supplier">Create</button></div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   

@@ -186,6 +186,13 @@ def beautify_item(db, input_item):
               new_location[k] = str(int(round(j[k], 0)))
             else:
               new_location[k] = str(int(round(j[k], 0)))
+          elif k == 'online_ordering':
+            if j[k] == 'yes':
+              new_location[k] = 'Yes'
+            if j[k] == 'members':
+              new_location[k] = 'Members'
+            if j[k] == 'no':
+              new_location[k] = 'No'
         new_locations_collection.append(new_location)
       beautified[i] = new_locations_collection
     elif i == 'unit':
@@ -225,13 +232,6 @@ def beautify_item(db, input_item):
       beautified[i] = str(input_item[i])
     elif i == 'date_added':
       beautified[i] = input_item[i]
-    elif i == 'online_ordering':
-      if input_item[i] == 'yes':
-        beautified[i] = 'Yes'
-      if input_item[i] == 'members':
-        beautified[i] = 'Members'
-      if input_item[i] == 'no':
-        beautified[i] = 'No'
     elif i == 'discontinued':
       beautified[i] = str(input_item[i])
     elif i == 'food_item':

@@ -9,7 +9,6 @@
 
 ## timesheets
 - 'username': str (username)
-- 'pay_period': str (pay period identifier)
 - str (YYMMDDHHMMSS timestamp): str ('in', 'out')
 
 ## inventory
@@ -76,16 +75,15 @@
 
 ## departments  (inventory_management collection,  'type': 'department')
 - 'department_id': str (unique identifier for department)
-- 'employee_discount': float (percent off for employees)
 - 'categories': list of[{'category_id': str (category id), 'subcategories': ['subcategory_id', 'subcategory_id']}]
+- 'default_employee_discount': float (percent off for employees)
+- 'default_margin': float (percentage)
+- 'default_ebt_eligible': bool
+- 'default_food_item': bool
 - 'location_defaults': [list] of dict:
   - 'location_id': str (location_id)
   - 'default_online_ordering': str ('yes' or 'no')
   - 'default_taxes': [list of tax_id]
-  - 'default_margin': float (percentage)
-  - 'default_ebt_eligible': bool
-  - 'default_food_item': bool
-  - 'default_employee_discount': float (percentage)
 
 ## brands  (inventory_management collection,  'type': 'brand')
 - 'brand_id': str (unique brand identifier eg 'Kalona')
@@ -102,17 +100,15 @@
 - 'short_name': str (name to print on receipts and display in register mode)
 - 'title': str (job title, does nothing for the program just for your records)
 - 'phone': str (phone number)
+- 'address': str (address)
 - 'email': str (email address)
 - 'hire_date': str (hire date YY/MM/DD)
 - 'status': str (current, former, other?)
 - 'permissions': list of str (permission names the user does/doesn't have)
-- 'authorized_locations': list of str (location_id) where the employee is authorized to work
-- 'timesheet': { str (YYMMDDHHMMSS timestamp: str('in', 'out'))}
 
 ### permissions:
-- 'superuser': all permissions, program checks for this first before checking individual permissions
-- 'change_users': add/modify users
-- 'remove_users': remove users
+- 'superuser': all permissions
+- 'employee_management': add/modify users
 - 'inventory_management': add/remove/modify items in inventory
 - 'shrink': shrink items
 

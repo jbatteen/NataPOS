@@ -4,7 +4,7 @@
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/department_list.css">
-  <title>Department List</title>
+  <title>Departments</title>
   <script>
     function switch_value_input(property) {
       var value_id = "";
@@ -45,7 +45,7 @@
     </div>
   </div>
   <div class="mainbody">
-    <h1>Department List</h1>
+    <h1>Departments</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="department_list">
       {% for department in department_list %}
@@ -117,15 +117,17 @@
     {% endfor %}
 --> 
       <div class="new_department">
-        <div class="new_department_header">Create Department</div>
-        <form method="post">
-          <div class="new_department_info">
-            <div class="new_department_name">Department Name:</div>
-            <div><input type="text" title="Enter a name" name="department_id"></div>
-            <div><button type="submit" name="function" value="create_department">Create</button></div>
-          </div>
-          
-        </form>
+        <div class="new_department_key"><button class="key" onclick="switch_value_input('create_department')">Create Department</button></div>
+        <div class="new_department_value" id="create_department_value">&emsp;</div>
+        <div class="new_department_input" id="create_department_input">
+          <form method="post">
+            <div class="new_department_form">
+              <div class="new_department_name">Name:</div>
+              <div><input type="text" title="Enter a name" id="create_department_focus" name="department_id"></div>
+              <div><button type="submit" name="function" value="create_department">Create</button></div>
+            </div>
+          </form>
+      </div>
       </div>
       
   

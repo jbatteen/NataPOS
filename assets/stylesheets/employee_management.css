@@ -1,5 +1,5 @@
 
-div.supplier_list {
+div.employee_list {
   align-items: center;
   margin-top: 0.1vw;
   display: grid;
@@ -7,7 +7,7 @@ div.supplier_list {
   border-style: solid;
   padding: 0.3vw;
 }
-div.supplier{
+div.employee{
   align-items: center;
   margin-bottom: 0.1vw;
   display: grid;
@@ -16,31 +16,31 @@ div.supplier{
   padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
-div.supplier_value {
+div.employee_value {
   display: grid;
 }
-div.supplier_input {
+div.employee_input {
   display: none;
 }
-div.supplier_key {
+div.employee_key {
   margin-right: 0.5vw;
   justify-content: end;
   text-align: right;
 }
 
-div.new_supplier {
+div.new_employee {
   border-width: 1px;
   border-style: solid;
 
 }
-div.new_supplier_info {
+div.new_employee_info {
   display: grid;
   grid-template-columns: 1fr 3fr;
 }
-div.new_supplier_top {
+div.new_employee_top {
   text-align: center;
 }
-div.new_supplier_button {
+div.new_employee_button {
   margin-top: 0.4vw;
   text-align: center;
   grid-column: 1 / span 2;
@@ -51,7 +51,7 @@ div.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
 }
-div.new_supplier_key {
+div.new_employee_key {
   text-align: right;
   margin-right: 0.5vw;
 }
@@ -61,6 +61,22 @@ input.wide {
 select {
   width: 60vw;
 }
-div.create_supplier_input {
+div.create_employee_input {
   display: none;
+}
+div.permission_form {
+
+  grid-column: 1 / span 2;
+}
+div.permissions {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+div.permissions div {
+  grid-template-columns: 1fr 4fr;
+}
+div.status_form {
+  grid-template-columns: 4fr 1fr;
+}
+div.reset_password_form div{
+  grid-template-columns: 1fr 4fr;
 }

@@ -153,9 +153,8 @@
         <div id="{{ location['location_id'] }}_margin_input" class="location_specific_input">
           <form class="change" method="post">
             <input id="{{ location['location_id'] }}_margin_focus" type="text" class="price" title="Enter a margin" name="margin">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-            <input type="submit" name="function" value="change_regular_price_by_margin" hidden>
+            <input type="submit" name="function" value="change_price_by_margin" hidden>
           </form>
         </div>
 

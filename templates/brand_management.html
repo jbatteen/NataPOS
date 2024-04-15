@@ -109,30 +109,33 @@
     {% endfor %}
 
       <div class="new_brand">
-        <div class="new_brand_top">Create a New brand:</div>
-        <form method="post">
-          <div class="new_brand_info">
-            <div class="new_brand_key">Name:</div><div><input type="text" class="wide" title="Enter a unique name for the brand" name="brand_id"></div>
-            <div class="new_brand_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
-            <div class="new_brand_key">Supplier:</div>
-            <div>
-              <select name="supplier_id">
-                <option value=""> </option>
-                {% for supplier in supplier_list %}
-                <option value="{{ supplier }}">{{ supplier }}</option>"
-                {% endfor %}
-              </select>
+        <div class="new_brand_top"><button class="key" onclick="switch_value_input('create_brand')">Create a New brand:</button></div>
+        <div id="create_brand_value">&emsp;</div>
+        <div class="create_brand_input" id="create_brand_input">
+          <form method="post">
+            <div class="new_brand_info">
+              <div class="new_brand_key">Name:</div><div><input type="text" class="wide" id="create_brand_focus" title="Enter a unique name for the brand" name="brand_id"></div>
+              <div class="new_brand_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
+              <div class="new_brand_key">Supplier:</div>
+              <div>
+                <select name="supplier_id">
+                  <option value=""> </option>
+                  {% for supplier in supplier_list %}
+                  <option value="{{ supplier }}">{{ supplier }}</option>"
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="new_brand_key">Local:</div>
+              <div>
+                <select name="local">
+                  <option value="True">True</option>
+                  <option value="False">False</option>
+                </select>
+              </div>
             </div>
-            <div class="new_brand_key">Local:</div>
-            <div>
-              <select name="local">
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            </div>
-          </div>
-          <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
-        </form>
+            <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
+          </form>
+        </div>
       </div>
     </div>
   

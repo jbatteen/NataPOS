@@ -9,23 +9,36 @@
 <body>
 
   <div class="body">
-    <div class="header"><h1>{{ scan }} Not in system.  Create new item?</h1></div>
-    <div class="buttons">
-      <div>
-        <form method="post"><button class="wide" type="submit" name="function" value="item_management">Cancel</button></form>
-      </div>
-      <div>
-        <form method="post">
-          <input type="hidden" name="scan" value="{{ scan }}">
-          <div>Add to inventory at location:</div>
-          <div>
+    <div class="header">
+      <div><form method="post"><button class="cancel" type="submit" name="function" value="item_management">Cancel</button></form></div>
+      <h1>{{ scan }} Not in system.  Create new item?</h1>
+    </div>
+    <div class="create">
+      <form method="post">
+        <div class="input">
+          <div class="locations">
+            <div class="locations_heading">Add to locations:</div>
             {% for i in location_list %}
-            <input type="checkbox" name="add_to_location[]" value="{{ i }}" checked>{{ i }}</option>
-            {% endfor %}
+            <div class="location_check">
+              <input id="{{ i }}" type="checkbox" name="add_to_location[]" value="{{ i }}" checked /><label for="{{ i }}">{{ i }}</label>
+            </div>
+          {% endfor %}
           </div>
-          <button class="wide" type="submit" name="function" value="create_new_item">Yes</button>
-        </form>
-      </div>
+          <div class="department">
+            <label for="select_department">Department:</label>
+            <select id="select_department" name="department_id">
+              <option value="">&nbsp;</option>
+              {% for department in department_list %}
+              <option value="{{ department }}">{{ department }}</option>
+              {% endfor %}
+            </select>
+
+          </div>
+          <div class="buttons">
+            <div><button class="create" type="submit" name="function" value="create_new_item">Create</button></div>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </body>

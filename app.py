@@ -6,6 +6,7 @@ import sys
 import subprocess
 import string
 import time
+import bcrypt
 from datetime import date, timedelta, datetime
 from pymongo.mongo_client import MongoClient
 
@@ -77,7 +78,7 @@ def create_first_user():
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
         db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []})
         creation_check = {}
-        creation_check = create_user(db, username, password, ['superuser'])
+        creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
           result = {}
           result = validate_login(db, username=username, password=password)
@@ -351,6 +352,8 @@ def admin():
       return redirect('/change_password/')
     elif request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/')
+    elif request.form['function'] == 'employee_management':
+      return redirect('/employee_management/')
     elif request.form['function'] == 'global_config':
       return redirect('/global_config/')
   config = db.natapos.find_one({'config': 'global'})
@@ -498,7 +501,11 @@ def item_management(item_id):
         else:
           valid = True
       if valid == True:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'case_quantity': float(request.form['case_quantity'])}})
+        case_quantity = float(request.form['case_quantity'])
+        if case_quantity <= 0.0:
+          message = 'case quantity must be above zero'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'case_quantity': case_quantity}})
       scanned_item = db.inventory.find_one({'item_id' : item_id})
     elif request.form['function'] == 'change_suggested_retail_price':
       if is_valid_price(request.form['suggested_retail_price']) == False:
@@ -509,7 +516,7 @@ def item_management(item_id):
       if is_valid_price(request.form['regular_price']) == False:
         message = 'Invalid price'
       else:
-        locations_collection = get_item_locations_collection(db, ritem_id)
+        locations_collection = get_item_locations_collection(db, item_id)
         new_locations_collection = []
         for i in locations_collection:
           if i['location_id'] == request.form['location_id']:
@@ -798,7 +805,27 @@ def item_management(item_id):
       today_string = today.strftime('%m/%d/%y')
       locations_collection.append({'location_id': request.form['location_id'], 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True})
       result = db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': locations_collection}})
-      
+    elif request.form['function'] == 'change_price_by_margin':
+      if is_valid_percent(request.form['margin']) == False:
+        message = 'Invalid percentage'
+      else:
+        margin_input = percent_to_float(request.form['margin'])
+        if margin_input < 0:
+          message = 'margin must be 0 or higher'
+        else:
+          locations_collection = get_item_locations_collection(db, item_id)
+          new_locations_collection = []
+          for i in locations_collection:
+            if i['location_id'] == request.form['location_id']:
+              cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
+              if cost_per == 0.0:
+                i['reqular_price'] = 0.0
+              else:
+                regular_price = round((cost_per + (margin_input * cost_per)), 2)
+              i['regular_price'] = regular_price
+            new_locations_collection.append(i)
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
+
     scanned_item = db.inventory.find_one({'item_id' : item_id})
   groups_item_is_in = []
   groups_item_is_in = scanned_item['item_groups']
@@ -861,14 +888,32 @@ def create_item(item_id):
       today_string = today.strftime('%m/%d/%y')
       locations_to_add_to = request.form.getlist('add_to_location[]')
       locations_collection = []
+      if request.form['department_id'] != '':
+        department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
+        default_employee_discount = department_document['default_employee_discount']
+        default_ebt_eligible = department_document['default_ebt_eligible']
+        default_food_item = department_document['default_food_item']
+      else:
+        default_employee_discount = config['employee_discount']
+        default_ebt_eligible = False
+        default_food_item = True
       for i in locations_to_add_to:
         collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
-        default_taxes = collection['default_taxes']
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': 'yes'})
-      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': '', 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': config['employee_discount'], 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': True, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible':False}
+        if request.form['department_id'] != '':
+          
+          for location in department_document['location_defaults']:
+            if location['location_id'] == i:
+              default_taxes = location['default_taxes']
+              default_online_ordering = location['default_online_ordering']
+        else:
+          default_taxes = collection['default_taxes']
+          default_online_ordering = 'yes'
+        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': default_online_ordering})
+      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible}
+      
       db.inventory.insert_one(scanned_item)
       return redirect('/item_management/' + item_id + '/')
-  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), permissions=employee_info['permissions'])   
+  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'])   
 
 @app.route('/inventory_management/', methods=['POST', 'GET'])
 def inventory_management():
@@ -962,6 +1007,15 @@ def supplier_management():
         suppliers_collection = get_supplier_collection(db)
       else:
         message = 'Error: invalid characters in website'
+    elif request.form['function'] == 'change_account':
+      supplier_id = request.form['supplier_id']
+      account = request.form['account']
+      if is_valid_string(account) == True:
+      # TO DO: VALIDATE THIS INPUT
+        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'account': account}})
+        suppliers_collection = get_supplier_collection(db)
+      else:
+        message = 'Error: invalid characters in account'
     elif request.form['function'] == 'change_phone':
       supplier_id = request.form['supplier_id']
       phone = request.form['phone']
@@ -1004,6 +1058,7 @@ def supplier_management():
       suppliers_collection = get_supplier_collection(db)
     elif request.form['function'] == 'create_supplier':
       supplier_id = request.form['supplier_id']
+      account = request.form['account']
       website = request.form['website']
       phone = request.form['phone']
       address = request.form['address']
@@ -1013,6 +1068,8 @@ def supplier_management():
         message = 'Error: Supplier name must be 6 or more characters'
       elif is_valid_string(supplier_id) == False:
         message = 'Error: invalid character in supplier name'
+      elif is_valid_string(account) == False:
+        message = 'Error: invalid character in account'
       elif is_valid_string(website) == False:
         message = 'Error: invalid character in website'
       elif is_valid_string(phone) == False:
@@ -1025,7 +1082,7 @@ def supplier_management():
         message = 'Error: invalid character in email'
       else:
         try:
-          db.inventory_management.insert_one({'type': 'supplier', 'supplier_id': supplier_id, 'website': website, 'phone': phone, 'address': address, 'contact_name': contact_name, 'email': email})
+          db.inventory_management.insert_one({'type': 'supplier', 'supplier_id': supplier_id, 'account': account, 'website': website, 'phone': phone, 'address': address, 'contact_name': contact_name, 'email': email})
         except:
           message = 'Error inserting document into collection'
         else:
@@ -1345,3 +1402,137 @@ def brand_management():
     elif request.form['function'] == 'change_supplier':
       db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'supplier': request.form['supplier_id']}})
   return render_template('brand_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, supplier_list=get_supplier_list(db), session_key=session_key, permissions=permissions, message=message, brand_collection=get_brand_collection(db))
+
+
+
+@app.route('/employee_management/', methods=['POST', 'GET'])
+def employee_management():
+  session_key = request.cookies.get('natapos_session_key')
+  config = db.natapos.find_one({'config': 'global'})
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      username = request.form['username']
+      password = request.form['password']
+      login_check = {}
+      login_check = validate_login(db, username, password)
+      if login_check['success'] == False:
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response =  redirect('/supplier_management/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+  message = None
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'employee_management' not in permissions:
+    return redirect('/')
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    
+    elif request.form['function'] == 'change_name':
+      if is_valid_string(request.form['name']) == False:
+        message = 'invalid string'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'name': request.form['name']}})
+    elif request.form['function'] == 'change_short_name':
+      if is_valid_string(request.form['short_name']) == False:
+        message = 'invalid string'
+      elif len(request.form['short_name']) > 15:
+        message = 'name must not be more than 15 characters'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'short_name': request.form['short_name']}})
+    elif request.form['function'] == 'change_title':
+      if is_valid_string(request.form['title']) == False:
+        message = 'invalid string'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'title': request.form['title']}})
+    elif request.form['function'] == 'change_phone':
+      if is_valid_string(request.form['phone']) == False:
+        message = 'invalid string'
+      elif len(request.form['phone']) > 15:
+        message = 'phone number must not be more than characters'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'phone': request.form['phone']}})
+    elif request.form['function'] == 'change_address':
+      if is_valid_string(request.form['address']) == False:
+        message = 'invalid string'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'address': request.form['address']}})
+    
+    elif request.form['function'] == 'change_email':
+      if is_valid_string(request.form['email']) == False:
+        message = 'invalid string'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'email': request.form['email']}})
+    elif request.form['function'] == 'change_date':
+      if is_valid_date(request.form['hire_date']) == False:
+        message = 'invalid date'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'hire_date': request.form['hire_date']}})
+    elif request.form['function'] == 'change_status':
+      db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'status': request.form['status']}})
+    elif request.form['function'] == 'modify_permissions':
+      new_permissions = request.form.getlist('permissions[]')
+      if 'superuser' in new_permissions:
+        new_permissions = ['superuser']      
+      db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'permissions': new_permissions}})
+    elif request.form['function'] == 'reset_password':
+      if is_valid_password(request.form['password1']) == False:
+        message = 'invalid password'
+      elif request.form['password1'] != request.form['password2']:
+        message = 'passwords do not match'
+      else:
+        bytes = request.form['password1'].encode('utf-8')
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(bytes, salt)
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'password': hash}})
+    elif request.form['function'] == 'create_employee':
+      if is_valid_string(request.form['username']) == False:
+        message = 'invalid username'
+      elif len(request.form['username']) > 20:
+        message = 'username must not be longer than 20 characters'
+      elif is_valid_password(request.form['password1']) == False:
+        message = 'invalid password'
+      elif request.form['password1'] != request.form['password2']:
+        message = 'passwords do not match'
+      elif is_valid_string(request.form['name']) == False:
+        message = 'invalid full name'
+      elif is_valid_string(request.form['short_name']) == False:
+        message = 'invalid short name'
+      elif len(request.form['short_name']) > 15:
+        message = 'short name must be 15 characters or less'
+      elif is_valid_string(request.form['title']) == False:
+        message = 'invalid title'
+      elif is_valid_string(request.form['phone']) == False:
+        message = 'invalid phone'
+      elif len(request.form['phone']) > 15:
+        message = 'phone number must not be longer than 15 characters'
+      elif is_valid_string(request.form['address']) == False:
+        message = 'invalid address'
+      elif is_valid_string(request.form['email']) == False:
+        message = 'invalid email'
+      elif request.form['hire_date'] != '' and is_valid_date(request.form['hire_date']) == False:
+        message = 'invalid hire date'
+      else:
+        new_permissions = request.form.getlist('permissions[]')
+        if 'superuser' in new_permissions:
+          new_permissions = ['superuser']      
+        create_user(db, request.form['username'], request.form['password1'], new_permissions, request.form['address'], request.form['name'], request.form['short_name'], request.form['title'], request.form['phone'], request.form['email'], request.form['hire_date'])
+
+  employee_collection = db.employees.find({'type': 'user'})
+  return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)
+
+
+
+

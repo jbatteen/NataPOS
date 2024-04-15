@@ -105,7 +105,7 @@
       <div class="location" >
         <div class="location_info">
           <div class="location_heading">{{ location['location_id'] }}</div>
-          <div class="location_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_default_online_ordering')">Default Online Ordering</button></div>
+          <div class="location_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_default_online_ordering')">Default Online Ordering:</button></div>
           <div class="location_value" id="{{ location['location_id'] }}_default_online_ordering_value">{{ location['default_online_ordering'] }}</div>
           <div class="location_input" id="{{ location['location_id'] }}_default_online_ordering_input">
             <form method="post">
@@ -124,7 +124,7 @@
           <div class="tax_heading">Default Taxes:</div>
           {% for tax in location['available_taxes'] %}
           <div class="tax">
-            <div class="tax_id"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}</button></div>
+            <div class="tax_id"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}:</button></div>
             <div class="tax_default" id="{{ location['location_id'] }}_{{ tax }}_value">{% if tax in location['default_taxes'] %}on{% else %}off{% endif %}</div>
             <div class="tax_input" id="{{ location['location_id'] }}_{{ tax }}_input">
               <form method="post">
