@@ -26,19 +26,39 @@
     <div class="admin_list">
       {% if 'superuser' in permissions %}
       <div>
-        <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
-      </div>
-      <div>
         <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
       </div>
       <div>
+        <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
+      </div>
+      <div>
         <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
       </div>
       {% else %}
 
       {% if 'inventory_management' in permissions %}
       <div>
         <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
+      </div>
+      {% endif %}
+      {% if 'suppliers_departments_brands' in permissions %}
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
       </div>
       {% endif %}
       {% if 'employee_management' in permissions %}

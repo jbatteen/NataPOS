@@ -313,12 +313,15 @@ def landing():
     del timesheet['pay_period']
     timestamps = sorted(timesheet)
     last_punch = timesheet[timestamps[-1]]
-    message = message + '<br/><br/>Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))
-    message = message + '<br/><br/>' + str(calculate_worked_hours(timesheet)) + ' hours on this pay period'
+    
     if len(timesheet) > 1:
       second_to_last_punch = timesheet[timestamps[-2]]
       if last_punch == second_to_last_punch:
         message = message + "<br><br>Missing punch, see a manager.<br><br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
+    message = message + '<br/><br/>Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))
+    if last_punch == 'in':
+      timesheet[str(int(round(time.time())))] = 'out'
+    message = message + '<br/><br/>' + str(round(calculate_worked_hours(timesheet), 2)) + ' hours on this pay period'
   else:
     message = message + '<br/><br/>First day on this pay period'
   
@@ -360,6 +363,12 @@ def admin():
       return redirect('/employee_management/')
     elif request.form['function'] == 'global_config':
       return redirect('/global_config/')
+    elif request.form['function'] == 'supplier_management':
+      return redirect('/supplier_management/')
+    elif request.form['function'] == 'department_list':
+      return redirect('/department_list/')
+    elif request.form['function'] == 'brand_management':
+      return redirect('/brand_management/')
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -368,7 +377,7 @@ def admin():
   return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
 
 
-@app.route('/item_management/', methods=['POST', 'GET'])
+@app.route('/inventory_management/', methods=['POST', 'GET'])
 def scan_search():
   session_key = request.cookies.get('natapos_session_key')
   config = db.natapos.find_one({'config': 'global'})
@@ -381,7 +390,7 @@ def scan_search():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/item_management/')
+        response =  redirect('/inventory_management/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
@@ -405,11 +414,11 @@ def scan_search():
     elif request.form['function'] == 'admin':
       return redirect('/admin/')
     elif request.form['function'] == 'scan':
-      return redirect('/item_management/' + request.form['scan'] + '/')
+      return redirect('/inventory_management/' + request.form['scan'] + '/')
   return render_template('scan_item.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message)
 
-@app.route('/item_management/<item_id>/', methods=['POST', 'GET'])
-def item_management(item_id):
+@app.route('/inventory_management/<item_id>/', methods=['POST', 'GET'])
+def inventory_management(item_id):
   session_key = request.cookies.get('natapos_session_key')
   config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
@@ -421,7 +430,7 @@ def item_management(item_id):
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response = redirect('/item_management/' + item_id + '/')
+        response = redirect('/inventory_management/' + item_id + '/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
@@ -854,7 +863,7 @@ def item_management(item_id):
 
 
 
-  return render_template('item_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db))
+  return render_template('inventory_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db))
 
 @app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
 def create_item(item_id):
@@ -883,10 +892,10 @@ def create_item(item_id):
     return redirect('/')
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is not None:
-    return redirect('/item_management/' + item_id + '/')
+    return redirect('/inventory_management/' + item_id + '/')
   if request.method == 'POST':
-    if request.form['function'] == 'item_management':
-      return redirect('/item_management/')
+    if request.form['function'] == 'inventory_management':
+      return redirect('/inventory_management/')
     if request.form['function'] == 'create_new_item':
       today = date.today()
       today_string = today.strftime('%m/%d/%y')
@@ -916,53 +925,8 @@ def create_item(item_id):
       scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible}
       
       db.inventory.insert_one(scanned_item)
-      return redirect('/item_management/' + item_id + '/')
+      return redirect('/inventory_management/' + item_id + '/')
   return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'])   
-
-@app.route('/inventory_management/', methods=['POST', 'GET'])
-def inventory_management():
-  session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
-  if request.method == 'POST':
-    if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-      login_check = {}
-      login_check = validate_login(db, username, password)
-      if login_check['success'] == False:
-        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
-      else:
-        response =  redirect('/inventory_management/')
-        response.set_cookie('natapos_session_key', login_check['session_key'])
-        return response
-  result = validate_session_key(db, session_key)
-  if result['success'] == False:
-    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  username = result['username']
-  message = None
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
-    return redirect('/')
-  if request.method == 'POST':
-    if request.form['function'] == 'log_out':
-      db.session_keys.delete_one({'session_key': session_key})
-      return redirect('/')
-    elif request.form['function'] == 'main_menu':
-      return redirect('/')
-    elif request.form['function'] == 'admin':
-      return redirect('/admin/')
-    elif request.form['function'] == 'item_management':
-      return redirect('/item_management/')
-    elif request.form['function'] == 'supplier_management':
-      return redirect('/supplier_management/')
-    elif request.form['function'] == 'department_list':
-      return redirect('/department_list/')
-    elif request.form['function'] == 'brand_management':
-      return redirect('/brand_management/')
-      
-  return render_template('inventory_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)
 
 @app.route('/supplier_management/', methods=['POST', 'GET'])
 def supplier_management():
@@ -982,13 +946,13 @@ def supplier_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   permissions = []
   permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   suppliers_collection = []
   suppliers_collection = get_supplier_collection(db)
@@ -1119,7 +1083,7 @@ def department_list():
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   permissions = []
   permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   department_list = get_department_list(db)
   if request.method == 'POST':
@@ -1176,7 +1140,7 @@ def department_management(department_id):
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   permissions = []
   permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   
   locations_collection = get_locations_collection(db)
@@ -1315,7 +1279,7 @@ def category_management(department_id, category_id):
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   permissions = []
   permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   subcategories = []
   department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
@@ -1365,18 +1329,18 @@ def brand_management():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/supplier_management/')
+        response =  redirect('/brand_management/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   permissions = []
   permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1422,12 +1386,12 @@ def employee_management():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/supplier_management/')
+        response =  redirect('/employee_management/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -1542,6 +1506,12 @@ def employee_management():
         create_user(db, request.form['username'], request.form['password1'], new_permissions, request.form['address'], request.form['name'], request.form['short_name'], request.form['title'], request.form['phone'], request.form['email'], request.form['hire_date'], request.form['login_message'])
 
   employee_collection = db.employees.find({'type': 'user'})
+  if 'superuser' not in permissions:
+    new_employee_collection = []
+    for employee in employee_collection:
+      if 'superuser' not in employee['permissions']:
+        new_employee_collection.append(employee)
+    print(new_employee_collection)
   return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)
 
 

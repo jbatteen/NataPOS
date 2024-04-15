@@ -171,9 +171,10 @@
             <input type="hidden" name="username" value="{{ i['username'] }}">
             <div class="permissions">
               <div><input id="{{ i['username'] }}_inventory_management" type="checkbox" name="permissions[]" value="inventory_management" {% if 'inventory_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_inventory_management">Inventory Management</label></div>
-              <div><input id="{{ i['username'] }}_employee_management" type="checkbox" name="permissions[]" value="employee_management" {% if 'inventory_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_employee_management">Employee Management</label></div>
+              <div><input id="{{ i['username'] }}_suppliers_departments_brands" type="checkbox" name="permissions[]" value="suppliers_departments_brands" {% if 'suppliers_departments_brands' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_suppliers_departments_brands">Suppliers, Departments, Brands</label></div>
+              <div><input id="{{ i['username'] }}_employee_management" type="checkbox" name="permissions[]" value="employee_management" {% if 'employee_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_employee_management">Employee Management</label></div>
               <div><input id="{{ i['username'] }}_shrink" type="checkbox" name="permissions[]" value="shrink" {% if 'shrink' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_shrink">Shrink Items</label></div>
-              <div><input id="{{ i['username'] }}_superuser" type="checkbox" name="permissions[]" value="superuser" {% if 'superuser' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_superuser">Superuser</label></div>
+              {% if 'superuser' in permissions %}<div><input id="{{ i['username'] }}_superuser" type="checkbox" name="permissions[]" value="superuser" {% if 'superuser' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_superuser">Superuser</label></div>{% endif %}
               
             </div>
             <div><button style="width:fit-content" type="submit" name="function" value="modify_permissions">Modify Permissions</button></div>
@@ -208,12 +209,13 @@
               <div class="new_employee_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
               <div class="new_employee_key">Hire Date:</div><div><input type="text" class="wide" title="Enter a hire date" name="hire_date"></div>
               <div class="new_employee_key">Login Message:</div><div><input type="text" class="wide" title="Enter a message to be displayed at login" name="login_message"></div>
-                <div class="permissions">
-                  <div><input id="inventory_management" type="checkbox" name="permissions[]" value="inventory_management" unchecked /><label for="inventory_management">Inventory Management</label></div>
-                  <div><input id="employee_management" type="checkbox" name="permissions[]" value="employee_management" unchecked /><label for="employee_management">Employee Management</label></div>
-                  <div><input id="shrink" type="checkbox" name="permissions[]" value="shrink" unchecked /><label for="shrink">Shrink Items</label></div>
-                  {% if 'superuser' in permissions %}<div><input id="superuser" type="checkbox" name="permissions[]" value="superuser" unchecked /><label for="superuser">Superuser</label></div>{% endif %}
-                </div>
+              <div class="permissions">
+                <div><input id="inventory_management" type="checkbox" name="permissions[]" value="inventory_management" unchecked /><label for="inventory_management">Inventory Management</label></div>
+                <div><input id="suppliers_departments_brands" type="checkbox" name="permissions[]" value="suppliers_departments_brands" unchecked /><label for="suppliers_departments_brands">Suppliers Departments Brands</label></div>
+                <div><input id="employee_management" type="checkbox" name="permissions[]" value="employee_management" unchecked /><label for="employee_management">Employee Management</label></div>
+                <div><input id="shrink" type="checkbox" name="permissions[]" value="shrink" unchecked /><label for="shrink">Shrink Items</label></div>
+                {% if 'superuser' in permissions %}<div><input id="superuser" type="checkbox" name="permissions[]" value="superuser" unchecked /><label for="superuser">Superuser</label></div>{% endif %}
+              </div>
 
               <div class="new_employee_button"><button style="width:fit-content" type="submit" name="function" value="create_employee">Create</button></div>
             </div>

@@ -8,6 +8,7 @@
 - 'employee_discount': float (default employee discount for new items)
 
 ## timesheets
+- 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit)
 - 'username': str (username)
 - str (YYMMDDHHMMSS timestamp): str ('in', 'out')
 
@@ -108,17 +109,14 @@
 - 'superuser': all permissions
 - 'employee_management': add/modify users
 - 'inventory_management': add/remove/modify items in inventory
+- 'suppliers_departments_brands': add/change suppliers, departments, brands
 - 'shrink': shrink items
 
 # to do
 
-## gift_cards
-- 'gift_card_id': str (scan code for gift card)
-- 'value': float ($ value remaining)
-- 'purchased': str (MMDDYY)
-- 'tied_member_account': str (member_id or '' for none)
-- 'tied_online_account': str (account_id or '' for none)
-- 'alternate id': str (any other way to tie this to an owner, or '')
+## unique_inventory
+- type: str ('markdown', 'by_count', 'bundle', 'unique_item')
+- more tbd
 
 ## registers
 - 'register_id': str (unique identifier)
@@ -128,6 +126,23 @@
 - 'linked_hardware': list of str (hardware_id)
 - 'open': str ('no', username)
 
+## hardware
+- 'hardware_id': str (unique identifier for hardware eg 'pax s300 card reader sn9789')
+- 'type': str ('pax s300', 'cash_drawer', 'receipt_printer', 'zebra zd200' )
+- 'url': str (http://xxxxxx)
+
+## item info page
+- print shelf tag
+- print markdown tag
+
+## gift_cards
+- 'gift_card_id': str (scan code for gift card)
+- 'value': float ($ value remaining)
+- 'purchased': str (MMDDYY)
+- 'tied_member_account': str (member_id or '' for none)
+- 'tied_online_account': str (account_id or '' for none)
+- 'alternate id': str (any other way to tie this to an owner, or '')
+
 ## members
 - 'member_id': str (member number)
 - 'name': str (however you want to use this, owner name or family name usually)
@@ -136,16 +151,6 @@
 - 'email': str (email)
 - 'join_date': str (join date MM/DD/YY)
 - 'password': str (bcrypt hash of password)
-
-## register_logs
-- 'log_id': str (YYMMDDHHMMSS+register_id)
-- 'clerk': str (username)
-- 'transactions': list of str (transaction_id)
-
-## hardware
-- 'hardware_id': str (unique identifier for hardware eg 'pax s300 card reader sn9789')
-- 'type': str ('pax s300', 'cash_drawer', 'receipt_printer', 'zebra zd200' )
-- 'url': str (http://xxxxxx)
 
 ## transactions
 - 'time_started': str (YYMMDDHHMMSS) time transaction started
@@ -157,13 +162,16 @@
 - 'location': str (location_id or 'online')
 - 'payments': dictionary of
   - str (payment type, 'credit', 'debit', 'ebt', 'cash', 'gift_card', 'check'): float ($ paid)
-- str (item_id): dictionary of
+- items: list  of dictionary of
+  - 'item_id': str(item_id)
   - 'quantity': float (number of things bought.  float for bulk items by weight)
   - 'regular_price': float (total cost of all in the quantity after bogos discounts etc, what the receipt says for that line)
   - 'sales_tax': float (total sales tax withheld for these items)
   - 'our_cost': float (what the store paid for the items we sold)
   - 'coupons_applied': str (coupon UPCs, in a list if multiple)
   - 'override_price': float (if  the cashier overrode the calculated price, include this as well)
+
+## receipt printing/emailing
 
 ## coupons
 - 'coupon_id': str (UPC)
