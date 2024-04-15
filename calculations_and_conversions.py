@@ -1,8 +1,4 @@
 def calculate_worked_hours(timesheet):
-  del timesheet['username']
-  del timesheet['pay_period']
-  del timesheet['worked_hours']
-  del timesheet['_id']
   timestamps = sorted(timesheet)
   worked_seconds = 0
   worked_hours = 0.0

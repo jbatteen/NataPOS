@@ -142,6 +142,16 @@
           </form>
         </div>
         
+        <div class="employee_key"><button class="key" onclick="switch_value_input('{{ i['username'] }}_login_message')">Login Message:</button></div>
+        <div class="employee_value" id="{{ i['username'] }}_login_message_value" style="width:fit-content">{{ i['login_message'] }}</div>
+        <div class="employee_input" id="{{ i['username'] }}_login_message_input">
+          <form class="change" method="post">
+            <input type="text" class="wide" title="Enter a message to be displayed at login" name="login_message">
+            <input type="hidden" name="username" value="{{ i['username'] }}">
+            <input type="submit" name="function" value="change_login_message" hidden>
+          </form>
+        </div>
+        
         <div class="employee_key"><button class="key" onclick="switch_value_input('{{ i['username'] }}_reset_password')">Reset Password:</button></div>
         <div class="employee_value" id="{{ i['username'] }}_reset_password_value">&emsp;</div>
         <div class="employee_input" id="{{ i['username'] }}_reset_password_input">
@@ -197,6 +207,7 @@
               <div class="new_employee_key">Address:</div><div><input type="text" class="wide" title="Enter an address" name="address"></div>
               <div class="new_employee_key">Email:</div><div><input type="text" class="wide" title="Enter an email address" name="email"></div>
               <div class="new_employee_key">Hire Date:</div><div><input type="text" class="wide" title="Enter a hire date" name="hire_date"></div>
+              <div class="new_employee_key">Login Message:</div><div><input type="text" class="wide" title="Enter a message to be displayed at login" name="login_message"></div>
                 <div class="permissions">
                   <div><input id="inventory_management" type="checkbox" name="permissions[]" value="inventory_management" unchecked /><label for="inventory_management">Inventory Management</label></div>
                   <div><input id="employee_management" type="checkbox" name="permissions[]" value="employee_management" unchecked /><label for="employee_management">Employee Management</label></div>

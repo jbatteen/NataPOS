@@ -7,6 +7,7 @@ import subprocess
 import string
 import time
 import bcrypt
+import threading
 from datetime import date, timedelta, datetime
 from pymongo.mongo_client import MongoClient
 
@@ -17,8 +18,6 @@ from authentication_functions import validate_login, validate_session_key, creat
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent
 from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list
-
-
 
 
 # open db
@@ -33,8 +32,6 @@ else:
   except:
     instance_name = 'NataPOS'
     db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'pay_period_rollover': 15, 'timesheets_locked': False, 'employee_discount': 0.2})
-
-
 
   
 # begin app
@@ -285,21 +282,21 @@ def landing():
         config = db.natapos.find_one({'config': 'global'})
 
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username})
+      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username}, {'$set': {str(current_time): 'in'}})
+        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'in'}})
       else:
-        db.timesheets.insert_one({'username': username, str(current_time): 'in'})
+        db.timesheets.insert_one({'username': username, 'pay_period': 'current', str(current_time): 'in'})
     if request.form['function'] == 'clock_out':
       while config['timesheets_locked'] == True:
         time.sleep(1)
         config = db.natapos.find_one({'config': 'global'})
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username})
+      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username}, {'$set': {str(current_time): 'out'}})
+        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'out'}})
       else:
-        db.timesheets.insert_one({'username': username, str(current_time): 'out'})
+        db.timesheets.insert_one({'username': username, 'pay_period': 'current', str(current_time): 'out'})
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
@@ -307,17 +304,24 @@ def landing():
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
-  timesheet = db.timesheets.find_one({'username': username})
+  employee_document = db.employees.find_one({'type': 'user', 'username': username})
+  message = employee_document['login_message']
+  timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
   if timesheet is not None:
     del timesheet['username']
     del timesheet['_id']
+    del timesheet['pay_period']
     timestamps = sorted(timesheet)
     last_punch = timesheet[timestamps[-1]]
-    message = 'Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))
+    message = message + '<br/><br/>Last punch: ' + last_punch + " " + time.ctime(int(timestamps[-1]))
+    message = message + '<br/><br/>' + str(calculate_worked_hours(timesheet)) + ' hours on this pay period'
     if len(timesheet) > 1:
       second_to_last_punch = timesheet[timestamps[-2]]
       if last_punch == second_to_last_punch:
         message = message + "<br><br>Missing punch, see a manager.<br><br>Second to last punch: " + second_to_last_punch + " " + time.ctime(int(timestamps[-2]))
+  else:
+    message = message + '<br/><br/>First day on this pay period'
+  
 
   return render_template('landing.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, message=message)
 
@@ -1497,6 +1501,11 @@ def employee_management():
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(bytes, salt)
         db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'password': hash}})
+    elif request.form['function'] == 'change_login_message':
+      if is_valid_string(request.form['login_message']) == False:
+        message = 'invalid login message'
+      else:
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'login_message': request.form['login_message']}})
     elif request.form['function'] == 'create_employee':
       if is_valid_string(request.form['username']) == False:
         message = 'invalid username'
@@ -1524,11 +1533,13 @@ def employee_management():
         message = 'invalid email'
       elif request.form['hire_date'] != '' and is_valid_date(request.form['hire_date']) == False:
         message = 'invalid hire date'
+      elif is_valid_string(request.form['login_message']) == False:
+        message = 'invalid login message'
       else:
         new_permissions = request.form.getlist('permissions[]')
         if 'superuser' in new_permissions:
           new_permissions = ['superuser']      
-        create_user(db, request.form['username'], request.form['password1'], new_permissions, request.form['address'], request.form['name'], request.form['short_name'], request.form['title'], request.form['phone'], request.form['email'], request.form['hire_date'])
+        create_user(db, request.form['username'], request.form['password1'], new_permissions, request.form['address'], request.form['name'], request.form['short_name'], request.form['title'], request.form['phone'], request.form['email'], request.form['hire_date'], request.form['login_message'])
 
   employee_collection = db.employees.find({'type': 'user'})
   return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)

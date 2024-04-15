@@ -91,8 +91,6 @@
 - 'supplier': str (supplier_id)
 - 'local': bool (default for new items)
 
-# to do
-
 ## employees (employees collection, 'type': 'user')
 - 'username': str (username for this system)
 - 'password': str (bcrypt hash of password)
@@ -112,6 +110,8 @@
 - 'inventory_management': add/remove/modify items in inventory
 - 'shrink': shrink items
 
+# to do
+
 ## gift_cards
 - 'gift_card_id': str (scan code for gift card)
 - 'value': float ($ value remaining)
@@ -119,6 +119,14 @@
 - 'tied_member_account': str (member_id or '' for none)
 - 'tied_online_account': str (account_id or '' for none)
 - 'alternate id': str (any other way to tie this to an owner, or '')
+
+## registers
+- 'register_id': str (unique identifier)
+- 'location': str (location_identifier)
+- 'current_transaction': str (transaction_id) or '' if none/new
+- 'ip_address': str (ip address of interface)
+- 'linked_hardware': list of str (hardware_id)
+- 'open': str ('no', username)
 
 ## members
 - 'member_id': str (member number)
@@ -128,14 +136,6 @@
 - 'email': str (email)
 - 'join_date': str (join date MM/DD/YY)
 - 'password': str (bcrypt hash of password)
-
-## registers
-- 'register_id': str (unique identifier)
-- 'location': str (location_identifier)
-- 'current_transaction': str (transaction_id) or '' if none/new
-- 'ip_address': str (ip address of interface)
-- 'linked_hardware': list of str (hardware_id)
-- 'open': str ('no', username)
 
 ## register_logs
 - 'log_id': str (YYMMDDHHMMSS+register_id)

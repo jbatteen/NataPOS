@@ -40,9 +40,9 @@ def validate_session_key(db, session_key):
 def end_session(db, session_key):
   db.session_keys.delete_one({'session_key': session_key})
 
-def create_user(db, username, password, permissions=[], address='', name='', short_name='', title='', phone='', email='', hire_date=''):
+def create_user(db, username, password, permissions=[], address='', name='', short_name='', title='', phone='', email='', hire_date='', login_message=''):
   bytes = password.encode('utf-8')
   salt = bcrypt.gensalt()
   hash = bcrypt.hashpw(bytes, salt)
-  result = db.employees.insert_one({'type': 'user', 'username': username, 'password': hash, 'address': address, 'permissions': permissions, 'status': 'current', 'name': name, 'short_name': short_name, 'title': title, 'phone': phone, 'email': email, 'hire_date': hire_date})
+  result = db.employees.insert_one({'type': 'user', 'username': username, 'password': hash, 'address': address, 'permissions': permissions, 'status': 'current', 'name': name, 'short_name': short_name, 'title': title, 'phone': phone, 'email': email, 'hire_date': hire_date, 'login_message': login_message})
   return {'success' : True}
