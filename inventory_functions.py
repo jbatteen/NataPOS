@@ -1,5 +1,8 @@
 from pymongo.mongo_client import MongoClient
 from calculations_and_conversions import float_to_price, price_to_float, float_to_percent
+import socket
+import zpl
+from datetime import date
 
 def get_supplier_list(db):
   try:
@@ -224,6 +227,8 @@ def beautify_item(db, input_item):
       beautified[i] = input_item[i]
     elif i == 'local':
       beautified[i] = str(input_item[i])
+    elif i == 'organic':
+      beautified[i] = str(input_item[i])
     elif i == 'wic_eligible':
       beautified[i] = str(input_item[i])
     elif i == 'ebt_eligible':
@@ -278,3 +283,90 @@ def get_department_collection(db):
     del department['_id']
     department_collection.append(department)
   return department_collection
+
+
+
+def print_shelf_tag(item = None, location_id=''):
+  if item == None:
+    return()
+  if location_id == '':
+    return ()
+  label = zpl.Label(30, 60, 8)
+  label.origin(4,4)
+  label.write_text(item['receipt_alias'][:28], char_height=6, char_width=4, line_width=55, justification='L')
+  label.endorigin()
+
+  label.origin(4, 10)
+  label.write_text(item['brand'], char_height=5, char_width=3, line_width=25, justification='L')
+  label.endorigin()
+
+
+
+  label.origin(3, 20)
+  if item['local'] == True:
+    label.write_text('Local', char_height=6, char_width=3, line_width=16, justification='L')
+  label.endorigin()
+
+  if item['food_item'] == True:
+    label.origin(11, 20)
+    if item['organic'] == True:
+      label.write_text('Organic', char_height=6, char_width=5, line_width=20, justification='L')
+    else:
+      label.write_text('Conventional', char_height=6, char_width=3, line_width=20, justification='L')
+    label.endorigin()
+
+
+  locations_list = item['locations']
+  price = ''
+  for location in locations_list:
+    if location['location_id'] == location_id:
+      price = float_to_price(location['regular_price'])
+
+  label.origin(25, 10)
+  if len(price) <= 5:
+    label.write_text(price, char_height=12, char_width=12, line_width=35, justification='L')
+  elif len(price) == 6:
+    label.write_text(price, char_height=12, char_width=10, line_width=35, justification='L')
+  elif len(price) >= 7:
+    label.write_text(price, char_height=12, char_width=8, line_width=35, justification='L')
+  label.endorigin()
+
+  label.origin(5, 26)
+  label.barcode('U', item['item_id'], height=30, check_digit='Y')
+  label.endorigin()
+
+  label.origin(28, 27)
+  label.write_text(item['department'][:15], char_height=4, char_width=3, line_width=27, justification='C')
+  label.endorigin()
+
+
+  today = date.today()
+  today_string = today.strftime('%m/%d/%y')
+  label.origin(30, 22)
+  label.write_text(today_string, char_height=4, char_width=3, line_width=20, justification='L')
+  label.endorigin()
+
+  label.origin(45, 20)
+  if item['unit'] == 'each':
+    label.write_text('/ea', char_height=5, char_width=3, line_width=10, justification='L')
+  if item['unit'] == 'ounces':
+    label.write_text('/oz', char_height=5, char_width=3, line_width=10, justification='L')
+  if item['unit'] == 'pounds':
+    label.write_text('/lb', char_height=5, char_width=3, line_width=10, justification='L')
+  if item['unit'] == 'gallon':
+    label.write_text('/gal', char_height=5, char_width=3, line_width=10, justification='L')
+  
+
+
+  mysocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)         
+  host = "192.168.1.159" 
+  port = 9100   
+  try:           
+    mysocket.connect((host, port)) #connecting to host
+    mysocket.send(label.dumpZPL().encode('utf-8'))
+    
+    mysocket.close () #closing connection
+  except:
+    print("Error with the connection")
+
+  return ()

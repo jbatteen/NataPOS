@@ -13,6 +13,7 @@ pip packages required:
 - pymongo
 - flask
 - waitress
+- zpl
 
 Almost all configuration is done through the app and stored on a database, but there are some constants configured in config.py:
 - db_name = name of the database to store everything in

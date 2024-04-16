@@ -46,10 +46,10 @@
     <div class="topbar">
       <div style="text-align:left"><form method="post"><label>Scan:</label><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
       <div style="text-align:left">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
+
       {% if 'superuser' in permissions %}
       <div style="text-align:right">
         <form class="change" method="post">
-          <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
           <button class="change" type="submit" name="function" value="delete_item">Delete</button>
         </form>
       </div>
@@ -133,7 +133,15 @@
 
       {% for location in scanned_item['locations'] %}
       <div class="location_specific">
-        <div class="location_specific_header">Location: {{ location['location_id'] }}</div>
+        <div class="location_specific_header">
+          <div>Location: {{ location['location_id'] }}</div>
+          <div class="location_specific_buttons">
+            <form class="change" method="post">
+              <button class="change" type="submit" name="function" value="print_shelf_tag">Shelf Tag</button>
+              <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            </form>
+          </div>
+        </div>
         <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_regular_price')">Regular Price:</button></div>
         <div id="{{ location['location_id'] }}_regular_price_value" class="location_specific_value">{{ location['regular_price'] }}</div>
         <div id="{{ location['location_id'] }}_regular_price_input" class="location_specific_input">
@@ -323,6 +331,7 @@
               <option value="each">each</option>
               <option value="pounds">pounds</option>
               <option value="ounces">ounces</option>
+              <option value="ounces">gallons</option>
             </select>
             <button class="change" type="submit" name="function" value="change_unit">OK</button>
           </form>
@@ -499,8 +508,19 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_local">OK</button>
+          </form>
+        </div>
+
+        <div class="small_fields_key"><button class="key" onclick="switch_value_input('organic')">Organic:</button></div>
+        <div class="small_fields_value" id="organic_value">{{ scanned_item['organic'] }}</div>
+        <div class="small_fields_input" id="organic_input">
+          <form class="change" method="post">
+            <select id="organic_focus" name="organic">
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+            <button class="change" type="submit" name="function" value="change_organic">OK</button>
           </form>
         </div>
 
@@ -524,7 +544,6 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_food_item">OK</button>
           </form>
         </div>
@@ -537,7 +556,6 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_random_weight_per">OK</button>
           </form>
         </div>
@@ -550,7 +568,6 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_discontinued">OK</button>
           </form>
         </div>
@@ -560,7 +577,6 @@
         <div class="small_fields_input" id="age_restricted_input">
           <form class="change" method="post">
             <input id="age_restricted_focus" type="text" class="price" title="Enter an age, 0 for non-restricted" name="age_restricted">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="submit" name="function" value="change_age_restricted" hidden>
           </form>
         </div>
@@ -573,7 +589,6 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_ebt_eligible">OK</button>
           </form>
         </div>
@@ -586,7 +601,6 @@
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <button class="change" type="submit" name="function" value="change_wic_eligible">OK</button>
           </form>
         </div>
@@ -600,7 +614,6 @@
         <div id="description_input" class="input">
           <form class="change" method="post">
             <input id="description_focus" type="text" class="value" title="Enter a description" name="description">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="submit" name="function" value="change_description" hidden>
           </form>
         </div>
@@ -611,7 +624,6 @@
         <div id="receipt_alias_input" class="input">
           <form class="change" method="post">
             <input id="receipt_alias_focus" type="text" class="value" title="Enter a receipt alias" name="receipt_alias">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
             <input type="submit" name="function" value="change_receipt_alias" hidden>
           </form>
         </div>

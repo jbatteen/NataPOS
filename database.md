@@ -72,6 +72,7 @@
 - 'phone': str (phone number)
 - 'address': str (street address)
 - 'taxes': list of dict {'tax_id': str (name of tax), 'rate': float (tax rate)}
+- 'ip_range': str(ip range of local network '192.168.1.0/24')
 - 'default_taxes': list of [str('tax_id')]
 
 ## departments  (inventory_management collection,  'type': 'department')
@@ -114,9 +115,11 @@
 
 # to do
 
-## unique_inventory
-- type: str ('markdown', 'by_count', 'bundle', 'unique_item')
-- more tbd
+## hardware
+- 'hardware_id': str (unique identifier for hardware eg 'pax s300 card reader sn9789')
+- 'type': str ('card_reader', 'receipt_printer', 'label_printer' )
+- 'driver': str('zebra', 'pax_s300')
+- 'ip_address': str ('192.168.1.159')
 
 ## registers
 - 'register_id': str (unique identifier)
@@ -126,10 +129,9 @@
 - 'linked_hardware': list of str (hardware_id)
 - 'open': str ('no', username)
 
-## hardware
-- 'hardware_id': str (unique identifier for hardware eg 'pax s300 card reader sn9789')
-- 'type': str ('pax s300', 'cash_drawer', 'receipt_printer', 'zebra zd200' )
-- 'url': str (http://xxxxxx)
+## unique_inventory
+- type: str ('markdown', 'by_count', 'bundle', 'unique_item')
+- more tbd
 
 ## item info page
 - print shelf tag

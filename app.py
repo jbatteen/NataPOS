@@ -1,14 +1,9 @@
 # import libraries
 from flask import Flask, render_template, request, redirect
-import random
-import os
-import sys
-import subprocess
-import string
 import time
 import bcrypt
-import threading
-from datetime import date, timedelta, datetime
+import ipaddress
+from datetime import date
 from pymongo.mongo_client import MongoClient
 
 
@@ -17,7 +12,7 @@ from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
 
 
 # open db
@@ -71,9 +66,13 @@ def create_first_user():
         else:
           if is_valid_string(request.form['location_id']) == False:
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
-  
+        try:
+          ip_range = ipaddress.ip_network(request.form['ip_range'])
+          print(ip_range)
+        except ValueError:
+          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid IP range')
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []})
+        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'ip_range': request.form['ip_range']})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
@@ -235,6 +234,24 @@ def global_config():
             else:
               new_taxes.append(i)
           result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': new_taxes}})
+    elif request.form['function'] == 'change_ip_range':
+      try:
+        ip_range = ipaddress.ip_network(request.form['ip_range'])
+        result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'ip_range': request.form['ip_range']}})
+      except ValueError:
+        message = 'invalid ip range'
+      except:
+        message = 'invalid ip range'
+    elif request.form['function'] == 'change_phone':
+      if is_valid_string(request.form['phone']) == True:
+        db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'phone': request.form['phone']}})
+      else:
+        message = 'invalid phone number'
+    elif request.form['function'] == 'change_address':
+      if is_valid_string(request.form['address']) == True:
+        db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'address': request.form['address']}})
+      else:
+        message = 'invalid address'
     config = db.natapos.find_one({'config': 'global'})
   pay_period_type = config['pay_period_type']
   current_pay_period_start = config['current_pay_period_start']
@@ -248,7 +265,6 @@ def global_config():
 @app.route('/', methods=['POST', 'GET'])
 def landing():
   message = ''
-
   config = db.natapos.find_one({'config': 'global'})
   session_key = request.cookies.get('natapos_session_key')
   if request.method == 'GET':
@@ -261,8 +277,14 @@ def landing():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False: # invalid combo, send back to main page
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -468,6 +490,8 @@ def inventory_management(item_id):
       scanned_item = db.inventory.find_one({'item_id' : request.form['scan']})
       if scanned_item is None:
         return redirect('/create_item/' + request.form['scan'] + '/')
+      else:
+        return redirect('/inventory_management/' + request.form['scan'] + '/')
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': item_id})
     elif request.form['function'] == 'change_name':
@@ -728,6 +752,12 @@ def inventory_management(item_id):
       else:
         local_bool = False
       db.inventory.update_one({'item_id': item_id}, {'$set': {'local': local_bool}})
+    elif request.form['function'] == 'change_organic':
+      if request.form['organic'] == 'True':
+        organic_bool = True
+      else:
+        organic_bool = False
+      db.inventory.update_one({'item_id': item_id}, {'$set': {'organic': organic_bool}})
 
     elif request.form['function'] == 'change_consignment':
       if request.form['consignment'] == 'True':
@@ -838,8 +868,11 @@ def inventory_management(item_id):
               i['regular_price'] = regular_price
             new_locations_collection.append(i)
           db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-
-    scanned_item = db.inventory.find_one({'item_id' : item_id})
+    
+    if request.form['function'] == 'print_shelf_tag':
+      print_shelf_tag(scanned_item, request.form['location_id'])
+    else:
+      scanned_item = db.inventory.find_one({'item_id' : item_id})
   groups_item_is_in = []
   groups_item_is_in = scanned_item['item_groups']
   for group in groups_item_is_in:
@@ -922,7 +955,7 @@ def create_item(item_id):
           default_taxes = collection['default_taxes']
           default_online_ordering = 'yes'
         locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': default_online_ordering})
-      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible}
+      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'organic': False}
       
       db.inventory.insert_one(scanned_item)
       return redirect('/inventory_management/' + item_id + '/')

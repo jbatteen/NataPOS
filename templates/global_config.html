@@ -72,6 +72,16 @@
               <input type="submit" name="function" value="change_address" hidden>
             </form>
           </div>
+            
+          <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_ip_range')">IP Range:</button></div>
+          <div class="location_value" id="{{ i['location_id'] }}_ip_range_value" style="width:fit-content">{{ i['ip_range'] }}</div>
+          <div class="location_input" id="{{ i['location_id'] }}_ip_range_input">
+            <form class="change" method="post">
+              <input type="text" id="{{ i['location_id'] }}_ip_range_focus" class="wide" title="Enter an IP range like 192.168.1.0/24" name="ip_range">
+              <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
+              <input type="submit" name="function" value="change_ip_range" hidden>
+            </form>
+          </div>
         </div>
         <div class="location_taxes">
           <div class="create_taxes">

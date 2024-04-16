@@ -51,6 +51,10 @@ div.location_specific_key {
 div.location_specific_header {
   grid-column: 1 / span 4;
   text-align: center;
+  grid-template-columns: 1fr 1fr;
+}
+div.location_specific_buttons {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 div.location_specific_input{
   display: none;
