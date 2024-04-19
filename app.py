@@ -3,6 +3,10 @@ from flask import Flask, render_template, request, redirect
 import time
 import bcrypt
 import ipaddress
+import os
+import csv
+from werkzeug.utils import secure_filename
+
 from datetime import date
 from pymongo.mongo_client import MongoClient
 
@@ -11,7 +15,7 @@ from pymongo.mongo_client import MongoClient
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
 from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
 
 
@@ -31,7 +35,7 @@ else:
   
 # begin app
 app = Flask(__name__)
-
+app.config['UPLOAD_FOLDER'] = '/var/www/NataPOS/uploads'
 
 @app.route('/create_first_user', methods=['POST', 'GET'])
 def create_first_user():
@@ -68,7 +72,6 @@ def create_first_user():
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
         try:
           ip_range = ipaddress.ip_network(request.form['ip_range'])
-          print(ip_range)
         except ValueError:
           return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid IP range')
         db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
@@ -77,7 +80,13 @@ def create_first_user():
         creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
           result = {}
-          result = validate_login(db, username=username, password=password)
+
+
+          if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+            source_ip = request.environ['REMOTE_ADDR']
+          else:
+            source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+          result = validate_login(db, username=username, password=password, source_ip=source_ip)
           if result['success'] == True:
             response = redirect('/global_config/')
             response.set_cookie('natapos_session_key', result['session_key'])
@@ -100,8 +109,14 @@ def global_config():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -358,8 +373,14 @@ def admin():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -391,6 +412,8 @@ def admin():
       return redirect('/department_list/')
     elif request.form['function'] == 'brand_management':
       return redirect('/brand_management/')
+    elif request.form['function'] == 'import_data':
+      return redirect('/import_data/')
   config = db.natapos.find_one({'config': 'global'})
   instance_name = config['instance_name']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -407,8 +430,14 @@ def scan_search():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -447,8 +476,14 @@ def inventory_management(item_id):
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -519,7 +554,7 @@ def inventory_management(item_id):
       if is_valid_string(request.form['memo']) == False:
         message = 'Invalid memo'
       else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'memo': item_id}})
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'memo': request.form['memo']}})
     elif request.form['function'] == 'change_case_cost':
       if is_valid_price(request.form['case_cost']) == False:
         message = 'Invalid price'
@@ -869,6 +904,11 @@ def inventory_management(item_id):
             new_locations_collection.append(i)
           db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
     
+    elif request.form['function'] == 'change_package_size':
+      if is_valid_string(request.form['package_size']) == False:
+        message = 'Invalid package size'
+      else:
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'package_size': request.form['package_size']}})
     if request.form['function'] == 'print_shelf_tag':
       print_shelf_tag(scanned_item, request.form['location_id'])
     else:
@@ -906,8 +946,14 @@ def create_item(item_id):
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -926,6 +972,7 @@ def create_item(item_id):
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is not None:
     return redirect('/inventory_management/' + item_id + '/')
+  
   if request.method == 'POST':
     if request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/')
@@ -955,11 +1002,19 @@ def create_item(item_id):
           default_taxes = collection['default_taxes']
           default_online_ordering = 'yes'
         locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': default_online_ordering})
-      scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'organic': False}
+      if request.form['use_allbid_data'] == 'True':
+        allbid_document = db.allbid.find_one({'item_id': item_id})
+        scanned_item = {'item_id': item_id, 'name': allbid_document['description'], 'description': allbid_document['description'], 'receipt_alias': allbid_document['description'], 'memo': '', 'unit': 'each', 'supplier': 'UNFI', 'order_code': allbid_document['order_code'], 'consignment': False, 'case_quantity': allbid_document['case_quantity'], 'case_cost': allbid_document['case_cost'], 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': allbid_document['suggested_retail_price'], 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'package_size': allbid_document['package_size'], 'organic': False}
+      else:
+        scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'package_size': '', 'organic': False}
       
       db.inventory.insert_one(scanned_item)
       return redirect('/inventory_management/' + item_id + '/')
-  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'])   
+  in_allbid = False
+  allbid_document = db.allbid.find_one({'item_id': item_id})
+  if allbid_document != None:
+    in_allbid = True
+  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'], in_allbid=in_allbid)   
 
 @app.route('/supplier_management/', methods=['POST', 'GET'])
 def supplier_management():
@@ -969,8 +1024,14 @@ def supplier_management():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1065,8 +1126,8 @@ def supplier_management():
       address = request.form['address']
       contact_name = request.form['contact_name']
       email = request.form['email']
-      if len(supplier_id) < 6:
-        message = 'Error: Supplier name must be 6 or more characters'
+      if len(supplier_id) < 2:
+        message = 'Error: Supplier name must be 2 or more characters'
       elif is_valid_string(supplier_id) == False:
         message = 'Error: invalid character in supplier name'
       elif is_valid_string(account) == False:
@@ -1100,8 +1161,14 @@ def department_list():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1143,7 +1210,7 @@ def department_list():
         locations_collection = get_locations_collection(db)
         for location in locations_collection:
           new_location_defaults.append({'location_id': location['location_id'], 'default_taxes': location['default_taxes'], 'default_online_ordering': 'yes'})
-        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'location_defaults': new_location_defaults, 'default_margin': 0.2, 'default_food_item': True, 'default_ebt_eligible': True, 'default_employee_discount': config['employee_discount']})
+        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'location_defaults': new_location_defaults, 'default_margin': 0.3, 'default_food_item': True, 'default_ebt_eligible': True, 'default_employee_discount': config['employee_discount']})
         department_list = get_department_list(db)
   return render_template('department_list.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
 
@@ -1156,8 +1223,14 @@ def department_management(department_id):
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1199,7 +1272,7 @@ def department_management(department_id):
       if is_valid_percent(request.form['default_employee_discount']) == False:
         message = 'invalid percentage'
       else:
-        new_default_employee_discount = percent_to_float(request.form['set_default_employee_discount'])
+        new_default_employee_discount = percent_to_float(request.form['default_employee_discount'])
         if new_default_employee_discount < 0:
           message = 'percentage must be positive'
         else:
@@ -1295,8 +1368,14 @@ def category_management(department_id, category_id):
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1357,8 +1436,14 @@ def brand_management():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1414,8 +1499,14 @@ def employee_management():
     if request.form['function'] == 'login':
       username = request.form['username']
       password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
       login_check = {}
-      login_check = validate_login(db, username, password)
+      login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1544,8 +1635,168 @@ def employee_management():
     for employee in employee_collection:
       if 'superuser' not in employee['permissions']:
         new_employee_collection.append(employee)
-    print(new_employee_collection)
   return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)
+
+
+@app.route('/import_data/', methods=['POST', 'GET'])
+def import_data():
+  session_key = request.cookies.get('natapos_session_key')
+  config = db.natapos.find_one({'config': 'global'})
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      username = request.form['username']
+      password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
+      login_check = {}
+      login_check = validate_login(db, username, password, source_ip)
+      if login_check['success'] == False:
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response = redirect('/admin/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:    
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+    return redirect('/admin/')
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'import_unfi_allbid':
+      return redirect('/import_unfi_allbid/')
+  return render_template('import_data.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)
+
+
+@app.route('/import_unfi_allbid/', methods=['POST', 'GET'])
+def import_unfi_allbid():
+  session_key = request.cookies.get('natapos_session_key')
+  config = db.natapos.find_one({'config': 'global'})
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      username = request.form['username']
+      password = request.form['password']
+
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+  
+      login_check = {}
+      login_check = validate_login(db, username, password, source_ip)
+      if login_check['success'] == False:
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response = redirect('/admin/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:    
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
+  config = db.natapos.find_one({'config': 'global'})
+  instance_name = config['instance_name']
+  username = result['username']
+  employee_info = db.employees.find_one({'type': 'user', 'username': username})
+  permissions = []
+  permissions = employee_info['permissions']
+  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+    return redirect('/admin/')
+  message = ''
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'import_data':
+      return redirect('/import_data/')
+    elif request.form['function'] == 'upload_allbid':
+      if 'file' not in request.files:
+        message = 'upload failed'
+      else:
+        file = request.files['file']
+        if file.filename == '':
+          message = 'no selected file'
+        elif is_allowed_file(file.filename, ['csv', 'CSV']) == False:
+          message = 'invalid file type'
+        else:
+          starting_time = time.time()
+          filename = secure_filename(file.filename)
+          file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+          file_in = open(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+          new_count = 0
+          update_count = 0
+          delete_count = 0
+          reader = csv.reader(file_in, quotechar='\"')
+          for row in reader:
+            if 'T' in row[20] or 'P' in row[20]:
+              APPRV = row[8]
+              if APPRV[0:4] == '*DIS':
+                db.allbid.delete_one({'item_id': row[15].replace('-', '').replace('00', '', 1)})
+                delete_count += 1
+              else:
+                allbid_item = {}
+
+                allbid_item['item_id'] = row[15].replace('-', '').replace('00', '', 1)
+                if is_valid_float(row[4]) == True:
+                  allbid_item['case_quantity'] = float(row[4])
+                else:
+                  allbid_item['case_quantity'] = 1.0
+                allbid_item['package_size'] = row[5]
+                allbid_item['description'] = row[7]
+                if APPRV == '*New':
+                  allbid_item['new'] = True
+                  new_count += 1
+                else:
+                  allbid_item['new'] = False
+                  update_count += 1
+                if APPRV == '*Chg':
+                  allbid_item['cost_change'] = True
+                else:
+                  allbid_item['cost_change'] = False
+                if is_valid_float(row[9]) == True:
+                  allbid_item['case_cost'] = float(row[9])
+                else:
+                  allbid_item['case_cost'] = 0.01
+                if is_valid_float(row[17]) == True:
+                  allbid_item['suggested_retail_price'] = float(row[17])
+                else:
+                  allbid_item['suggested_retail_price'] = 0.01
+                allbid_item['order_code'] = row[2]
+                if db.allbid.find_one({'item_id': allbid_item['item_id']}) == None:
+                  db.allbid.insert_one({'item_id': allbid_item['item_id'], 'case_quantity': allbid_item['case_quantity'], 'package_size': allbid_item['package_size'], 'description': allbid_item['description'], 'new': allbid_item['new'], 'cost_change': allbid_item['cost_change'], 'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']})
+                else:
+                  db.allbid.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_quantity': allbid_item['case_quantity'], 'package_size': allbid_item['package_size'], 'description': allbid_item['description'], 'new': allbid_item['new'], 'cost_change': allbid_item['cost_change'], 'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}})
+
+                if db.inventory.find_one({'item_id': allbid_item['item_id']}) != None:
+                  db.inventory.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}})
+          file_in.close()
+          time_elapsed = time.time() - starting_time
+          message = str(new_count) + ' new items<br/>' + str(update_count) + ' updated items<br/>' + str(delete_count) + ' deleted items<br/>loaded successfully in ' + str(round(time_elapsed,2)) + ' seconds<br/>from ' + filename
+  return render_template('import_unfi_allbid.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions, message=message)
+
+
+
 
 
 

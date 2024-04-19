@@ -7,6 +7,12 @@
 - 'timesheets_locked': bool (used to lock the timesheets to perform pay period rollover safely wrt clocking in/out)
 - 'employee_discount': float (default employee discount for new items)
 
+## session_keys
+- 'session_key': str (40 random alphanumeric characters)
+- 'time_stamp': last activity, in seconds after the epoch
+- 'username': str (username of the employee logged in)
+- 'location': str (location_id where the employee is logged in, or 'external')
+
 ## timesheets
 - 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit)
 - 'username': str (username)
@@ -26,6 +32,7 @@
 - 'order_code': str (if supplier uses something other than UPC to identify product, like product number etc)
 - 'case_quantity': float
 - 'case_cost': float ($case cost)
+- 'package_size': str( '10 oz', str(int) + ' ' + unit)
 - 'item_groups': list of str (item_group_id)
 - 'department': str (department_id)
 - 'category': str (category_id)
@@ -112,6 +119,19 @@
 - 'inventory_management': add/remove/modify items in inventory
 - 'suppliers_departments_brands': add/change suppliers, departments, brands
 - 'shrink': shrink items
+- 'hardware': add/remove connected hardware
+
+## allbid
+- 'item_id': str (upc)
+- 'order_code': str (UNFI order number)
+- 'case_quantity': float (number in a case)
+- 'package_size': str ('10 oz' etc)
+- 'description': str (UNFI provided description)
+- 'new': bool (UNFI provided new item or no)
+- 'cost_change': bool (UNFI provided cost change or no)
+- 'case_cost': float (cost per case)
+- 'suggested_retail_price': str (UNFI suggested retail price)
+
 
 # to do
 

@@ -216,3 +216,10 @@ def is_date_in_future(input_string=''):
   if input_day > today_day:
     return True
   return False
+
+def is_allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
+
+

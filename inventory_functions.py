@@ -130,6 +130,8 @@ def beautify_item(db, input_item):
       beautified[i] = input_item[i]
     elif i == 'description':
       beautified[i] = input_item[i]
+    elif i == 'package_size':
+      beautified[i] = input_item[i]
     elif i == 'receipt_alias':
       beautified[i] = input_item[i]
     elif i == 'memo':

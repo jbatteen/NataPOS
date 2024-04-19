@@ -1,0 +1,7 @@
+div.import_list {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+div.import_list div {
+  text-align: center;
+}
+

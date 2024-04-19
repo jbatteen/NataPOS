@@ -4,7 +4,7 @@
   <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/admin.css">
-  <title>{{ instance_name }} Admin</title>
+  <title>Admin</title>
 </head>
 <body>
   <div class="sidebar">
@@ -29,6 +29,9 @@
         <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
       </div>
       <div>
+        <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
+      </div>
+      <div>
         <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
       </div>
       <div>
@@ -48,6 +51,9 @@
       {% if 'inventory_management' in permissions %}
       <div>
         <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
+      </div>
+      <div>
+        <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
       </div>
       {% endif %}
       {% if 'suppliers_departments_brands' in permissions %}

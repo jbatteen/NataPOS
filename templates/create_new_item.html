@@ -22,7 +22,7 @@
             <div class="location_check">
               <input id="{{ i }}" type="checkbox" name="add_to_location[]" value="{{ i }}" checked /><label for="{{ i }}">{{ i }}</label>
             </div>
-          {% endfor %}
+            {% endfor %}
           </div>
           <div class="department">
             <label for="select_department">Department:</label>
@@ -34,6 +34,17 @@
             </select>
 
           </div>
+          {% if in_allbid == True %}
+          <div class="allbid">
+            <label for="use_allbid_data">Item is in UNFI Allbid database.  Use information to pre-populate?</label>
+            <select id="use_allbid_data" name="use_allbid_data">
+              <option value="True">Yes</option>
+              <option value="False">No</option>
+            </select>
+          </div>
+          {% else %}
+          <input type="hidden" name="use_allbid_data" value="False">
+          {% endif %}
           <div class="buttons">
             <div><button class="create" type="submit" name="function" value="create_new_item">Create</button></div>
           </div>

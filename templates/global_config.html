@@ -121,6 +121,9 @@
               {% endif %}
 
               <div class="default_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default')">Default:</button></div>
+
+
+
               {% if tax['tax_id'] in i['default_taxes'] %}
               <div class="default_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_value">On</div>
               <div class="default_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_input">
@@ -132,8 +135,8 @@
               </div>
 
               {% else %}
-              <div class="default_value">Off</div>
-              <div class="default_input">
+              <div class="default_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_value">Off</div>
+              <div class="default_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_input">
                 <form method="post">
                   <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
                   <input type="hidden" name="location_id" value="{{ i['location_id'] }}">

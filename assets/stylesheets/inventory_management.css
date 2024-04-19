@@ -91,7 +91,7 @@ div.unit_combo_input, div.unit_combo_value {
 }
 div.unit_combo {
   margin-top: 0.2vw;
-  grid-template-columns: 1fr 2fr 2fr 4fr 4fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;

@@ -337,6 +337,15 @@
           </form>
         </div>
         
+        <div class="unit_combo_key"><button class="key" onclick="switch_value_input('package_size')">Package Size:</button></div>
+        <div class="unit_combo_value" id="package_size_value">{{ scanned_item['package_size'] }}</div>
+        <div class="unit_combo_input" id="package_size_input">
+          <form class="change" method="post">
+            <input id="package_size_focus" type="text" class="package_size" title="Enter a package size like 10 oz" name="package_size">
+            <input type="submit" name="function" value="change_package_size" hidden>
+          </form>
+        </div>
+        
         <div class="unit_combo_key"><button class="key" onclick="switch_value_input('break_pack_item_id')">Break Pack:</button></div>
         <div class="unit_combo_value" id="break_pack_item_id_value">{{ scanned_item['break_pack_item_id'] }}</div>
         <div class="unit_combo_input" id="break_pack_item_id_input">
