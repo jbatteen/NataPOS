@@ -6,7 +6,7 @@ This is a point of sale system being written for Natural Abundance Food Co-op, a
 
 Not that I expect anyone to, but I'm building this with the intention that it can be re-used by others.  It's primarily designed for members of NCG, National Cooperative Grocers, but presumably anyone could use it if it fit their needs.  Some features would be extraneous.  I'm more familiar with programming than I am with the operation of grocery stores, but I am intending to design this to be as generic and extensible as possible for unforeseen future uses.  
 
-This is being developed on OpenBSD, which does not always have the most up-to-date packages in the package manager.  Since I don't yet have the skillset to compile more up-to-date versions from source, since the versions in packages work fine, and also for convenience's sake for the end user, I use what's there.  On 7.5, the current version, that's Python 3.11.8 and MongoDB 4.4.29.
+This is being developed on Debian 12, using python 3.11.2 and mongodb 7.0.8.
 
 pip packages required:
 - bcrypt

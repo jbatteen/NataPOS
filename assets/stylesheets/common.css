@@ -1,3 +1,7 @@
+form, div, span, select, button, label, body {
+  display: grid;
+}
+
 body {
 	color: #d4d0ab;
 	background-color: #1f2a46;
@@ -50,7 +54,7 @@ div.sidebar {
   grid-template-columns: 14vw;
   grid-template-rows: auto;
 }
- div {
+div {
   display: grid;
   align-items: center;
 }
