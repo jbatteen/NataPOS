@@ -1,9 +1,9 @@
-form, div, span, select, button, label {
+form, div, span, select, label {
   display: grid;
 }
 
 div.topbar {
-  grid-template-columns: 50% 40% 10%;
+  grid-template-columns: 5fr 4fr 1fr;
   margin-bottom: 2vw;
 }
 div.property {
@@ -13,9 +13,12 @@ div.property {
   padding: 0.3vw;
   margin-top: 0.2vw;
 }
-form.input {
+div.input {
   display: none;
   grid-template-columns: auto;
+}
+form.scanbar {
+  grid-template-columns: 1fr 5fr;
 }
 input.value {
   width: 90%;
@@ -29,12 +32,12 @@ div.key {
 div.price_combo_key {
   justify-content: end;
 }
-form.price_combo_input{
+div.price_combo_input{
   display: none;
 }
 div.price_combo_value {
 }
-form.price_combo_input, div.price_combo_value {
+div.price_combo_input, div.price_combo_value {
   justify-content: left;
 }
 div.price_combo {
@@ -49,33 +52,6 @@ div.price_combo div {
 }
 
 
-div.location_specific_key {
-  justify-content: end;
-}
-div.location_specific_header {
-  grid-column: 1 / span 4;
-  text-align: center;
-  grid-template-columns: 1fr 1fr;
-}
-div.location_specific_buttons {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-form.location_specific_input{
-  display: none;
-}
-div.location_specific_input, div.location_specific_value {
-  justify-content: left;
-}
-div.location_specific {
-  margin-top: 0.2vw;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  border-width: 1px;
-  border-style: solid;
-  padding: 0.3vw;
-}
-div.location_specific div {
-  padding: 0.2vw;
-}
 
 
 
@@ -231,8 +207,8 @@ input {
   font-size: inherit;
 }
 div.taxes {
+  margin-top: 0.2vw;
   grid-template-columns: 1fr 1fr;
-  grid-column: 1 / span 4;
   border-width: 1px;
   border-style: solid;
 }

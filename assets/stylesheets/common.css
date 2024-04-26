@@ -1,5 +1,6 @@
-form, div, span, select, button, label, body {
+form, div, span, button, img, body {
   display: grid;
+  align-items: center;
 }
 
 body {
@@ -91,6 +92,7 @@ button.key {
   background-color: #1f2a46;
   color: hwb(32 25% 16%);
   border: none;
+  text-align: right;
 }
 
 button.key:hover {
@@ -98,4 +100,7 @@ button.key:hover {
 }
 input, select {
   font-size: inherit;
+}
+img.sidebarlogo {
+  width: 98%;
 }

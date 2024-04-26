@@ -98,55 +98,34 @@
           </form>
         </div>
       </div>
-      {% for location in department_document['location_defaults'] %}
-      <div class="location" >
-        <div class="location_info">
-          <div class="location_heading">{{ location['location_id'] }}</div>
-          <div class="location_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_default_online_ordering')">Default Online Ordering:</button></div>
-          <div class="location_value" id="{{ location['location_id'] }}_default_online_ordering_value">{{ location['default_online_ordering'] }}</div>
-          <div class="location_input" id="{{ location['location_id'] }}_default_online_ordering_input">
-            <form method="post">
-              <select name="default_online_ordering" id="{{ location['location_id'] }}_default_online_ordering_focus">
-                <option value="yes">Yes</option>
-                <option value="member">Member</option>
-                <option value="no">No</option>
-              </select>
-              <button type="submit" name="function" value="set_default_online_ordering">OK</button>
-              <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
-              <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-            </form>
-          </div>
-        </div>
+
         <div class="tax_info">
           <div class="tax_heading">Default Taxes:</div>
-          {% for tax in location['available_taxes'] %}
+          {% for tax in taxes %}
           <div class="tax">
-            <div class="tax_id"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}:</button></div>
-            <div class="tax_default" id="{{ location['location_id'] }}_{{ tax }}_value">{% if tax in location['default_taxes'] %}on{% else %}off{% endif %}</div>
-            <div class="tax_input" id="{{ location['location_id'] }}_{{ tax }}_input">
+            <div class="tax_id"><button class="key" onclick="switch_value_input('tax_{{ tax['tax_id'] }}')">{{ tax['tax_id'] }}:</button></div>
+            <div class="tax_default" id="tax_{{ tax['tax_id'] }}_value">{% if tax['tax_id'] in department_document['default_taxes'] %}on{% else %}off{% endif %}</div>
+            <div class="tax_input" id="tax_{{ tax['tax_id'] }}_input">
               <form method="post">
-                {% if tax in location['default_taxes'] %}                
+                {% if tax['tax_id'] in department_document['default_taxes'] %}
                 <button type="submit" name="function" value="remove_tax">Remove</button>
                 {% else %}
                 <button type="submit" name="function" value="add_tax">Add</button>
                 {% endif %}
                 <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
-                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-                <input type="hidden" name="tax_id" value="{{ tax }}">
+                <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
               </form>
             </div>
           </div>
           {% endfor %}
         </div>
-      </div>
-      {% endfor %}
       <div class="categories">
         <div class="categories_header"><button class="key" onclick="switch_value_input('categories')">Categories:</button></div>      
         <div class="add_category_value" id="categories_value">Select to view and add subcategories</div>
         <div class="add_category" id="categories_input">
           <form method="post">
             <div class="category_input">
-              <div class="category_name"id="categories_focus"><input type="text" class="category" title="Enter a category" name="category_id"></div>
+              <div class="category_name"><input type="text" class="category" title="Enter a category" name="category_id" id="categories_focus"></div>
               <div class="category_button"><button type="submit" name="function" value="add_category">Add</button></div>
               <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
             </div>

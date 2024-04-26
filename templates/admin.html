@@ -8,16 +8,10 @@
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
     <div class="menu">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
+      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
     </div>
   </div>
   <div class="mainbody">
@@ -25,58 +19,28 @@
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="admin_list">
       {% if 'superuser' in permissions %}
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
-      </div>
+      <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
       {% else %}
-
       {% if 'inventory_management' in permissions %}
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
-      </div>
+      <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
       {% endif %}
       {% if 'suppliers_departments_brands' in permissions %}
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
-      </div>
+      <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
+      <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
       {% endif %}
       {% if 'employee_management' in permissions %}
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
-      </div>
+      <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
       {% endif %}
       {% endif %}
-
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="change_password">Change Password</button></form>
-      </div>
+      <form method="post"><button class="function" type="submit" name="function" value="change_password">Change Password</button></form>
     </div>
   </div>
 </body>

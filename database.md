@@ -6,6 +6,10 @@
 - 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the 1st and the pay_period_rolloverth, defaults to 15 on instance spinup
 - 'timesheets_locked': bool (used to lock the timesheets to perform pay period rollover safely wrt clocking in/out)
 - 'employee_discount': float (default employee discount for new items)
+- 'phone': str (phone number)
+- 'address': str (street address)
+- 'taxes': list of dict {'tax_id': str (name of tax), 'rate': float (tax rate)}
+- 'default_taxes': list of [str('tax_id')]
 
 ## session_keys
 - 'session_key': str (40 random alphanumeric characters)
@@ -49,18 +53,16 @@
 - 'wic_elegible': bool(WIC eligible)
 - 'ebt_eligible': bool(EBT eligible)
 - 'consignment': bool(on consignment)
-- 'locations' list of dict:
-  - 'location_id': str (unique identifier for location)
-  - 'regular_price': float (price at this location)
-  - 'quantity_on_hand': float (quantity at this location)
-  - 'most_recent_delivery': str (MMDDYY)
-  - 'quantity_low': float (low alert quantity)
-  - 'quantity_high': float (plenty on hand quantity)
-  - 'item_location': str (location of item in store eg aisle 5)
-  - 'backstock_location': str (location of backstock in store eg dry storage)
-  - 'last_sold': str(MMDDYY)
-  - 'active': bool(to keep buying or not)
-  - 'taxes': list of [str(tax_id)] this item gets charged
+- 'regular_price': float (price at this location)
+- 'quantity_on_hand': float (quantity at this location)
+- 'most_recent_delivery': str (MMDDYY)
+- 'quantity_low': float (low alert quantity)
+- 'quantity_high': float (plenty on hand quantity)
+- 'item_location': str (location of item in store eg aisle 5)
+- 'backstock_location': str (location of backstock in store eg dry storage)
+- 'last_sold': str(MMDDYY)
+- 'active': bool(to keep buying or not)
+- 'taxes': list of [str(tax_id)] this item gets charged
 
 ## suppliers  (inventory_management collection,  'type': 'supplier')
 - 'supplier_id': str (unique supplier identifer eg 'UNFI')
@@ -74,13 +76,6 @@
 - 'item_group_id': str (unique group identifier)
 - 'items': list of str (item_id)
 
-## locations (inventory_management collection, 'type': 'location')
-- 'location_id': str (unique identifier for store location)
-- 'phone': str (phone number)
-- 'address': str (street address)
-- 'taxes': list of dict {'tax_id': str (name of tax), 'rate': float (tax rate)}
-- 'ip_range': str(ip range of local network '192.168.1.0/24')
-- 'default_taxes': list of [str('tax_id')]
 
 ## departments  (inventory_management collection,  'type': 'department')
 - 'department_id': str (unique identifier for department)
@@ -89,10 +84,7 @@
 - 'default_margin': float (percentage)
 - 'default_ebt_eligible': bool
 - 'default_food_item': bool
-- 'location_defaults': [list] of dict:
-  - 'location_id': str (location_id)
-  - 'default_online_ordering': str ('yes' or 'no')
-  - 'default_taxes': [list of tax_id]
+- 'default_taxes': [list of tax_id]
 
 ## brands  (inventory_management collection,  'type': 'brand')
 - 'brand_id': str (unique brand identifier eg 'Kalona')

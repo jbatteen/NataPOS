@@ -13,26 +13,20 @@
 
   <div class="mainbody">
     <h1>Welcome to {{ instance_name }}.  Fill in some defaults.</h1>
-    <h2>After submitting, you will be redirected to instance config where you are recommended to configure the pay period.</h2>
+    <h2>After submitting, you will be redirected to instance config where you are recommended to configure the pay period and taxes.</h2>
     {% if message %}
       <h2>{{ message }}</h2>
     {% endif %}
-    <form method="post">
-      <div class="input_form">
-        <div>Instance Name:</div>
-        <div><input type="text" title="Enter a name at least 4 characters long" name="instance_name" value="NataPOS" autofocus></div>
-        <div>Location Name:</div>
-        <div><input type="text" id="location_id" name="location_id" value="Default Location"></div>
-        <div>Location IP Address Range:</div>
-        <div><input type="text" id="ip_range" name="ip_range" value="192.168.1.0/24"></div>
-        <div>Superuser Username:</div>
-        <div><input type="text" id="username" name="username"></div>
-        <div>Password:</div>
-        <div><input type="password" id="password" name="password"></div>
-        <div>Re-enter Password:</div>
-        <div><input type="password" id="password2" name="password2"></div>
-        <div><button type="submit" name="function" value="create_first_user">Create</button></div>
-      </div>
+    <form method="post" class="input_form">
+      <div>Instance Name:</div>
+      <div><input type="text" title="Enter a name at least 4 characters long" name="instance_name" value="NataPOS" autofocus></div>
+      <div>Superuser Username:</div>
+      <div><input type="text" id="username" name="username"></div>
+      <div>Password:</div>
+      <div><input type="password" id="password" name="password"></div>
+      <div>Re-enter Password:</div>
+      <div><input type="password" id="password2" name="password2"></div>
+      <div><button type="submit" name="function" value="create_first_user">Create</button></div>
     </form>
 
   </div>

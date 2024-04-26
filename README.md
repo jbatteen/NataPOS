@@ -1,6 +1,6 @@
 # NataPOS
 ## Natural Abundance Point Of Sale system
-**This is not a working product yet and is undergoing rapid development.  Don't try to use this code now.**  
+**This is not a working product yet and is undergoing rapid development.  Don't try to use this code now.  Also everything is in the middle of a reconfiguration so now is an especially bad time 4-25-24**  
 
 This is a point of sale system being written for Natural Abundance Food Co-op, a cooperative grocery store in Aberdeen, South Dakota.  I'm the IT manager there, and I'm not happy with the available options, commercial or open-source.  Some of them are fine but too expensive, some of them are inexpensive but difficult to use or lacking in features.  Our needs are few but specific.  
 

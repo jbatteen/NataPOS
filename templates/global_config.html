@@ -22,234 +22,135 @@
         document.getElementById(focus_id).focus();
       }
     }
+    function switch_visible(property) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(input_id).style.display != "grid") {
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      } else {
+        document.getElementById(input_id).style.display = "none";
+      }
+    }
   </script>
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
     <div class="menu">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
+      <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
     </div>
   </div>
   <div class="configbody">
     <h1>Global Configuration</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div class="location_list">
-      <div class="location_heading">Locations:</div>
-      {% for i in locations_collection %}
-      <div class="location">
-        <div class="location_info">
-          
-          <div class="location_key">Name:</div>
-          <div class="location_value">{{ i['location_id'] }}</div>
-          
-          <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_phone')">Phone:</button></div>
-          <div class="location_value" id="{{ i['location_id'] }}_phone_value" style="width:fit-content">{{ i['phone'] }}</div>
-          <div class="location_input" id="{{ i['location_id'] }}_phone_input">
-            <form class="change" method="post">
-              <input type="text" id="{{ i['location_id'] }}_phone_focus" class="wide" title="Enter a phone" name="phone">
-              <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-              <input type="submit" name="function" value="change_phone" hidden>
-            </form>
-          </div>
-          
-          <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_address')">Address:</button></div>
-          <div class="location_value" id="{{ i['location_id'] }}_address_value" style="width:fit-content">{{ i['address'] }}</div>
-          <div class="location_input" id="{{ i['location_id'] }}_address_input">
-            <form class="change" method="post">
-              <input type="text" id="{{ i['location_id'] }}_address_focus" class="wide" title="Enter an address" name="address">
-              <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-              <input type="submit" name="function" value="change_address" hidden>
-            </form>
-          </div>
-            
-          <div class="location_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_ip_range')">IP Range:</button></div>
-          <div class="location_value" id="{{ i['location_id'] }}_ip_range_value" style="width:fit-content">{{ i['ip_range'] }}</div>
-          <div class="location_input" id="{{ i['location_id'] }}_ip_range_input">
-            <form class="change" method="post">
-              <input type="text" id="{{ i['location_id'] }}_ip_range_focus" class="wide" title="Enter an IP range like 192.168.1.0/24" name="ip_range">
-              <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-              <input type="submit" name="function" value="change_ip_range" hidden>
-            </form>
-          </div>
-        </div>
-        <div class="location_taxes">
-          <div class="create_taxes">
-            <div><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_create_tax')">Create Tax</button></div><div id="{{ i['location_id'] }}_create_tax_value"> </div>
-            <div class="create_tax_input" id="{{ i['location_id'] }}_create_tax_input">
-              <form class="change" method="post">
-                <div class="create_tax_form">
+    <div class="info">
+      <button class="key" onclick="switch_value_input('instance_name')">Instance Name:</button>
+      <span class="instance_value" id="instance_name_value">{{ instance_name }}</span>
+      <form class="instance_input" id="instance_name_input" method="post">
+        <input type="text" id="instance_name_focus" title="Enter a name at least 4 characters long" name="instance_name">
+        <input type="submit" name="function" value="change_instance_name" hidden>
+      </form>
 
-                  <div>Tax name:</div>
-                  <div><input type="text" id="{{ i['location_id'] }}_create_tax_focus" class="wide" title="Enter a tax name" name="tax_id"></div>
-                  <div>Tax rate:</div>
-                  <div><input type="text" class="wide" title="Enter a tax rate" name="tax_rate"></div>
-                  <div><button class="change" type="submit" name="function" value="create_tax">OK</button></div>
-                  <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-              
-                </div>
-              </form>
-            </div>
-          </div>
-          <div class="taxes">
-            {% for tax in i['taxes'] %}
-            <div class="tax">
-              {% if tax['tax_id'] != 'exempt' %}
-              <div class="tax_rate_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate')">{{ tax['tax_id'] }}:</button> </div>
-              <div class="tax_rate_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_value">{{ (100 * tax['rate'])|round(5) }}%</div>
-              <div class="tax_rate_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_input">
-                <form class="change" method="post">
-                  <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
-                  <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-                  <input id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_rate_focus" type="text" title="Enter a percentage" name="rate">
-                  <input type="submit" name="function" value="change_tax_rate" hidden>
-                </form>
-              </div>
-              {% else %}
-              <div class="tax_rate_key">Exempt:</div>
-              <div class="tax_rate_value">0%</div>
-              {% endif %}
+      <button class="key" onclick="switch_value_input('phone')">Phone:</button>
+      <span class="location_value" id="phone_value">{{ phone }}</span>
+      <form class="location_input" id="phone_input" method="post">
+        <input type="text" id="phone_focus" class="wide" title="Enter a phone" name="phone">
+        <input type="submit" name="function" value="change_phone" hidden>
+      </form>
 
-              <div class="default_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default')">Default:</button></div>
+      <button class="key" onclick="switch_value_input('address')">Address:</button>
+      <span class="location_value" id="address_value">{{ address }}</span>
+      <form class="location_input" id="address_input" method="post">
+        <input type="text" id="address_focus" class="wide" title="Enter an address" name="address">
+        <input type="submit" name="function" value="change_address" hidden>
+      </form>
+    </div>
 
+    <div class="taxes">
+      <div class="create_taxes">
+        <button class="key" onclick="switch_visible('create_tax')">Create Tax</button>
 
+        <form class="create_tax_form" id="create_tax_input" method="post">
+          <span>Tax name:</span>
+          <input type="text" id="create_tax_focus" class="wide" title="Enter a tax name" name="tax_id">
+          <span>Tax rate:</span>
+          <input type="text" class="wide" title="Enter a tax rate" name="tax_rate">
+          <button class="change" type="submit" name="function" value="create_tax">OK</button>
+        </form>
 
-              {% if tax['tax_id'] in i['default_taxes'] %}
-              <div class="default_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_value">On</div>
-              <div class="default_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_input">
-                <form method="post">
-                  <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
-                  <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-                  <button class="set_default_tax" type="submit" name="function" value="remove_default_tax">Remove</button>
-                </form>
-              </div>
-
-              {% else %}
-              <div class="default_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_value">Off</div>
-              <div class="default_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_tax_default_input">
-                <form method="post">
-                  <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
-                  <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-                  <button class="set_default_tax" type="submit" name="function" value="add_default_tax">Add</button>
-                </form>
-              </div>
-              {% endif %}
-
-              {% if tax['tax_id'] != 'exempt' %}
-              <div class="delete_tax_key"><button class="key" onclick="switch_value_input('{{ i['location_id'] }}_{{ tax['tax_id'] }}_delete_tax')">Delete Tax</button></div>
-              <div class="delete_tax_value" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_delete_tax_value"> </div>
-              <div class="delete_tax_input" id="{{ i['location_id'] }}_{{ tax['tax_id'] }}_delete_tax_input">
-                <form method="post">
-                  <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
-                  <input type="hidden" name="rate" value="{{ tax['rate'] }}">
-                  <input type="hidden" name="location_id" value="{{ i['location_id'] }}">
-                  <button class="delete" type="submit" name="function" value="delete_tax">X</button>
-                </form>
-              </div>
-              {% endif %}
-            </div>
-            {% endfor %}
-          </div>
-        </div>
       </div>
-      {% endfor %}
-      <div class="create_location">
-        <div><button class="key" onclick="switch_value_input('create_location')">Create Location</button></div><div id="create_location_value"> </div>
-        <div class="create_location_input" id="create_location_input">
-          <form class="change" method="post">
-            <div class="create_location_form">
-              <div><input type="text" class="wide" title="Enter a name for the new location" name="location_id"></div>
-              <div><button type="submit" name="function" value="create_location">Create</button></div>
-            </div>
+      <div class="tax_list">
+        {% for tax in taxes %}
+        <div class="tax">
+          {% if tax['tax_id'] != 'exempt' %}
+          <button class="key" onclick="switch_value_input('{{ tax['tax_id'] }}_tax_rate')">{{ tax['tax_id'] }}:</button>
+          <span class="tax_rate_value" id="{{ tax['tax_id'] }}_tax_rate_value">{{ (100 * tax['rate'])|round(5) }}%</span>
+          <form class="tax_rate_input" id="{{ tax['tax_id'] }}_tax_rate_input" method="post">
+            <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+            <input id="{{ tax['tax_id'] }}_tax_rate_focus" type="text" title="Enter a percentage" name="rate">
+            <input type="submit" name="function" value="change_tax_rate" hidden>
           </form>
+          {% else %}
+          <span class="tax_rate_key">Exempt:</span>
+          <span class="tax_rate_value">0%</span>
+          {% endif %}
+
+          <button class="key" onclick="switch_value_input('{{ tax['tax_id'] }}_tax_default')">Default:</button>
+
+
+
+          {% if tax['tax_id'] in default_taxes %}
+          <span class="default_value" id="{{ tax['tax_id'] }}_tax_default_value">On</span>
+          <form class="default_input" id="{{ tax['tax_id'] }}_tax_default_input" method="post">
+            <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+            <button class="set_default_tax" type="submit" name="function" value="remove_default_tax">Remove</button>
+          </form>
+
+          {% else %}
+          <span class="default_value" id="{{ tax['tax_id'] }}_tax_default_value">Off</span>
+          <form class="default_input" id="{{ tax['tax_id'] }}_tax_default_input" method="post">
+            <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+            <button class="set_default_tax" type="submit" name="function" value="add_default_tax">Add</button>
+          </form>
+          {% endif %}
+
+          {% if tax['tax_id'] != 'exempt' %}
+          <button class="key" onclick="switch_visible('{{ tax['tax_id'] }}_delete_tax')">Delete Tax</button>
+          <form class="delete_tax_input" id="{{ tax['tax_id'] }}_delete_tax_input" method="post">
+            <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+            <input type="hidden" name="rate" value="{{ tax['rate'] }}">
+            <button class="delete" type="submit" name="function" value="delete_tax">X</button>
+          </form>
+          {% endif %}
         </div>
+        {% endfor %}
+        
       </div>
     </div>
 
 
-    <div class="pay_period_combo">
-      <div class="pay_period_type">
-        <div class="pay_period_type_key"><button class="key" onclick="switch_value_input('pay_period_type')">Pay Period Type:</button></div>
-        <div class="pay_period_type_value" id="pay_period_type_value">{{ pay_period_type }}</div>
-        <div class="pay_period_type_input" id="pay_period_type_input">
-          <form class="change" method="post">
-            <div style="display:grid;grid-template-columns: 3fr 1fr;">
-              <div>
-                <select id="pay_period_type_focus" name="pay_period_type">
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Biweekly</option>
-                  <option value="bimonthly">Bimonthly</option>
-                </select>
-              </div>
-              <div><button class="change" type="submit" name="function" value="change_pay_period_type">Change</button></div>
-            </div>
-          </form>
-        </div>
-      </div>
-      {% if pay_period_type == 'weekly' or pay_period_type == 'biweekly' %}
-      <div class="current_pay_period_start">
-        <div class="current_pay_period_start_key"><button class="key" onclick="switch_value_input('current_pay_period_start')">Current Pay Period Start:</button></div>
-        <div class="current_pay_period_start_value" id="current_pay_period_start_value">{{ current_pay_period_start }}</div>
-        <div class="current_pay_period_start_input" id="current_pay_period_start_input">
-          <form class="change" method="post">
-            <div style="display:grid;grid-template-columns: 3fr 1fr;">
-              <div><input id="current_pay_period_start_focus" type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start"></div>
-              <div><button class="change" type="submit" name="function" value="change_current_pay_period_start">Change</button></div>
-            </div>
-          </form>
-        </div>
-      </div>
-
-
-      {% elif pay_period_type == 'bimonthly' %}
-      <div class="pay_period_rollover">
-        <div class="pay_period_rollover_key"><button class="key" onclick="switch_value_input('pay_period_rollover')">Pay Period Rollover:</button></div>
-        <div class="pay_period_rollover_value" id="pay_period_rollover_value">{{ pay_period_rollover }}</div>
-        <div class="pay_period_rollover_input" id="pay_period_rollover_input">
-          <form class="change" method="post">
-            <div style="display:grid;grid-template-columns: 3fr 1fr;">
-              <div><input id="pay_period_rollover_focus" type="text" title="Enter a number between 10 and 19" name="pay_period_rollover"></div>
-              <div><button class="change" type="submit" name="function" value="change_pay_period_rollover">Change</button></div>
-            </div>
-          </form>
-        </div>
-      </div>
-      {% endif %}
-    </div>
 
     <div class="small_fields">
-      <div class="small_fields_key"><button class="key" onclick="switch_value_input('employee_discount')">Employee Discount:</button> </div>
-      <div class="small_fields_value" id="employee_discount_value">{{ employee_discount }}</div>
-      <div class="small_fields_input" id="employee_discount_input">
-        <form class="change" method="post">
-          <div style="display:grid;grid-template-columns: 3fr 1fr;">
-            <div><input id="employee_discount_focus" type="text" title="Enter a percentage" name="employee_discount"></div>
-            <div><button class="change" type="submit" name="function" value="change_employee_discount">Change</button></div>
-          </div>
-        </form>
-      </div>
+      <button class="key" onclick="switch_value_input('employee_discount')">Default Employee Discount:</button>
+      <span class="small_fields_value" id="employee_discount_value">{{ employee_discount }}</span>
+      <form class="small_fields_input" id="employee_discount_input" method="post">
+        <input id="employee_discount_focus" type="text" title="Enter a percentage" name="employee_discount">
+        <button class="change" type="submit" name="function" value="change_employee_discount">Change</button>
+      </form>
+      <button class="key" onclick="switch_value_input('current_pay_period_start')">Current Pay Period Start:</button>
+      <span class="current_pay_period_start_value" id="current_pay_period_start_value">{{ current_pay_period_start }}</span>
+      <form class="small_fields_input" id="current_pay_period_start_input" method="post">
+        <input id="current_pay_period_start_focus" type="text" title="Enter a date in the form of MM/DD/YY" name="current_pay_period_start">
+        <button class="change" type="submit" name="function" value="change_current_pay_period_start">Change</button>
+      </form>
     </div>
 
-    <div class="instance_name">
-      <div class="instance_key"><button class="key" onclick="switch_value_input('instance_name')">Instance Name:</button></div>
-      <div class="instance_value" id="instance_name_value">{{ instance_name }}</div>
-      <div class="instance_input" id="instance_name_input">
-        <form class="change" method="post">
-          <input type="text" id="instance_name_focus" title="Enter a name at least 4 characters long" name="instance_name">
-          <input type="submit" name="function" value="change_phone" hidden>
-        </form>
-      </div>
-    </div>
+    
     
   </div>
 </body>

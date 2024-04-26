@@ -1,5 +1,5 @@
 # import libraries
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify, make_response
 import time
 import bcrypt
 import ipaddress
@@ -14,7 +14,7 @@ from pymongo.mongo_client import MongoClient
 # import local files
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
-from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float
+from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
 from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
 
@@ -30,7 +30,7 @@ else:
     db.validate_collection("natapos")
   except:
     instance_name = 'NataPOS'
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'pay_period_type': 'biweekly', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'pay_period_rollover': 15, 'timesheets_locked': False, 'employee_discount': 0.2})
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2})
 
   
 # begin app
@@ -64,18 +64,8 @@ def create_first_user():
         else:
           if is_valid_string(request.form['instance_name']) == False:
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')
-        location_id = request.form['location_id']
-        if len(location_id) < 1:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: Location name must be 1 character or more')
-        else:
-          if is_valid_string(request.form['location_id']) == False:
-            return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')            
-        try:
-          ip_range = ipaddress.ip_network(request.form['ip_range'])
-        except ValueError:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid IP range')
-        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-        db.inventory_management.insert_one({'type': 'location', 'location_id': location_id, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'ip_range': request.form['ip_range']})
+       
+        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []}})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
@@ -145,28 +135,14 @@ def global_config():
         else:
           instance_name = request.form['instance_name']
           db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
-    elif request.form['function'] == 'change_pay_period_type':
-      db.natapos.update_one({'config': 'global'}, {'$set': {'pay_period_type': request.form['pay_period_type']}})
     elif request.form['function'] == 'change_current_pay_period_start':
-      if is_valid_date(request.form['current_pay_period_start']) == True:
-        config = db.natapos.find_one({'config': 'global'})
-        pay_period_type = config['pay_period_type']
-        if pay_period_type == 'weekly':
-          if is_date_within_range(request.form['current_pay_period_start'], 6) == True and is_date_in_future(request.form['current_pay_period_start']) == False:  
-            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': request.form['current_pay_period_start']}})
-          else:
-            message = 'Error: date out of range'
-        elif pay_period_type == 'biweekly':
-          if is_date_within_range(request.form['current_pay_period_start'], 13) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
-            db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': current_pay_period_start}})
-          else:
-            message = 'Error: date out of range'
-      else:
+      if is_valid_date(request.form['current_pay_period_start']) == False:
         message = 'Error: invalid date'
-    elif request.form['function'] == 'change_pay_period_rollover':
-      if is_valid_pay_period_rollover(request.form['pay_period_rollover']) == True:
-        db.natapos.update_one({'config': 'global'}, {'$set': {'pay_period_rollover': request.form['pay_period_rollover']}})
-      else: message = 'Error: invalid pay period rollover'
+      elif is_date_within_range(request.form['current_pay_period_start'], 13) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
+        db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': request.form['current_pay_period_start']}})
+      else:
+        message = 'Error: date out of range'
+        
     elif request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
@@ -182,26 +158,20 @@ def global_config():
         if new_employee_discount < 0:
           message = 'percentage must be non-negative'
         else: db.natapos.update_one({'config': 'global'}, { '$set': {'employee_discount': new_employee_discount}})
-    elif request.form['function'] == 'create_location':
-      if is_valid_string(request.form['location_id']) == False:
-        message = 'invalid location name'
-      else:
-        db.inventory_management.insert_one({'type': 'location', 'location_id': request.form['location_id'], 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []})
     elif request.form['function'] == 'remove_default_tax':
-      location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
-      location_default_taxes = []
-      location_default_taxes = location_document['default_taxes']
-      location_default_taxes.remove(request.form['tax_id'])
-      result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'default_taxes': location_default_taxes}})   
+      default_taxes = config['default_taxes']
+      default_taxes.remove(request.form['tax_id'])
+      result = db.natapos.update_one({'config': 'global'}, {'$set': {'default_taxes': default_taxes}})   
     elif request.form['function'] == 'add_default_tax':
-      location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
-      location_default_taxes = []
+      default_taxes = []
       if request.form['tax_id'] == 'exempt':
-        location_default_taxes = ['exempt']
+        default_taxes = ['exempt']
       else:
-        location_default_taxes = location_document['default_taxes']
-        location_default_taxes.append(request.form['tax_id'])
-      result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'default_taxes': location_default_taxes}})
+        default_taxes = config['default_taxes']
+        if default_taxes == ['exempt']:
+          default_taxes = []
+        default_taxes.append(request.form['tax_id'])
+      result = db.natapos.update_one({'config': 'global'}, {'$set': {'default_taxes': default_taxes}})
     elif request.form['function'] == 'create_tax':
       if is_valid_percent(request.form['tax_rate']) == False:
         message = 'Invalid percentage'
@@ -210,11 +180,10 @@ def global_config():
       elif request.form['tax_id'].casefold() == 'exempt':
         message = 'exempt is a special keyword, choose another name'
       else:
-        location_document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
-        location_taxes = []
-        location_taxes = location_document['taxes']
+        taxes = []
+        taxes = config['taxes']
         valid = True
-        for i in location_taxes:
+        for i in taxes:
           if i['tax_id'] == request.form['tax_id']:
             message = 'tax already exists'
             valid = False
@@ -224,13 +193,13 @@ def global_config():
           tax_rate = 0.0
           tax_rate = percent_to_float(request.form['tax_rate'])
           new_tax['rate'] = tax_rate
-          location_taxes.append(new_tax)
-          result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': location_taxes}})
+          taxes.append(new_tax)
+          result = db.natapos.update_one({'config': 'global'}, {'$set': {'taxes': taxes}})
     elif request.form['function'] == 'delete_tax':
       if request.form['tax_id'].casefold() == 'exempt':
         message = 'cannot delete exempt'
       else:
-        result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$pullAll': {'taxes': [{'tax_id': request.form['tax_id'], 'rate': float(request.form['rate'])}]}})
+        result = db.natapos.update_one({'config': 'global'}, {'$pullAll': {'taxes': [{'tax_id': request.form['tax_id'], 'rate': float(request.form['rate'])}]}})
     elif request.form['function'] == 'change_tax_rate':
       if is_valid_percent(request.form['rate']) == False:
         message = 'invalid tax rate'
@@ -239,42 +208,29 @@ def global_config():
         if new_rate <= 0:
           message = 'tax rate must be above zero'
         else:
-
-          document = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
-          taxes = document['taxes']
+          taxes = config['taxes']
           new_taxes = []
           for i in taxes:
             if i['tax_id'] == request.form['tax_id']:
               new_taxes.append({'tax_id': request.form['tax_id'], 'rate': new_rate})
             else:
               new_taxes.append(i)
-          result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'taxes': new_taxes}})
-    elif request.form['function'] == 'change_ip_range':
-      try:
-        ip_range = ipaddress.ip_network(request.form['ip_range'])
-        result = db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'ip_range': request.form['ip_range']}})
-      except ValueError:
-        message = 'invalid ip range'
-      except:
-        message = 'invalid ip range'
+          result = db.natapos.update_one({'config': 'global'}, {'$set': {'taxes': new_taxes}})
+
     elif request.form['function'] == 'change_phone':
       if is_valid_string(request.form['phone']) == True:
-        db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'phone': request.form['phone']}})
+        db.natapos.update_one({'config': 'global'}, {'$set': {'phone': request.form['phone']}})
       else:
         message = 'invalid phone number'
     elif request.form['function'] == 'change_address':
       if is_valid_string(request.form['address']) == True:
-        db.inventory_management.update_one({'type': 'location', 'location_id': request.form['location_id']}, {'$set': {'address': request.form['address']}})
+        db.natapos.update_one({'config': 'global'}, {'$set': {'address': request.form['address']}})
       else:
         message = 'invalid address'
     config = db.natapos.find_one({'config': 'global'})
-  pay_period_type = config['pay_period_type']
-  current_pay_period_start = config['current_pay_period_start']
-  pay_period_rollover = config['pay_period_rollover']
   employee_discount = str(round((config['employee_discount'] * 100), 5))
   employee_discount = employee_discount + '%'
-
-  return render_template('global_config.html', instance_name=config['instance_name'], assets_url=assets_url, session_key=session_key, pay_period_type=pay_period_type, current_pay_period_start=current_pay_period_start, pay_period_rollover=pay_period_rollover, employee_discount=employee_discount, message=message, locations_collection=get_locations_collection(db))
+  return render_template('global_config.html', instance_name=config['instance_name'], assets_url=assets_url, session_key=session_key, current_pay_period_start=config['current_pay_period_start'], employee_discount=employee_discount, message=message, taxes=config['taxes'], default_taxes=config['default_taxes'], phone=config['phone'], address=config['address'])
     
 
 @app.route('/', methods=['POST', 'GET'])
@@ -918,9 +874,6 @@ def inventory_management(item_id):
   for group in groups_item_is_in:
     item_group_list.remove(group)
   scanned_item = beautify_item(db, scanned_item)
-  not_carried_location_list = get_location_list(db)
-  for location in scanned_item['locations']:
-    not_carried_location_list.remove(location['location_id'])
   categories = []
   subcategories = []
   if scanned_item['department'] != '':
@@ -936,7 +889,7 @@ def inventory_management(item_id):
 
 
 
-  return render_template('inventory_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db))
+  return render_template('inventory_management.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db), available_taxes=config['taxes'])
 
 @app.route('/edit_item/<item_id>/', methods=['POST', 'GET'])
 def edit_item(item_id):
@@ -964,23 +917,20 @@ def edit_item(item_id):
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   username = result['username']
-  message = None
   supplier_list= []
   cost_per = 0.0
   suggested_margin = 0.0
   supplier_list= get_supplier_list(db)
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  locations_collection = []
   permissions = []
   permissions = employee_info['permissions']
   if 'inventory_management' not in permissions and 'superuser' not in permissions:
     return redirect('/')
+  message = ''
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is None:
     return redirect('/create_item/' + item_id + '/')
   item_group_list = get_item_group_list(db)
-  not_carried_location_list = []
-  #location_list = get_location_list(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -999,398 +949,61 @@ def edit_item(item_id):
         return redirect('/edit_item/' + request.form['scan'] + '/')
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': item_id})
-    elif request.form['function'] == 'change_name':
-      if is_valid_string(request.form['name']) == False:
-        message = 'Invalid name'
-      elif len(request.form['name']) < 6:
-        message = 'Name too short, must be 6 or more characters'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'name': request.form['name']}})
-    elif request.form['function'] == 'change_description':
-      if is_valid_string(request.form['description']) == False:
-        message = 'Invalid description'
-      elif len(request.form['description']) < 6:
-        message = 'Description too short, must be 6 or more characters'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'description': request.form['description']}})
-    elif request.form['function'] == 'change_receipt_alias':
-      if is_valid_string(request.form['receipt_alias']) == False:
-        message = 'Invalid receipt alias'
-      elif len(request.form['receipt_alias']) < 3:
-        message = 'Receipt alias too short, must be 3 or more characters'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'receipt_alias': request.form['receipt_alias']}})
-    elif request.form['function'] == 'change_memo':
-      if is_valid_string(request.form['memo']) == False:
-        message = 'Invalid memo'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'memo': request.form['memo']}})
-    elif request.form['function'] == 'change_case_cost':
-      if is_valid_price(request.form['case_cost']) == False:
-        message = 'Invalid price'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'case_cost': price_to_float(request.form['case_cost'])}})
-    elif request.form['function'] == 'change_case_quantity':
-      valid = False
-      if scanned_item['unit'] == 'each':
-        if is_valid_int(request.form['case_quantity']) == False:
-          message = 'Invalid quantity, must be whole number'
+    elif request.form['function'] == 'update':
+      success = False
+      beautified = ''
+      if request.form['property'] == 'name':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid name'
+        elif len(request.form['new_data']) < 6:
+          print(request.form['new_data'])
+          message = 'Name too short, must be 6 or more characters'
         else:
-          valid = True
-      else:
-        if is_valid_float(request.form['case_quantity']) == False:
-          message = 'Invalid quantity, must be a valid number'
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'name': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'memo':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid memo'
         else:
-          valid = True
-      if valid == True:
-        case_quantity = float(request.form['case_quantity'])
-        if case_quantity <= 0.0:
-          message = 'case quantity must be above zero'
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'memo': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'case_cost':
+        if is_valid_price(request.form['new_data']) == False:
+          message = 'Invalid price'
         else:
-          db.inventory.update_one({'item_id': item_id}, {'$set': {'case_quantity': case_quantity}})
-      scanned_item = db.inventory.find_one({'item_id' : item_id})
-    elif request.form['function'] == 'change_suggested_retail_price':
-      if is_valid_price(request.form['suggested_retail_price']) == False:
-        message = 'Invalid price'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'suggested_retail_price': price_to_float(request.form['suggested_retail_price'])}})
-    elif request.form['function'] == 'change_regular_price':
-      if is_valid_price(request.form['regular_price']) == False:
-        message = 'Invalid price'
-      else:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['regular_price'] = price_to_float(request.form['regular_price'])
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_quantity_on_hand':
-      valid = False
-      if scanned_item['unit'] == 'each':
-        if is_valid_int(request.form['quantity_on_hand']) == False:
-          message = 'Invalid quantity, must be whole number'
-        else:
-          valid = True
-      else:
-        if is_valid_float(request.form['quantity_on_hand']) == False:
-          message = 'Invalid quantity, must be a valid number'
-        else:
-          valid = True
-      if valid == True:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['quantity_on_hand'] = float(request.form['quantity_on_hand'])
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_most_recent_delivery':
-      if is_valid_date(request.form['most_recent_delivery']) == False:
-        message = 'Invalid date'
-      else:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['most_recent_delivery'] = request.form['most_recent_delivery']
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_quantity_low':
-      valid = False
-      if scanned_item['unit'] == 'each':
-        if is_valid_int(request.form['quantity_low']) == False:
-          message = 'Invalid quantity, must be whole number'
-        else:
-          valid = True
-      else:
-        if is_valid_float(request.form['quantity_low']) == False:
-          message = 'Invalid quantity, must be a valid number'
-        else:
-          valid = True
-      if valid == True:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['quantity_low'] = float(request.form['quantity_low'])
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_quantity_high':
-      valid = False
-      if scanned_item['unit'] == 'each':
-        if is_valid_int(request.form['quantity_high']) == False:
-          message = 'Invalid quantity, must be whole number'
-        else:
-          valid = True
-      else:
-        if is_valid_float(request.form['quantity_high']) == False:
-          message = 'Invalid quantity, must be a valid number'
-        else:
-          valid = True
-      if valid == True:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['quantity_high'] = float(request.form['quantity_high'])
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_item_location':
-      if is_valid_string(request.form['item_location']) == False:
-        message = 'Invalid string'
-      else:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['item_location'] = request.form['item_location']
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_backstock_location':
-      if is_valid_string(request.form['backstock_location']) == False:
-        message = 'Invalid string'
-      else:
-        locations_collection = get_item_locations_collection(db, item_id)
-        new_locations_collection = []
-        for i in locations_collection:
-          if i['location_id'] == request.form['location_id']:
-            i['backstock_location'] = request.form['backstock_location']
-          new_locations_collection.append(i)
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_active':
-      if request.form['active'] == 'True':
-        active_bool = True
-      else:
-        active_bool = False
-      locations_collection = get_item_locations_collection(db, item_id)
-      new_locations_collection = []
-      for i in locations_collection:
-        if i['location_id'] == request.form['location_id']:
-          i['active'] = active_bool
-        new_locations_collection.append(i)
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'remove_tax':
-      locations_collection = get_item_locations_collection(db, item_id)
-      new_locations_collection = []
-      for i in locations_collection:
-        if i['location_id'] == request.form['location_id']:
-          tax_list = i['taxes']
-          tax_list.remove(request.form['tax_id'])
-          i['taxes'] = tax_list
-        new_locations_collection.append(i)
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'add_tax':
-      locations_collection = get_item_locations_collection(db, item_id)
-      new_locations_collection = []      
-      for i in locations_collection:
-        if i['location_id'] == request.form['location_id']:
-          if request.form['tax_id'] == 'exempt':
-            i['taxes'] = ['exempt']
+          price_float = price_to_float(request.form['new_data'])
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'case_cost': price_float}})
+          success = True
+          beautified = float_to_price(price_float)
+      elif request.form['property'] == 'case_quantity':
+        valid = False
+        if scanned_item['unit'] == 'each':
+          if is_valid_int(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be whole number'
           else:
-            tax_list = i['taxes']
-            if 'exempt' in tax_list:
-              tax_list.remove('exempt')
-            tax_list.append(request.form['tax_id'])
-            i['taxes'] = tax_list
-        new_locations_collection.append(i)
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    elif request.form['function'] == 'change_unit':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'unit': request.form['unit']}})
-    elif request.form['function'] == 'change_supplier':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'supplier': request.form['supplier_id']}})
-    elif request.form['function'] == 'change_order_code':
-      if is_valid_string(request.form['order_code']) == False:
-        message = 'Invalid order code'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'order_code': request.form['order_code']}})
-    elif request.form['function'] == 'change_department':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'department': request.form['department_id']}})
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'category': ''}})
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': ''}})
-    elif request.form['function'] == 'change_category':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'category': request.form['category_id']}})
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': ''}})
-    elif request.form['function'] == 'change_subcategory':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': request.form['subcategory_id']}})
-    elif request.form['function'] == 'change_brand':
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'brand': request.form['brand_id']}})
-    elif request.form['function'] == 'create_new_item_group':
-      if is_valid_string(request.form['item_group_id']) == False:
-        message = 'invalid group name'
-      elif request.form['item_group_id'] in item_group_list:
-        message = 'group already exists'
-      else:
-        itemlist = []
-        itemlist.append(item_id)
-        db.inventory_management.insert_one({'type': 'item_group', 'item_group_id': request.form['item_group_id'], 'items': itemlist})
-        grouplist = []
-        grouplist = scanned_item['item_groups']
-        grouplist.append(request.form['item_group_id'])
-        item_group_list.append(request.form['item_group_id'])
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': grouplist}})
- 
-    elif request.form['function'] == 'remove_from_item_group':
-      grouplist = []
-      grouplist = scanned_item['item_groups']
-      grouplist.remove(request.form['item_group_id'])
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': grouplist}})
-      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
-      item_list = []
-      item_list = document['items']
-      item_list.remove(item_id)
-      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': item_list}})
-    elif request.form['function'] == 'add_to_item_group':
-      grouplist = []
-      grouplist = scanned_item['item_groups']
-      grouplist.append(request.form['item_group_id'])
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': grouplist}})
-      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
-      item_list = []
-      item_list = document['items']
-      item_list.append(item_id)
-      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': item_list}})
-
-    elif request.form['function'] == 'change_local':
-      if request.form['local'] == 'True':
-        local_bool = True
-      else:
-        local_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'local': local_bool}})
-    elif request.form['function'] == 'change_organic':
-      if request.form['organic'] == 'True':
-        organic_bool = True
-      else:
-        organic_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'organic': organic_bool}})
-
-    elif request.form['function'] == 'change_consignment':
-      if request.form['consignment'] == 'True':
-        consignment_bool = True
-      else:
-        consignment_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'consignment': consignment_bool}})
-    elif request.form['function'] == 'change_online_ordering':
-      locations_collection = get_item_locations_collection(db, item_id)
-      new_locations_collection = []
-      for i in locations_collection:
-        if i['location_id'] == request.form['location_id']:
-          i['online_ordering'] = request.form['online_ordering']
-        new_locations_collection.append(i)
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-
-    elif request.form['function'] == 'change_discontinued':
-      if request.form['discontinued'] == 'True':
-        discontinued_bool = True
-      else:
-        discontinued_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'discontinued': discontinued_bool}})
-    elif request.form['function'] == 'change_food_item':
-      if request.form['food_item'] == 'True':
-        food_item_bool = True
-      else:
-        food_item_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'food_item': food_item_bool}})
-    elif request.form['function'] == 'change_random_weight_per':
-      if request.form['random_weight_per'] == 'True':
-        random_weight_per_bool = True
-      else:
-        random_weight_per_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'random_weight_per': random_weight_per_bool}})
-    elif request.form['function'] == 'change_ebt_eligible':
-      if request.form['ebt_eligible'] == 'True':
-        ebt_eligible_bool = True
-      else:
-        ebt_eligible_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'ebt_eligible': ebt_eligible_bool}})
-    elif request.form['function'] == 'change_wic_eligible':
-      if request.form['wic_eligible'] == 'True':
-        wic_eligible_bool = True
-      else:
-        wic_eligible_bool = False
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'wic_eligible': wic_eligible_bool}})
-    elif request.form['function'] == 'change_age_restricted':
-      if is_valid_int(request.form['age_restricted']) == False:
-        message = 'invalid age'
-      else:
-        age_int = int(request.form['age_restricted'])
-        if age_int < 0 or age_int > 21:
-          message = 'invalid age'
+            valid = True
         else:
-          db.inventory.update_one({'item_id': item_id}, {'$set': {'age_restricted': age_int}})
-    elif request.form['function'] == 'change_break_pack_item_id':
-      if request.form['break_pack_item_id'] == '':
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_item_id': request.form['break_pack_item_id']}})
-      else:
-        break_pack_item = db.inventory.find_one({'item_id': request.form['break_pack_item_id']})
-        if break_pack_item == None:
-          message = 'Item not in system'
-        else:
-          db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_item_id': request.form['break_pack_item_id']}})
-    elif request.form['function'] == 'change_break_pack_quantity':
-      valid = False
-      break_pack_item = db.inventory.find_one({'item_id' : request.form['break_pack_item_id']})
-      if break_pack_item['unit'] == 'each':
-        if is_valid_int(request.form['break_pack_quantity']) == False:
-          message = 'Invalid quantity, must be whole number'
-        else:
-          valid = True
-      else:
-        if is_valid_float(request.form['break_pack_quantity']) == False:
-          message = 'Invalid quantity, must be a valid number'
-        else:
-          valid = True
-      if valid == True:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_quantity': float(request.form['break_pack_quantity'])}})
-    elif request.form['function'] == 'add_to_location':
-
-      collection = db.inventory_management.find_one({'type': 'location', 'location_id': request.form['location_id']})
-      default_taxes = collection['default_taxes']
-      collection = db.inventory.find_one({'item_id': item_id})
-      locations_collection = collection['locations']
-
-      today = date.today()
-      today_string = today.strftime('%m/%d/%y')
-      locations_collection.append({'location_id': request.form['location_id'], 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True})
-      result = db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': locations_collection}})
-    elif request.form['function'] == 'change_price_by_margin':
-      if is_valid_percent(request.form['margin']) == False:
-        message = 'Invalid percentage'
-      else:
-        margin_input = percent_to_float(request.form['margin'])
-        if margin_input < 0:
-          message = 'margin must be 0 or higher'
-        else:
-          locations_collection = get_item_locations_collection(db, item_id)
-          new_locations_collection = []
-          for i in locations_collection:
-            if i['location_id'] == request.form['location_id']:
-              cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
-              if cost_per == 0.0:
-                i['reqular_price'] = 0.0
-              else:
-                regular_price = round((cost_per + (margin_input * cost_per)), 2)
-              i['regular_price'] = regular_price
-            new_locations_collection.append(i)
-          db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
-    
-    elif request.form['function'] == 'change_package_size':
-      if is_valid_string(request.form['package_size']) == False:
-        message = 'Invalid package size'
-      else:
-        db.inventory.update_one({'item_id': item_id}, {'$set': {'package_size': request.form['package_size']}})
-    if request.form['function'] == 'print_shelf_tag':
-      print_shelf_tag(scanned_item, request.form['location_id'])
-    else:
-      scanned_item = db.inventory.find_one({'item_id' : item_id})
+          if is_valid_float(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be a valid number'
+          else:
+            valid = True
+        if valid == True:
+          case_quantity = float(request.form['new_data'])
+          if case_quantity <= 0.0:
+            message = 'case quantity must be above zero'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'case_quantity': case_quantity}})
+            success = True
+            beautified = request.form['new_data']
+          
+      return make_response(jsonify({'success': success, 'message': message, 'beautified': beautified}))
   groups_item_is_in = []
   groups_item_is_in = scanned_item['item_groups']
   for group in groups_item_is_in:
     item_group_list.remove(group)
   scanned_item = beautify_item(db, scanned_item)
-  not_carried_location_list = get_location_list(db)
-  for location in scanned_item['locations']:
-    not_carried_location_list.remove(location['location_id'])
   categories = []
   subcategories = []
   if scanned_item['department'] != '':
@@ -1406,7 +1019,7 @@ def edit_item(item_id):
 
 
 
-  return render_template('edit_item.html', departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, not_carried_location_list=not_carried_location_list, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db))
+  return render_template('edit_item.html',  departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db), available_taxes=config['taxes'])
 
 @app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
 def create_item(item_id):
@@ -1427,7 +1040,7 @@ def create_item(item_id):
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/create_item/' + item_id + '/')
+        response = redirect('/create_item/' + item_id + '/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
@@ -1441,7 +1054,7 @@ def create_item(item_id):
     return redirect('/')
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is not None:
-    return redirect('/inventory_management/' + item_id + '/')
+    return redirect('/edit_item/' + item_id + '/')
   
   if request.method == 'POST':
     if request.form['function'] == 'inventory_management':
@@ -1449,37 +1062,26 @@ def create_item(item_id):
     if request.form['function'] == 'create_new_item':
       today = date.today()
       today_string = today.strftime('%m/%d/%y')
-      locations_to_add_to = request.form.getlist('add_to_location[]')
-      locations_collection = []
       if request.form['department_id'] != '':
         department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
         default_employee_discount = department_document['default_employee_discount']
         default_ebt_eligible = department_document['default_ebt_eligible']
         default_food_item = department_document['default_food_item']
+        default_taxes = department_document['default_taxes']
       else:
         default_employee_discount = config['employee_discount']
         default_ebt_eligible = False
         default_food_item = True
-      for i in locations_to_add_to:
-        collection = db.inventory_management.find_one({'type': 'location', 'location_id': i})
-        if request.form['department_id'] != '':
-          
-          for location in department_document['location_defaults']:
-            if location['location_id'] == i:
-              default_taxes = location['default_taxes']
-              default_online_ordering = location['default_online_ordering']
-        else:
-          default_taxes = collection['default_taxes']
-          default_online_ordering = 'yes'
-        locations_collection.append({'location_id': i, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True, 'online_ordering': default_online_ordering})
+        default_taxes = config['default_taxes']
+      
       if request.form['use_allbid_data'] == 'True':
         allbid_document = db.allbid.find_one({'item_id': item_id})
-        scanned_item = {'item_id': item_id, 'name': allbid_document['description'], 'description': allbid_document['description'], 'receipt_alias': allbid_document['description'], 'memo': '', 'unit': 'each', 'supplier': 'UNFI', 'order_code': allbid_document['order_code'], 'consignment': False, 'case_quantity': allbid_document['case_quantity'], 'case_cost': allbid_document['case_cost'], 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': allbid_document['suggested_retail_price'], 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'package_size': allbid_document['package_size'], 'organic': False}
+        scanned_item = {'item_id': item_id, 'name': allbid_document['description'], 'description': allbid_document['description'], 'receipt_alias': allbid_document['description'], 'memo': '', 'unit': 'each', 'supplier': 'UNFI', 'order_code': allbid_document['order_code'], 'consignment': False, 'case_quantity': allbid_document['case_quantity'], 'case_cost': allbid_document['case_cost'], 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': allbid_document['suggested_retail_price'], 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'ebt_eligible': default_ebt_eligible, 'package_size': allbid_document['package_size'], 'organic': False, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True}
       else:
-        scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'locations': locations_collection, 'ebt_eligible': default_ebt_eligible, 'package_size': '', 'organic': False}
+        scanned_item = {'item_id': item_id, 'name': 'New Item Name', 'description': 'New Item Description', 'receipt_alias': 'New Item Receipt Alias', 'memo': '', 'unit': 'each', 'supplier': '', 'order_code': '', 'consignment': False, 'case_quantity': 1, 'case_cost': 0.01, 'item_groups': [], 'department': request.form['department_id'], 'category': '', 'subcategory': '', 'brand': '', 'local': False, 'discontinued': False, 'employee_discount': default_employee_discount, 'suggested_retail_price': 0.01, 'age_restricted': 0, 'food_item': default_food_item, 'date_added': today_string, 'random_weight_per': False, 'break_pack_item_id': '', 'break_pack_quantity': 0.0, 'wic_eligible': False, 'ebt_eligible': default_ebt_eligible, 'package_size': '', 'organic': False, 'quantity_on_hand': 1.0, 'quantity_low': 0.0, 'quantity_high': 1.0, 'most_recent_delivery': today_string, 'regular_price': 0.01, 'taxes': default_taxes, 'item_location': '', 'backstock_location': '', 'last_sold': '', 'active': True}
       
       db.inventory.insert_one(scanned_item)
-      return redirect('/inventory_management/' + item_id + '/')
+      return redirect('/edit_item/' + item_id + '/')
   in_allbid = False
   allbid_document = db.allbid.find_one({'item_id': item_id})
   if allbid_document != None:
@@ -1676,11 +1278,7 @@ def department_list():
       elif request.form['department_id'] in department_list:
         message = "Department already exists"
       else:
-        new_location_defaults = []
-        locations_collection = get_locations_collection(db)
-        for location in locations_collection:
-          new_location_defaults.append({'location_id': location['location_id'], 'default_taxes': location['default_taxes'], 'default_online_ordering': 'yes'})
-        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'location_defaults': new_location_defaults, 'default_margin': 0.3, 'default_food_item': True, 'default_ebt_eligible': True, 'default_employee_discount': config['employee_discount']})
+        db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'default_margin': 0.3, 'default_food_item': True, 'default_ebt_eligible': True, 'default_taxes': config['default_taxes'], 'default_employee_discount': config['employee_discount']})
         department_list = get_department_list(db)
   return render_template('department_list.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
 
@@ -1719,11 +1317,9 @@ def department_management(department_id):
   if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
   
-  locations_collection = get_locations_collection(db)
   selected_category = ''
   selected_subcategory = ''
   categories_list = []
-  subcategory_list = []
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -1763,36 +1359,19 @@ def department_management(department_id):
         db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_ebt_eligible': True}})
       else:
         db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_ebt_eligible': False}})
-    elif request.form['function'] == 'set_default_online_ordering':
-      department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
-      department_location_defaults = department_document['location_defaults']
-      new_department_location_defaults = []
-      for location in department_location_defaults:
-        if location['location_id'] == request.form['location_id']:
-          location['default_online_ordering'] = request.form['default_online_ordering']
-        new_department_location_defaults.append(location)
-      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
     elif request.form['function'] == 'remove_tax':
       department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
-      department_location_defaults = department_document['location_defaults']
-      new_department_location_defaults = []
-      for location in department_location_defaults:
-        if location['location_id'] == request.form['location_id']:
-          location['default_taxes'].remove(request.form['tax_id'])
-        new_department_location_defaults.append(location)
-      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
+      department_document['default_taxes'].remove(request.form['tax_id'])
+      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_taxes': department_document['default_taxes']}})
     elif request.form['function'] == 'add_tax':
       department_document = db.inventory_management.find_one({'type': 'department', 'department_id': request.form['department_id']})
-      department_location_defaults = department_document['location_defaults']
-      new_department_location_defaults = []
-      for location in department_location_defaults:
-        if location['location_id'] == request.form['location_id']:
-          if request.form['tax_id'] == 'exempt':
-            location['default_taxes'] = ['exempt']
-          else:
-            location['default_taxes'].append(request.form['tax_id'])
-        new_department_location_defaults.append(location)
-      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'location_defaults': new_department_location_defaults}})
+      if request.form['tax_id'] == 'exempt':
+        department_document['default_taxes'] = ['exempt']
+      else:
+        if department_document['default_taxes'] == ['exempt']:
+          department_document['default_taxes'] = []
+        department_document['default_taxes'].append(request.form['tax_id'])
+      db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$set': {'default_taxes': department_document['default_taxes']}})
     elif request.form['function'] == 'add_category':
       department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
       categories_list = department_document['categories']
@@ -1809,24 +1388,13 @@ def department_management(department_id):
 
 
   department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
-  department_location_defaults = department_document['location_defaults']
-  categories_list = department_document['categories']
-
-  new_department_location_defaults = []
-  for location in department_location_defaults:
-    location_taxes = []
-    location_document = db.inventory_management.find_one({'type': 'location', 'location_id': location['location_id']})
-    for tax in location_document['taxes']:
-      location_taxes.append(tax['tax_id'])
-
-    location['available_taxes'] = location_taxes
-
-    new_department_location_defaults.append(location)
-  department_document['location_defaults'] = new_department_location_defaults
+  
 
 
 
-  return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=categories_list, subcategory_list=subcategory_list, locations_collection=locations_collection, instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message)
+
+
+  return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=department_document['categories'], instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, taxes=config['taxes'])
 
 
 
@@ -1879,6 +1447,8 @@ def category_management(department_id, category_id):
       return redirect('/admin/')
     elif request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/')
+    elif request.form['function'] == 'department_list':
+      return redirect('/department_list/')
     elif request.form['function'] == 'go_to_department':
       return redirect('/department_management/' + department_id + '/')
     elif request.form['function'] == 'add_subcategory':

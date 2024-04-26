@@ -6,6 +6,32 @@
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
   <title>Item Management</title>
   <script>
+    function update_item(property, new_data) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var value_id = "";
+      value_id = property.concat("_value");
+      var reply;
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("property", property);
+      data.append("new_data", new_data);
+      fetch("{{ url_for('edit_item', item_id=item_id) }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(value_id).style.display = "grid";
+            document.getElementById(input_id).style.display = "none";
+            document.getElementById(value_id).innerText = reply.beautified;
+          } else {
+            alert(reply.message);
+          };
+        });
+    };
+
     function switch_value_input(property) {
       var value_id = "";
       value_id = property.concat("_value");
@@ -20,32 +46,67 @@
         document.getElementById(value_id).style.display = "none";
         document.getElementById(input_id).style.display = "grid";
         document.getElementById(focus_id).focus();
+      };
+    };
+    function switch_visible(property) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(input_id).style.display != "grid") {
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      } else {
+        document.getElementById(input_id).style.display = "none";
       }
-    }
+    };
+    function initialize() {
+      var name_focus = document.getElementById('name_focus');
+      name_focus.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          update_item('name', name_focus.value);
+        }
+      });
+      var memo_focus = document.getElementById('memo_focus');
+      memo_focus.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          update_item('memo', memo_focus.value);
+        }
+      });
+      var case_cost_focus = document.getElementById('case_cost_focus');
+      case_cost_focus.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          update_item('case_cost', case_cost_focus.value);
+        }
+      });
+      var case_quantity_focus = document.getElementById('case_quantity_focus');
+      case_quantity_focus.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          update_item('case_quantity', case_quantity_focus.value);
+        }
+      });
+    };
+
   </script>
 </head>
-<body>
+<body onload="initialize()">
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
+    <img class="sidebarlogo" src="{{ assets_url }}/logo.png">
     <div class="menu">
-      <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
+      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
     </div>
   </div>
   <div class="configbody">
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="topbar">
-      <div style="text-align:left"><form method="post"><label>Scan:</label><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form></div>
-      <div style="text-align:left">{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</div>
+      <form class="scanbar" method="post"><label>Scan:</label><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form>
+      <span>{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</span>
 
       {% if 'superuser' in permissions %}
       <div style="text-align:right">
@@ -62,20 +123,14 @@
         <div class="key"><button class="key" onclick="switch_value_input('name')">Name:</button></div>
         <div id="name_value" class="value">{{ scanned_item['name'] }}</div>
         <div id="name_input" class="input">
-          <form class="change" method="post">
-            <input type="text" id="name_focus" class="value" title="Enter a name" name="name">
-            <input type="submit" name="function" value="change_name" hidden>
-          </form>
+          <input type="text" id="name_focus" class="value" title="Enter a name" name="name">
         </div>
       </div>
       <div class="property">
         <div class="key"><button class="key" onclick="switch_value_input('memo')">Memo:</button></div>
         <div id="memo_value" class="value">{{ scanned_item['memo'] }}</div>
         <div id="memo_input" class="input">
-          <form class="change" method="post">
-            <input id="memo_focus" type="text" class="value" title="Enter a memo" name="memo">
-            <input type="submit" name="function" value="change_memo" hidden>
-          </form>
+          <input id="memo_focus" type="text" class="value" title="Enter a memo" name="memo">
         </div>
       </div>
       <div class="price_combo">
@@ -83,10 +138,7 @@
         <div class="price_combo_key"><button class="key" onclick="switch_value_input('case_cost')">Case Cost:</button></div>
         <div id="case_cost_value" class="price_combo_value">{{ scanned_item['case_cost'] }}</div>
         <div id="case_cost_input" class="price_combo_input">
-          <form class="change" method="post">
-            <input id="case_cost_focus" type="text" class="price" title="Enter a case price" name="case_cost">
-            <input type="submit" name="function" value="change_case_cost" hidden>
-          </form>
+          <input id="case_cost_focus" type="text" class="price" title="Enter a case price" name="case_cost">
         </div>
 
         <div class="price_combo_key"><button class="key" onclick="switch_value_input('case_quantity')">Case Quantity:</button></div>
@@ -123,196 +175,132 @@
         <div class="price_combo_value">{{ scanned_item['suggested_margin'] }}</div>
 
 
-      </div>
 
-      {% for location in scanned_item['locations'] %}
-      <div class="location_specific">
-        <div class="location_specific_header">
-          <div>Location: {{ location['location_id'] }}</div>
-          <div class="location_specific_buttons">
-            <form class="change" method="post">
-              <button class="change" type="submit" name="function" value="print_shelf_tag">Shelf Tag</button>
-              <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-            </form>
-          </div>
-        </div>
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_regular_price')">Regular Price:</button></div>
-        <div id="{{ location['location_id'] }}_regular_price_value" class="location_specific_value">{{ location['regular_price'] }}</div>
-        <div id="{{ location['location_id'] }}_regular_price_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('regular_price')">Regular Price:</button></div>
+        <div id="regular_price_value" class="price_combo_value">{{ scanned_item['regular_price'] }}</div>
+        <div id="regular_price_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_regular_price_focus" type="text" class="price" title="Enter the regular non-discounted price" name="regular_price">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="regular_price_focus" type="text" class="price" title="Enter the regular non-discounted price" name="regular_price">
             <input type="submit" name="function" value="change_regular_price" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_margin')">Margin:</button></div>
-        <div id="{{ location['location_id'] }}_margin_value" class="location_specific_value">{{ location['margin'] }}</div>
-        <div id="{{ location['location_id'] }}_margin_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('margin')">Margin:</button></div>
+        <div id="margin_value" class="price_combo_value">{{ scanned_item['margin'] }}</div>
+        <div id="margin_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_margin_focus" type="text" class="price" title="Enter a margin" name="margin">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="margin_focus" type="text" class="price" title="Enter a margin" name="margin">
             <input type="submit" name="function" value="change_price_by_margin" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_quantity_on_hand')">Quantity on hand:</button></div>
-        <div id="{{ location['location_id'] }}_quantity_on_hand_value" class="location_specific_value">{{ location['quantity_on_hand'] }}</div>
-        <div id="{{ location['location_id'] }}_quantity_on_hand_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('quantity_on_hand')">Quantity on hand:</button></div>
+        <div id="quantity_on_hand_value" class="price_combo_value">{{ scanned_item['quantity_on_hand'] }}</div>
+        <div id="quantity_on_hand_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_quantity_on_hand_focus" type="text" class="price" title="Enter a quantity" name="quantity_on_hand">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="quantity_on_hand_focus" type="text" class="price" title="Enter a quantity" name="quantity_on_hand">
             <input type="submit" name="function" value="change_quantity_on_hand" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_most_recent_delivery')">Most recent delivery:</button></div>
-        <div id="{{ location['location_id'] }}_most_recent_delivery_value" class="location_specific_value">{{ location['most_recent_delivery'] }}</div>
-        <div id="{{ location['location_id'] }}_most_recent_delivery_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('most_recent_delivery')">Most recent delivery:</button></div>
+        <div id="most_recent_delivery_value" class="price_combo_value">{{ scanned_item['most_recent_delivery'] }}</div>
+        <div id="most_recent_delivery_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_most_recent_delivery_focus" type="text" class="price" title="Enter a date" name="most_recent_delivery">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="most_recent_delivery_focus" type="text" class="price" title="Enter a date" name="most_recent_delivery">
             <input type="submit" name="function" value="change_most_recent_delivery" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_quantity_low')">Quantity low:</button></div>
-        <div id="{{ location['location_id'] }}_quantity_low_value" class="location_specific_value">{{ location['quantity_low'] }}</div>
-        <div id="{{ location['location_id'] }}_quantity_low_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('quantity_low')">Quantity low:</button></div>
+        <div id="quantity_low_value" class="price_combo_value">{{ scanned_item['quantity_low'] }}</div>
+        <div id="quantity_low_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_quantity_low_focus" type="text" class="price" title="Enter a quantity" name="quantity_low">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="quantity_low_focus" type="text" class="price" title="Enter a quantity" name="quantity_low">
             <input type="submit" name="function" value="change_quantity_low" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_quantity_high')">Quantity high:</button></div>
-        <div id="{{ location['location_id'] }}_quantity_high_value" class="location_specific_value">{{ location['quantity_high'] }}</div>
-        <div id="{{ location['location_id'] }}_quantity_high_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('quantity_high')">Quantity high:</button></div>
+        <div id="quantity_high_value" class="price_combo_value">{{ scanned_item['quantity_high'] }}</div>
+        <div id="quantity_high_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_quantity_high_focus" type="text" class="price" title="Enter a quantity" name="quantity_high">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="quantity_high_focus" type="text" class="price" title="Enter a quantity" name="quantity_high">
             <input type="submit" name="function" value="change_quantity_high" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_item_location')">Item Location:</button></div>
-        <div id="{{ location['location_id'] }}_item_location_value" class="location_specific_value">{{ location['item_location'] }}</div>
-        <div id="{{ location['location_id'] }}_item_location_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('item_location')">Item Location:</button></div>
+        <div id="item_location_value" class="price_combo_value">{{ scanned_item['item_location'] }}</div>
+        <div id="item_location_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_item_location_focus" type="text" class="value" title="Enter a location" name="item_location">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="item_location_focus" type="text" class="value" title="Enter a location" name="item_location">
             <input type="submit" name="function" value="change_item_location" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_backstock_location')">Backstock Location:</button></div>
-        <div id="{{ location['location_id'] }}_backstock_location_value" class="location_specific_value">{{ location['backstock_location'] }}</div>
-        <div id="{{ location['location_id'] }}_backstock_location_input" class="location_specific_input">
+        <div class="price_combo_key"><button class="key" onclick="switch_value_input('backstock_location')">Backstock Location:</button></div>
+        <div id="backstock_location_value" class="price_combo_value">{{ scanned_item['backstock_location'] }}</div>
+        <div id="backstock_location_input" class="price_combo_input">
           <form class="change" method="post">
-            <input id="{{ location['location_id'] }}_backstock_location_focus" type="text" class="value" title="Enter a location" name="backstock_location">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
+            <input id="backstock_location_focus" type="text" class="value" title="Enter a location" name="backstock_location">
             <input type="submit" name="function" value="change_backstock_location" hidden>
           </form>
         </div>
 
-        <div class="location_specific_key">Last Sold:</div>
-        <div class="location_specific_value">{{ location['last_sold'] }}</div>
+        <div class="price_combo_key">Last Sold:</div>
+        <div class="price_combo_value">{{ scanned_item['last_sold'] }}</div>
 
-        <div class="location_specific_key">Date Added:</div>
-        <div class="location_specific_value">{{ location['date_added'] }}</div>
+        <div class="price_combo_key">Date Added:</div>
+        <div class="price_combo_value">{{ scanned_item['date_added'] }}</div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_active')">Active:</button></div>
-        <div id="{{ location['location_id'] }}_active_value" class="location_specific_value">{{ location['active'] }}</div>
-        <div id="{{ location['location_id'] }}_active_input" class="location_specific_input">
+        <button class="key" onclick="switch_value_input('active')">Active:</button>
+        <div id="active_value" class="price_combo_value">{{ scanned_item['active'] }}</div>
+        <div id="active_input" class="price_combo_input">
           <form class="change" method="post">
-            <select id="{{ location['location_id'] }}_active_focus" name="active">
+            <select id="active_focus" name="active">
               <option value="True">True</option>
               <option value="False">False</option>
             </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
             <button class="change" type="submit" name="function" value="change_active">OK</button>
           </form>
         </div>
 
-        <div class="location_specific_key"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_online_ordering')">Online Ordering:</button></div>
-        <div class="location_specific_value" id="{{ location['location_id'] }}_online_ordering_value">{{ location['online_ordering'] }}</div>
-        <div class="location_specific_input" id="{{ location['location_id'] }}_online_ordering_input">
-          <form class="change" method="post">
-            <select id="{{ location['location_id'] }}_online_ordering_focus" name="online_ordering">
-              <option value="yes">Yes</option>
-              <option value="members">Members</option>
-              <option value="no">No</option>
-            </select>
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-            <button class="change" type="submit" name="function" value="change_online_ordering">OK</button>
-          </form>
-        </div>
 
 
-        <div class="taxes">
-          <div class="taxes_heading">Taxes:</div>
-          {% for tax in location['available_taxes'] %}
-          <div class="tax">
-            
-            {% if tax in location['taxes'] %}
 
-            <div class="tax_name"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}:</button></div>
-            <div class="tax_value" id="{{ location['location_id'] }}_{{ tax }}_value">On</div>
-            <div class="tax_input" id="{{ location['location_id'] }}_{{ tax }}_input">
-              <form method="post">
-                <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-                <input type="hidden" name="tax_id" value="{{ tax }}">
-                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-                <button class="delete" type="submit" name="function" value="remove_tax">Remove</button>
-              </form>
-            
-            </div>
-            {% else %}
 
-            <div class="tax_name"><button class="key" onclick="switch_value_input('{{ location['location_id'] }}_{{ tax }}')">{{ tax }}:</button></div>
-            <div class="tax_value" id="{{ location['location_id'] }}_{{ tax }}_value">Off</div>
-            <div class="tax_input" id="{{ location['location_id'] }}_{{ tax }}_input">
-              <form method="post">
-                <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-                <input type="hidden" name="tax_id" value="{{ tax }}">
-                <input type="hidden" name="location_id" value="{{ location['location_id'] }}">
-                <button class="delete" type="submit" name="function" value="add_tax">Add</button>
-              </form>
-            
-            </div>
-            {% endif %}
+      </div>
+
+      <div class="taxes">
+        <div class="taxes_heading">Taxes:</div>
+        {% for tax in available_taxes %}
+        <div class="tax">
+          {% if tax['tax_id'] in scanned_item['taxes'] %}
+          <div class="tax_name"><button class="key" onclick="switch_value_input('tax_{{ tax['tax_id'] }}')">{{ tax['tax_id'] }}:</button></div>
+          <div class="tax_value" id="tax_{{ tax['tax_id'] }}_value">On</div>
+          <div class="tax_input" id="tax_{{ tax['tax_id'] }}_input">
+            <form method="post">
+              <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+              <button class="delete" type="submit" name="function" value="remove_tax">Remove</button>
+            </form>
           </div>
-          {% endfor %}
+          {% else %}
+          <div class="tax_name"><button class="key" onclick="switch_value_input('tax_{{ tax['tax_id'] }}')">{{ tax['tax_id'] }}:</button></div>
+          <div class="tax_value" id="tax_{{ tax['tax_id'] }}_value">Off</div>
+          <div class="tax_input" id="tax_{{ tax['tax_id'] }}_input">
+            <form method="post">
+              <input type="hidden" name="tax_id" value="{{ tax['tax_id'] }}">
+              <button class="delete" type="submit" name="function" value="add_tax">Add</button>
+            </form>
+          </div>
+          {% endif %}
         </div>
+        {% endfor %}
+      </div>
 
-      </div>
-      {% endfor %}
-      {% if not_carried_location_list != [] %}
-      <div class="add_to_location">
-        <div class="add_to_location_key">Add to location:</div>
-        <div>
-          <form method="post">
-            <input type="hidden" name="item_id" value="{{ scanned_item['item_id'] }}">
-            <select name="location_id">
-              {% for location in not_carried_location_list %}
-              <option value="{{ location }}">{{ location }}</option>
-              {% endfor %}
-            </select>
-            <button class="delete" type="submit" name="function" value="add_to_location">Add</button>
-          </form>
-        </div>
-      </div>
-      {% endif %}
+
+
       <div class="unit_combo">
 
         

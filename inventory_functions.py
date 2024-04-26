@@ -109,15 +109,6 @@ def calculate_item_locations_collection(incoming_collection=[], cost_per=1.0):
 
 def beautify_item(db, input_item):
   beautified = {}
-  locations = db.inventory_management.find({'type': 'location'})
-  location_taxes = {}
-  for location in locations:
-    working_tax_list = location['taxes']
-    this_location_tax_list = []
-    for tax in working_tax_list:
-      this_location_tax_list.append(tax['tax_id'])
-    location_taxes[location['location_id']] = this_location_tax_list
-
   cost_per = round((input_item['case_cost'] / input_item['case_quantity']), 2)
   if cost_per == 0.0:
     cost_per = 0.01
@@ -147,59 +138,35 @@ def beautify_item(db, input_item):
       beautified[i] = float_to_percent(input_item[i])
     elif i == 'suggested_retail_price':
       beautified[i] = float_to_price(input_item[i])
-
-
-    elif i == 'locations':
-      new_locations_collection = []
-      old_locations_collection = input_item[i]
-      for j in old_locations_collection:
-        new_location = {}
-        available_taxes = location_taxes[j['location_id']]
-        new_location['available_taxes'] = available_taxes
-        new_location['margin'] = float_to_percent((j['regular_price'] / cost_per) - 1)
-        for k in j:
-          if k == 'location_id':
-            new_location[k] = j[k]
-          if k == 'taxes':
-            new_location[k] = j[k]
-          if k == 'available_taxes':
-            new_location[k] = j[k]
-          if k == 'item_location':
-            new_location[k] = j[k]
-          if k == 'backstock_location':
-            new_location[k] = j[k]
-          if k == 'last_sold':
-            new_location[k] = j[k]
-          if k == 'active':
-            new_location[k] = str(j[k])
-          elif k == 'regular_price':
-            new_location[k] = float_to_price(j[k])
-          elif k == 'quantity_on_hand':
-            if j[k] % 1 == 0.0:
-              new_location[k] = str(int(round(j[k], 0)))
-            else:
-              new_location[k] = str(int(round(j[k], 0)))
-          elif k == 'most_recent_delivery':
-            new_location[k] = j[k]
-          elif k == 'quantity_low':
-            if j[k] % 1 == 0.0:
-              new_location[k] = str(int(round(j[k], 0)))
-            else:
-              new_location[k] = str(int(round(j[k], 0)))
-          elif k == 'quantity_high':
-            if j[k] % 1 == 0.0:
-              new_location[k] = str(int(round(j[k], 0)))
-            else:
-              new_location[k] = str(int(round(j[k], 0)))
-          elif k == 'online_ordering':
-            if j[k] == 'yes':
-              new_location[k] = 'Yes'
-            if j[k] == 'members':
-              new_location[k] = 'Members'
-            if j[k] == 'no':
-              new_location[k] = 'No'
-        new_locations_collection.append(new_location)
-      beautified[i] = new_locations_collection
+    elif i == 'taxes':
+      beautified[i] = input_item[i]
+    elif i == 'item_location':
+      beautified[i] = input_item[i]
+    elif i == 'backstock_location':
+      beautified[i] = input_item[i]
+    elif i == 'last_sold':
+      beautified[i] = input_item[i]
+    elif i == 'active':
+      beautified[i] = str(input_item[i])
+    elif i == 'regular_price':
+      beautified[i] = float_to_price(input_item[i])
+    elif i == 'most_recent_delivery':
+      beautified[i] = input_item[i]
+    elif i == 'quantity_on_hand':
+      if input_item[i] % 1 == 0.0:
+        beautified[i] = str(int(round(input_item[i])))
+      else:
+        beautified[i] = str(input_item[i])
+    elif i == 'quantity_low':
+      if input_item[i] % 1 == 0.0:
+        beautified[i] = str(int(round(input_item[i])))
+      else:
+        beautified[i] = str(input_item[i])
+    elif i == 'quantity_high':
+      if input_item[i] % 1 == 0.0:
+        beautified[i] = str(int(round(input_item[i])))
+      else:
+        beautified[i] = str(input_item[i])
     elif i == 'unit':
       beautified[i] = input_item[i]
     elif i == 'supplier':

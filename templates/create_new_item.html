@@ -16,14 +16,7 @@
     <div class="create">
       <form method="post">
         <div class="input">
-          <div class="locations">
-            <div class="locations_heading">Add to locations:</div>
-            {% for i in location_list %}
-            <div class="location_check">
-              <input id="{{ i }}" type="checkbox" name="add_to_location[]" value="{{ i }}" checked /><label for="{{ i }}">{{ i }}</label>
-            </div>
-            {% endfor %}
-          </div>
+
           <div class="department">
             <label for="select_department">Department:</label>
             <select id="select_department" name="department_id">
