@@ -1,0 +1,20 @@
+<div class="item_group_heading">
+  <button class="key" onclick="switch_visible('item_groups')">Item Groups:</button>
+  <div class="item_group_input" id="item_groups_input">
+    <select name="item_group_id" id="item_groups_focus">
+    {% for i in item_group_list %}
+    <option value="{{ i }}">{{ i }}</option>
+    {% endfor %}
+    </select>
+    <button class="change" onclick="add_item_to_group(item_groups_focus.value)">Add To</button>
+    <input type="text" class="item_group_id" title="Enter a group name" id="item_group_id">
+    <button class="change" onclick="create_item_group(item_group_id.value)">Create</button>
+  </div>
+</div>
+{% for i in scanned_item['item_groups'] %}
+
+<div class="item_group">
+  <button class="key" onclick="switch_visible('item_group_{{ i }}')">{{ i }}</button>
+  <button class="remove_item_from_group" id="item_group_{{ i }}_input" onclick="remove_item_from_group('{{ i }}')">X</button>
+</div>
+{% endfor %}

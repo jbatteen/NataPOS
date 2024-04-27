@@ -1,0 +1,7 @@
+<select id="category_focus" name="category_id">
+  <option value="">&nbsp;</option>
+  {% for i in categories %}
+  <option value="{{ i }}">{{ i }}</option>
+  {% endfor %}
+</select>
+<button class="change" onclick="change_category(category_focus.value)">OK</button>

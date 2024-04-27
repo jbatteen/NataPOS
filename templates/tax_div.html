@@ -1,0 +1,15 @@
+<div class="taxes_heading">Taxes:</div>
+{% for tax in available_taxes %}
+<div class="tax">
+  {% if tax['tax_id'] in scanned_item['taxes'] %}
+  <button class="key" onclick="switch_value_input('tax_{{ tax['tax_id'] }}')">{{ tax['tax_id'] }}:</button>
+  <span class="tax_value" id="tax_{{ tax['tax_id'] }}_value">On</span>
+  <button class="delete" id="tax_{{ tax['tax_id'] }}_input" onclick="remove_tax('{{ tax['tax_id'] }}')">Remove</button>
+
+  {% else %}
+  <button class="key" onclick="switch_value_input('tax_{{ tax['tax_id'] }}')">{{ tax['tax_id'] }}:</button>
+  <span class="tax_value" id="tax_{{ tax['tax_id'] }}_value">Off</span>
+  <button id="tax_{{ tax['tax_id'] }}_input" class="delete" onclick="add_tax('{{ tax['tax_id'] }}')">Add</button>
+  {% endif %}
+</div>
+{% endfor %}

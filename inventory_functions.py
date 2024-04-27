@@ -114,6 +114,7 @@ def beautify_item(db, input_item):
     cost_per = 0.01
   beautified['cost_per'] = float_to_price(cost_per)
   beautified['suggested_margin'] = float_to_percent((input_item['suggested_retail_price'] / cost_per) - 1)
+  beautified['margin'] = float_to_percent((input_item['regular_price'] / cost_per) - 1)
   for i in input_item:
     if i == 'item_id':
       beautified[i] = input_item[i]
@@ -176,7 +177,7 @@ def beautify_item(db, input_item):
     elif i == 'department':
       beautified[i] = input_item[i]
     elif i == 'break_pack_quantity':
-      if input_item[i] % 1 == 0.0:
+      if round((input_item[i] % 1), 3) == 0.0:
         beautified[i] = str(int(input_item[i]))
       else:
         beautified[i] = str(input_item[i])

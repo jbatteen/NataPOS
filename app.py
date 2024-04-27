@@ -14,7 +14,7 @@ from pymongo.mongo_client import MongoClient
 # import local files
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
-from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price
+from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price, float_to_percent
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
 from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
 
@@ -756,14 +756,7 @@ def inventory_management(item_id):
       else:
         consignment_bool = False
       db.inventory.update_one({'item_id': item_id}, {'$set': {'consignment': consignment_bool}})
-    elif request.form['function'] == 'change_online_ordering':
-      locations_collection = get_item_locations_collection(db, item_id)
-      new_locations_collection = []
-      for i in locations_collection:
-        if i['location_id'] == request.form['location_id']:
-          i['online_ordering'] = request.form['online_ordering']
-        new_locations_collection.append(i)
-      db.inventory.update_one({'item_id': item_id}, {'$set': {'locations': new_locations_collection}})
+
 
     elif request.form['function'] == 'change_discontinued':
       if request.form['discontinued'] == 'True':
@@ -949,6 +942,90 @@ def edit_item(item_id):
         return redirect('/edit_item/' + request.form['scan'] + '/')
     elif request.form['function'] == 'delete_item':
       db.inventory.delete_one({'item_id': item_id})
+    elif request.form['function'] == 'remove_tax':
+      scanned_item['taxes'].remove(request.form['tax_id'])
+      db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
+      return render_template('tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
+    elif request.form['function'] == 'add_tax':
+      if request.form['tax_id'] == 'exempt':
+        scanned_item['taxes'] = ['exempt']
+      else:
+        if scanned_item['taxes'] == ['exempt']:
+          scanned_item['taxes'] = []
+        scanned_item['taxes'].append(request.form['tax_id'])
+      db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
+      return render_template('tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
+    elif request.form['function'] == 'create_item_group':
+      if is_valid_string(request.form['item_group_id']) == False:
+        message = 'invalid group name'
+      elif request.form['item_group_id'] in item_group_list:
+        message = 'group already exists'
+      else:
+        itemlist = []
+        itemlist.append(item_id)
+
+        for group in scanned_item['item_groups']:
+          item_group_list.remove(group)
+        db.inventory_management.insert_one({'type': 'item_group', 'item_group_id': request.form['item_group_id'], 'items': itemlist})
+        scanned_item['item_groups'].append(request.form['item_group_id'])
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': scanned_item['item_groups']}})
+        return render_template('item_group_div.html', item_group_list=item_group_list, scanned_item=scanned_item)
+    elif request.form['function'] == 'remove_item_from_group':
+      scanned_item['item_groups'].remove(request.form['item_group_id'])
+      db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': scanned_item['item_groups']}})
+      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
+      document['items'].remove(item_id)
+      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': document['items']}})
+      
+      for group in scanned_item['item_groups']:
+        item_group_list.remove(group)
+      return render_template('item_group_div.html', item_group_list=item_group_list, scanned_item=scanned_item)
+    elif request.form['function'] == 'add_item_to_group':
+      scanned_item['item_groups'].append(request.form['item_group_id'])
+      db.inventory.update_one({'item_id': item_id}, {'$set': {'item_groups': scanned_item['item_groups']}})
+      document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
+      document['items'].append(item_id)
+      db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': document['items']}})
+      for group in scanned_item['item_groups']:
+        item_group_list.remove(group)
+      return render_template('item_group_div.html', item_group_list=item_group_list, scanned_item=scanned_item)
+    elif request.form['function'] == 'get_info':
+      if request.form['property'] == 'cost_per':
+        cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
+        if cost_per == 0.0:
+          cost_per = 0.01
+        return float_to_price(cost_per)
+      elif request.form['property'] == 'suggested_margin':
+        cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
+        if cost_per == 0.0:
+          cost_per = 0.01
+        return float_to_percent((scanned_item['suggested_retail_price'] / cost_per) - 1)
+      elif request.form['property'] == 'margin':
+        cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
+        if cost_per == 0.0:
+          cost_per = 0.01
+        return float_to_percent((scanned_item['regular_price'] / cost_per) - 1)
+      elif request.form['property'] == 'subcategories':
+        if scanned_item['department'] == '':
+          return render_template('subcategory_div.html', subcategories=[])
+        else:
+          if scanned_item['category'] == '':
+            return render_template('subcategory_div.html', subcategories=[])
+          else:
+            department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
+            for category in department_collection['categories']:
+              if scanned_item['category'] == category['category_id']:
+                return render_template('subcategory_div.html', subcategories=category['subcategories'])
+      elif request.form['property'] == 'categories':
+        if scanned_item['department'] == '':
+          return render_template('category_div.html', categories=[])
+        else:
+          department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
+          categories = []
+          for category in department_collection['categories']:
+            categories.append(category['category_id'])
+          return render_template('category_div.html', categories=categories)
+
     elif request.form['function'] == 'update':
       success = False
       beautified = ''
@@ -956,7 +1033,6 @@ def edit_item(item_id):
         if is_valid_string(request.form['new_data']) == False:
           message = 'Invalid name'
         elif len(request.form['new_data']) < 6:
-          print(request.form['new_data'])
           message = 'Name too short, must be 6 or more characters'
         else:
           db.inventory.update_one({'item_id': item_id}, {'$set': {'name': request.form['new_data']}})
@@ -997,11 +1073,276 @@ def edit_item(item_id):
             db.inventory.update_one({'item_id': item_id}, {'$set': {'case_quantity': case_quantity}})
             success = True
             beautified = request.form['new_data']
-          
-      return make_response(jsonify({'success': success, 'message': message, 'beautified': beautified}))
-  groups_item_is_in = []
-  groups_item_is_in = scanned_item['item_groups']
-  for group in groups_item_is_in:
+      elif request.form['property'] == 'employee_discount':
+        if is_valid_percent(request.form['new_data']) == False:
+          message = 'Invalid percentage'
+        else:
+          percent_float = percent_to_float(request.form['new_data'])
+          success = True
+          beautified = float_to_percent(percent_float)
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'employee_discount': percent_float}})
+      elif request.form['property'] == 'suggested_retail_price':
+        if is_valid_price(request.form['new_data']) == False:
+          message = 'invalid price'
+        else:
+          price_float = price_to_float(request.form['new_data'])
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'suggested_retail_price': price_float}})
+          success = True
+          beautified = float_to_price(price_float)
+      elif request.form['property'] == 'regular_price':
+        if is_valid_price(request.form['new_data']) == False:
+          message = 'invalid price'
+        else:
+          price_float = price_to_float(request.form['new_data'])
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'regular_price': price_float}})
+          success = True
+          beautified = float_to_price(price_float)
+      elif request.form['property'] == 'price_by_margin':
+        if is_valid_percent(request.form['new_data']) == False:
+          message = 'invalid percentage'
+        else:
+          percent_float = percent_to_float(request.form['new_data'])
+          if percent_float < 0:
+            message = 'margin must be greater than zero'
+          else:
+            cost_per = round((scanned_item['case_cost'] / scanned_item['case_quantity']), 2)
+            if cost_per == 0.0:
+              price_float = 0.0
+            else:
+              price_float = round((cost_per + (percent_float * cost_per)), 2)
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'regular_price': price_float}})  
+            return make_response(jsonify({'success': True, 'regular_price': float_to_price(price_float), 'margin': float_to_percent(percent_float)}))
+      elif request.form['property'] == 'quantity_on_hand':
+        if scanned_item['unit'] == 'each':
+          if is_valid_int(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be whole number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_on_hand': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+        else:
+          if is_valid_float(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be a valid number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_on_hand': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+      elif request.form['property'] == 'most_recent_delivery':
+        if is_valid_date(request.form['new_data']) == False:
+          message = 'invalid date'
+        else:
+          success = True
+          beautified = request.form['new_data']
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'most_recent_delivery': request.form['new_data']}})
+      elif request.form['property'] == 'quantity_low':
+        if scanned_item['unit'] == 'each':
+          if is_valid_int(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be whole number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_low': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+        else:
+          if is_valid_float(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be a valid number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_low': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+      elif request.form['property'] == 'quantity_high':
+        if scanned_item['unit'] == 'each':
+          if is_valid_int(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be whole number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_high': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+        else:
+          if is_valid_float(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be a valid number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'quantity_high': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+      elif request.form['property'] == 'item_location':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid memo'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'item_location': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'backstock_location':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid memo'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'backstock_location': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'active':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'active': True}})
+          beautified = 'True'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'active': False}})
+          beautified = 'False'
+        success = True
+      elif request.form['property'] == 'unit':
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'unit': request.form['new_data']}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'package_size':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid package size'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'package_size': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'break_pack_quantity':
+        if scanned_item['unit'] == 'each':
+          if is_valid_string(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be whole number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_quantity': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True
+        else:
+          if is_valid_float(request.form['new_data']) == False:
+            message = 'Invalid quantity, must be a valid number'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_quantity': float(request.form['new_data'])}})
+            beautified = request.form['new_data']
+            success = True  
+      elif request.form['property'] == 'break_pack_item_id':
+        if request.form['new_data'] == '':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_item_id': ''}})
+          success = True
+        else:
+          break_pack_item = db.inventory.find_one({'item_id': request.form['new_data']})
+          if break_pack_item == None:
+            message = 'Item not in system'
+          else:
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'break_pack_item_id': request.form['new_data']}})
+            beautified = request.form['new_data']
+            success = True
+      elif request.form['property'] == 'supplier':
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'supplier': request.form['new_data']}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'order_code':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid order code'
+        else:
+          success = True
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'order_code': request.form['new_data']}})
+          beautified = request.form['new_data']
+
+      elif request.form['property'] == 'department':
+        success = True
+        beautified = request.form['new_data']
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': ''}})
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'category': ''}})
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'department': request.form['new_data']}})
+      elif request.form['property'] == 'category':
+        success = True
+        beautified = request.form['new_data']
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': ''}})
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'category': request.form['new_data']}})
+      elif request.form['property'] == 'subcategory':
+        success = True
+        beautified = request.form['new_data']
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'subcategory': request.form['new_data']}})
+      elif request.form['property'] == 'brand':
+        success = True
+        beautified = request.form['new_data']
+        db.inventory.update_one({'item_id': item_id}, {'$set': {'brand': request.form['new_data']}})
+      elif request.form['property'] == 'local':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'local': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'local': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'organic':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'organic': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'organic': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'consignment':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'consignment': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'consignment': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'food_item':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'food_item': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'food_item': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'random_weight_per':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'random_weight_per': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'random_weight_per': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'discontinued':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'discontinued': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'discontinued': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'ebt_eligible':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'ebt_eligible': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'ebt_eligible': False}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'wic_eligible':
+        if request.form['new_data'] == 'True':
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'wic_eligible': True}})
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'wic_eligible': False}})
+        success = True
+        beautified = request.form['new_data']
+
+      elif request.form['property'] == 'age_restricted':
+        if is_valid_int(request.form['new_data']) == False:
+          message = 'invalid integer'
+        else:
+          age = int(request.form['new_data'])
+          if age < 0:
+            message = 'age must be positive'
+          else:
+            success = True
+            beautified = request.form['new_data']
+            db.inventory.update_one({'item_id': item_id}, {'$set': {'age_restricted': int(request.form['new_data'])}})          
+      elif request.form['property'] == 'description':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid description'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'description': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'receipt_alias':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid receipt alias'
+        else:
+          db.inventory.update_one({'item_id': item_id}, {'$set': {'receipt_alias': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if success == True:
+        return make_response(jsonify({'success': success, 'beautified': beautified}))
+      else:
+        return make_response(jsonify({'success': success, 'message': message}))
+
+  for group in scanned_item['item_groups']:
     item_group_list.remove(group)
   scanned_item = beautify_item(db, scanned_item)
   categories = []
@@ -1019,7 +1360,7 @@ def edit_item(item_id):
 
 
 
-  return render_template('edit_item.html',  departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db), available_taxes=config['taxes'])
+  return render_template('edit_item.html',  departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db), available_taxes=config['taxes'], item_id=item_id)
 
 @app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
 def create_item(item_id):
