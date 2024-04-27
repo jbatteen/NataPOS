@@ -58,7 +58,7 @@ div {
   display: grid;
   align-items: center;
 }
-div.menu {
+form.menu {
   position: fixed;
   left: 0;
   bottom: 0;

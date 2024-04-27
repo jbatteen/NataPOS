@@ -22,30 +22,30 @@
         document.getElementById(focus_id).focus();
       }
     }
+    function switch_visible(property) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(input_id).style.display != "grid") {
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      } else {
+        document.getElementById(input_id).style.display = "none";
+      }
+    }
   </script>
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
-    <div class="menu">
-      <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="go_to_department">{{ department_id}}</button></form>
-      </div>
-      <div>
-        <form class="menu" method="post"><button class="menu" type="submit" name="function" value="department_list">Departments</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
-    </div>
+    <img src="{{ assets_url }}/logo.png" style="width:100%">
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="go_to_department">{{ department_id}}</button>
+      <button class="menu" type="submit" name="function" value="department_list">Departments</button>
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="mainbody">
     <h1>Category Management</h1>
@@ -56,18 +56,14 @@
   
     {% for i in subcategories %}
 
-      <div class="subcategory_name">{{ i }}</div>
+      <span class="subcategory_name">{{ i }}</span>
 
     {% endfor %}
     </div>
-    <div class="add_subcategory">
-      <form method="post">  
-        <div class="add_form">
-          <div><input type="text" title="Enter a subcategory name" name="subcategory_id"></div>
-          <div><button class="add_subcategory" type="submit" name="function" value="add_subcategory">Add Subcategory</button></div>
-        </div>
-      </form>
-    </div>
+    <form class="add_subcategory" method="post">
+      <input type="text" title="Enter a subcategory name" name="subcategory_id">
+      <button class="add_subcategory" type="submit" name="function" value="add_subcategory">Add Subcategory</button>
+    </form>
 
   </div>
 </body>

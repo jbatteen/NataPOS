@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="sidebar">
-    <img src="{{ assets_url }}/logo.png" style="width:100%">
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
   </div>
 
   <div class="mainbody">
@@ -18,15 +18,15 @@
       <h2>{{ message }}</h2>
     {% endif %}
     <form method="post" class="input_form">
-      <div>Instance Name:</div>
-      <div><input type="text" title="Enter a name at least 4 characters long" name="instance_name" value="NataPOS" autofocus></div>
-      <div>Superuser Username:</div>
-      <div><input type="text" id="username" name="username"></div>
-      <div>Password:</div>
-      <div><input type="password" id="password" name="password"></div>
-      <div>Re-enter Password:</div>
-      <div><input type="password" id="password2" name="password2"></div>
-      <div><button type="submit" name="function" value="create_first_user">Create</button></div>
+      <span>Instance Name:</span>
+      <input type="text" title="Enter a name at least 4 characters long" name="instance_name" value="NataPOS" autofocus>
+      <span>Superuser Username:</span>
+      <input type="text" id="username" name="username">
+      <span>Password:</span>
+      <input type="password" id="password" name="password">
+      <span>Re-enter Password:</span>
+      <input type="password" id="password2" name="password2">
+      <button type="submit" name="function" value="create_first_user">Create</button>
     </form>
 
   </div>

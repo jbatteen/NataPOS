@@ -7,12 +7,13 @@ div.header {
   grid-template-columns: 1fr 4fr;
 }
 
-div.create {
+form.create {
   align-items: center;
   margin-top: 0.1vw;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
+  grid-template-columns: 1fr 1fr;
 }
 
 button {
@@ -20,9 +21,8 @@ button {
   width: fit-content;
   font-size: 2.5vw;
 }
-
-div.input {
-  grid-template-columns: 1fr 1fr;
+button.create {
+  margin-left: 2vw;
 }
 div.location_check {
   align-items: center;

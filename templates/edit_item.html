@@ -384,11 +384,11 @@
 <body onload="initialize()">
   <div class="sidebar">
     <img class="sidebarlogo" src="{{ assets_url }}/logo.png">
-    <div class="menu">
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      <form class="menu" method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-    </div>
+    <form class="menu" method="post">
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="configbody">
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}

@@ -14,17 +14,13 @@ div.brand{
   padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
-div.brand_input {
+form.brand_input {
   display: none;
-}
-div.selection {
 
-  grid-template-columns: 4fr 1fr;
 }
-div.brand_key {
-  margin-right: 0.5vw;
-  justify-content: end;
-  text-align: right;
+form.brand_input_button {
+  display:none;
+  grid-template-columns: 4fr 1fr;
 }
 
 div.new_brand {
@@ -35,21 +31,7 @@ div.new_brand {
 div.new_brand_info {
   grid-template-columns: 1fr 3fr;
 }
-div.new_brand_top {
-  text-align: center;
-}
-div.new_brand_button {
-  margin-top: 0.4vw;
-  text-align: center;
-  grid-column: 1 / span 2;
-  margin-bottom: 0.2vw;
-  justify-content: center;
-}
-div.delete_button{
-  grid-column: 1 / span 2;
-  text-align: right;
-}
-div.new_brand_key {
+span.new_brand_key {
   text-align: right;
   margin-right: 0.5vw;
 }
@@ -60,6 +42,11 @@ select {
   width: 60vw;
 }
 
-div.create_brand_input {
+form.create_brand_input {
   display: none;
+}
+button.create_brand {
+  background-color: #1f2a46;
+  color: hwb(32 25% 16%);
+  border: none;
 }

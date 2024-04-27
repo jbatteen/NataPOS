@@ -8,28 +8,20 @@
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
-    <div class="menu">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
-    </div>
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="mainbody">
     <h1>Import Data</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="import_list">
-      <div>
-        <form method="post"><button class="function" type="submit" name="function" value="import_unfi_allbid">Import UNFI Allbid</button></form>
-      </div>
+      <form method="post">
+        <button class="function" type="submit" name="function" value="import_unfi_allbid">Import UNFI Allbid</button>
+      </form>
     </div>
   </div>
 </body>

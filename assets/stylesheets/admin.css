@@ -1,7 +1,4 @@
-div.admin_list {
+form.admin_list {
   grid-template-columns: 1fr 1fr 1fr 1fr;
-}
-div.admin_list div {
-  text-align: center;
 }
 

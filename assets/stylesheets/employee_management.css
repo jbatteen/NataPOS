@@ -2,7 +2,6 @@
 div.employee_list {
   align-items: center;
   margin-top: 0.1vw;
-  display: grid;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
@@ -10,19 +9,15 @@ div.employee_list {
 div.employee{
   align-items: center;
   margin-bottom: 0.1vw;
-  display: grid;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
-div.employee_value {
-  display: grid;
-}
-div.employee_input {
+form.employee_input {
   display: none;
 }
-div.employee_key {
+span.employee_key {
   margin-right: 0.5vw;
   justify-content: end;
   text-align: right;
@@ -33,13 +28,6 @@ div.new_employee {
   border-style: solid;
 
 }
-div.new_employee_info {
-  display: grid;
-  grid-template-columns: 1fr 5fr;
-}
-div.new_employee_top {
-  text-align: center;
-}
 div.new_employee_button {
   margin-top: 0.4vw;
   text-align: center;
@@ -47,11 +35,20 @@ div.new_employee_button {
   margin-bottom: 0.2vw;
   justify-content: center;
 }
-div.delete_button{
+div.permissions {
+  grid-column: 1 / span 2;
+  grid-template-columns: 1fr 5fr;
+}
+button.create_employee {
+  background-color: #1f2a46;
+  color: hwb(32 25% 16%);
+  border: none;
+}
+form.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
 }
-div.new_employee_key {
+span.new_employee_key {
   text-align: right;
   margin-right: 0.5vw;
 }
@@ -61,23 +58,19 @@ input.wide {
 select {
   width: 60vw;
 }
-div.create_employee_input {
+form.create_employee_input {
+  display: none;
+  grid-template-columns: 1fr 5fr;
+}
+form.permission_form {
+  grid-column: 1 / span 2;
+  grid-template-columns: 1fr 4fr;
+}
+form.status_form {
+  grid-template-columns: 4fr 1fr;
   display: none;
 }
-div.permission_form {
-
-  grid-column: 1 / span 2;
-}
-div.permissions {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-column: 1 / span 2;
-}
-div.permissions div {
+form.reset_password_form{
   grid-template-columns: 1fr 4fr;
-}
-div.status_form {
-  grid-template-columns: 4fr 1fr;
-}
-div.reset_password_form div{
-  grid-template-columns: 1fr 4fr;
+  display: none;
 }

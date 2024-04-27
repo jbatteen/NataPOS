@@ -39,11 +39,11 @@
 <body>
   <div class="sidebar">
     <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
-    <div class="menu">
-      <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-    </div>
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="configbody">
     <h1>Global Configuration</h1>

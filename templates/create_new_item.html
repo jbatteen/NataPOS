@@ -10,40 +10,34 @@
 
   <div class="body">
     <div class="header">
-      <div><form method="post"><button class="cancel" type="submit" name="function" value="inventory_management">Cancel</button></form></div>
+      <form method="post"><button class="cancel" type="submit" name="function" value="edit_item">Cancel</button></form>
       <h1>{{ scan }} Not in system.  Create new item?</h1>
     </div>
-    <div class="create">
-      <form method="post">
-        <div class="input">
+    <form class="create" method="post">
 
-          <div class="department">
-            <label for="select_department">Department:</label>
-            <select id="select_department" name="department_id">
-              <option value="">&nbsp;</option>
-              {% for department in department_list %}
-              <option value="{{ department }}">{{ department }}</option>
-              {% endfor %}
-            </select>
+      <div class="department">
+        <label for="select_department">Department:</label>
+        <select id="select_department" name="department_id">
+          <option value="">&nbsp;</option>
+          {% for department in department_list %}
+          <option value="{{ department }}">{{ department }}</option>
+          {% endfor %}
+        </select>
 
-          </div>
-          {% if in_allbid == True %}
-          <div class="allbid">
-            <label for="use_allbid_data">Item is in UNFI Allbid database.  Use information to pre-populate?</label>
-            <select id="use_allbid_data" name="use_allbid_data">
-              <option value="True">Yes</option>
-              <option value="False">No</option>
-            </select>
-          </div>
-          {% else %}
-          <input type="hidden" name="use_allbid_data" value="False">
-          {% endif %}
-          <div class="buttons">
-            <div><button class="create" type="submit" name="function" value="create_new_item">Create</button></div>
-          </div>
-        </div>
-      </form>
-    </div>
+      </div>
+      {% if in_allbid == True %}
+      <div class="allbid">
+        <label for="use_allbid_data">Item is in UNFI Allbid database.  Use information to pre-populate?</label>
+        <select id="use_allbid_data" name="use_allbid_data">
+          <option value="True">Yes</option>
+          <option value="False">No</option>
+        </select>
+      </div>
+      {% else %}
+      <input type="hidden" name="use_allbid_data" value="False">
+      {% endif %}
+      <button class="create" type="submit" name="function" value="create_new_item">Create</button>
+    </form>
   </div>
 </body>
 </html>

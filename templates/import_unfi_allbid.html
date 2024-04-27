@@ -8,33 +8,21 @@
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
-    <div class="menu">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="import_data">Import Data</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
-    </div>
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="import_data">Import Data</button>
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="mainbody">
     <h1>Import UNFI Allbid</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div>
-      <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <button class="function" type="submit" name="function" value="upload_allbid">Upload UNFI Allbid</button>
-      </form>
-    </div>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <button class="function" type="submit" name="function" value="upload_allbid">Upload UNFI Allbid</button>
+    </form>
   </div>
 </body>
 </html>

@@ -22,24 +22,28 @@
         document.getElementById(focus_id).focus();
       }
     }
+    function switch_visible(property) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(input_id).style.display != "grid") {
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      } else {
+        document.getElementById(input_id).style.display = "none";
+      }
+    }
   </script>
 </head>
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <img src="{{ assets_url }}/logo.png" style="width:100%">
-    </div>
-    <div class="menu">
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="admin">Admin</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      </div>
-      <div>
-        <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-      </div>
-    </div>
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="mainbody">
     <h1>Brand Management</h1>
@@ -53,86 +57,66 @@
 
       <div class="brand">
 
-        <div class="brand_key">Name:</div>
-        <div class="brand_value">{{ i['brand_id'] }}</div>
+        <span class="brand_key">Name:</span>
+        <span class="brand_value">{{ i['brand_id'] }}</span>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_website')">Website:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_website_input">
-          <form class="change" method="post">
-            <input type="text" class="wide" title="Enter a website" name="website">
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-            <input type="submit" name="function" value="change_website" hidden>
-          </form>
-        </div>
+        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_website')">Website:</button>
+        <span class="brand_value" id="{{ i['brand_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></span>
+        <form method="post" class="brand_input" id="{{ i['brand_id'] }}_website_input">
+          <input type="text" class="wide" id="{{ i['brand_id'] }}_website_focus" title="Enter a website" name="website">
+          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+          <input type="submit" name="function" value="change_website" hidden>
+        </form>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_local')">Local:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_local_value">{{ i['local'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_local_input">
-          <form class="change" method="post">
-            <div class="selection">
-              <div>
-                <select name="local">
-                  <option value="True">True</option>
-                  <option value="False">False</option>                  
-                </select>
-              </div>
-              <div><button class="change" type="submit" name="function" value="change_local">OK</button></div>
-            </div>
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-          </form>
-        </div>
+        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_local')">Local:</button>
+        <span class="brand_value" id="{{ i['brand_id'] }}_local_value">{{ i['local'] }}</span>
+        <form method="post" class="brand_input_button" id="{{ i['brand_id'] }}_local_input">
+          <select name="local" id="{{ i['brand_id'] }}_local_focus">
+            <option value="True">True</option>
+            <option value="False">False</option>                  
+          </select>
+          <button class="change" type="submit" name="function" value="change_local">OK</button>
+          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+        </form>
         
-        <div class="brand_key"><button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_supplier')">Supplier:</button></div>
-        <div class="brand_value" id="{{ i['brand_id'] }}_supplier_value">{{ i['supplier'] }}</div>
-        <div class="brand_input" id="{{ i['brand_id'] }}_supplier_input">
-          <form class="change" method="post">
-            <div class="selection">
-              <div>
-                <select name="supplier_id">
-                  <option value=""> </option>
-                  {% for supplier in supplier_list %}
-                  <option value="{{ supplier }}">{{ supplier }}</option>    
-                  {% endfor %}              
-                </select>
-              </div>
-              <div><button class="change" type="submit" name="function" value="change_supplier">OK</button></div>
-            </div>
-            <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-          </form>
-        </div>
+        
+        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_supplier')">Supplier:</button>
+        <span class="brand_value" id="{{ i['brand_id'] }}_supplier_value">{{ i['supplier'] }}</span>
+        <form method="post" class="brand_input_button" id="{{ i['brand_id'] }}_supplier_input">
+          <select name="supplier_id" id="{{ i['brand_id'] }}_supplier_focus">
+            <option value=""> </option>
+            {% for supplier in supplier_list %}
+            <option value="{{ supplier }}">{{ supplier }}</option>    
+            {% endfor %}              
+          </select>
+          <button class="change" type="submit" name="function" value="change_supplier">OK</button>
+          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
+        </form>
         
       </div>
     {% endfor %}
 
       <div class="new_brand">
-        <div class="new_brand_top"><button class="key" onclick="switch_value_input('create_brand')">Create a New brand:</button></div>
-        <div id="create_brand_value">&emsp;</div>
-        <div class="create_brand_input" id="create_brand_input">
-          <form method="post">
+        <button class="create_brand" onclick="switch_visible('create_brand')">Create a New brand:</button>
+        <form method="post" class="create_brand_input" id="create_brand_input">
             <div class="new_brand_info">
-              <div class="new_brand_key">Name:</div><div><input type="text" class="wide" id="create_brand_focus" title="Enter a unique name for the brand" name="brand_id"></div>
-              <div class="new_brand_key">Website:</div><div><input type="text" class="wide" title="Enter a website" name="website"></div>
-              <div class="new_brand_key">Supplier:</div>
-              <div>
-                <select name="supplier_id">
-                  <option value=""> </option>
-                  {% for supplier in supplier_list %}
-                  <option value="{{ supplier }}">{{ supplier }}</option>"
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="new_brand_key">Local:</div>
-              <div>
-                <select name="local">
-                  <option value="True">True</option>
-                  <option value="False">False</option>
-                </select>
-              </div>
+              <span class="new_brand_key">Name:</span><input type="text" class="wide" id="create_brand_focus" title="Enter a unique name for the brand" name="brand_id">
+              <span class="new_brand_key">Website:</span><input type="text" class="wide" title="Enter a website" name="website">
+              <span class="new_brand_key">Supplier:</span>
+              <select name="supplier_id">
+                <option value=""> </option>
+                {% for supplier in supplier_list %}
+                <option value="{{ supplier }}">{{ supplier }}</option>"
+                {% endfor %}
+              </select>
+              <span class="new_brand_key">Local:</span>
+              <select name="local">
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
             </div>
-            <div class="new_brand_button"><button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button></div>
-          </form>
-        </div>
+            <button style="width:fit-content" type="submit" name="function" value="create_brand">Create</button>
+        </form>
       </div>
     </div>
   

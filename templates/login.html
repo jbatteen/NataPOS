@@ -21,14 +21,12 @@
     {% if message %}
     <h2>{{ message }}</h2>
     {% endif %}
-    <form method="post">
-      <div class="login_form">
-        <div class="login">Username:</div>
-        <div class="input"><input class="login" type="text" id="username" name="username" autofocus></div>
-        <div class="login">Password:</div>
-        <div class="input"><input class="login" type="password" id="password" name="password"></div>
-        <div class="login"><button class="login" type="submit" name="function" value="login">Log in</button></div>
-      </div>
+    <form class="login_form" method="post">
+      <span class="login">Username:</span>
+      <input class="login" type="text" id="username" name="username" autofocus>
+      <span class="login">Password:</span>
+      <input class="login" type="password" id="password" name="password">
+      <button class="login" type="submit" name="function" value="login">Log in</button>
     </form>
 
   </div>

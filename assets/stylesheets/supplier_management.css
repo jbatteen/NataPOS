@@ -2,7 +2,6 @@
 div.supplier_list {
   align-items: center;
   margin-top: 0.1vw;
-  display: grid;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
@@ -10,19 +9,15 @@ div.supplier_list {
 div.supplier{
   align-items: center;
   margin-bottom: 0.1vw;
-  display: grid;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
-div.supplier_value {
-  display: grid;
-}
-div.supplier_input {
+form.supplier_input {
   display: none;
 }
-div.supplier_key {
+span.supplier_key {
   margin-right: 0.5vw;
   justify-content: end;
   text-align: right;
@@ -33,25 +28,25 @@ div.new_supplier {
   border-style: solid;
 
 }
-div.new_supplier_info {
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-}
-div.new_supplier_top {
+button.new_supplier_top {
+  margin-left: 10vw;
+  align-items: center;
   text-align: center;
+  background-color: #1f2a46;
+  color: hwb(32 25% 16%);
+  border: none;
+  width: fit-content;
 }
-div.new_supplier_button {
+button.new_supplier {
   margin-top: 0.4vw;
-  text-align: center;
-  grid-column: 1 / span 2;
   margin-bottom: 0.2vw;
-  justify-content: center;
+  width: fit-content;
 }
-div.delete_button{
+form.delete_button{
   grid-column: 1 / span 2;
   text-align: right;
 }
-div.new_supplier_key {
+span.new_supplier_key {
   text-align: right;
   margin-right: 0.5vw;
 }
@@ -61,6 +56,7 @@ input.wide {
 select {
   width: 60vw;
 }
-div.create_supplier_input {
+form.create_supplier_input {
   display: none;
+  grid-template-columns: 1fr 3fr;
 }

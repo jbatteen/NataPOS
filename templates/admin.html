@@ -9,39 +9,39 @@
 <body>
   <div class="sidebar">
     <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
-    <div class="menu">
-      <form method="post"><button class="menu" type="submit" name="function" value="main_menu">Main Menu</button></form>
-      <form method="post"><button class="menu" type="submit" name="function" value="log_out">Log Out</button></form>
-    </div>
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
   </div>
   <div class="mainbody">
     <h1>Admin</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <div class="admin_list">
+    <form method="post" class="admin_list">
       {% if 'superuser' in permissions %}
-      <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="global_config">Global Config</button></form>
+      <button class="function" type="submit" name="function" value="edit_item">View/Edit Item</button>
+      <button class="function" type="submit" name="function" value="import_data">Import Data</button>
+      <button class="function" type="submit" name="function" value="supplier_management">Suppliers</button>
+      <button class="function" type="submit" name="function" value="department_list">Departments & Categories</button>
+      <button class="function" type="submit" name="function" value="brand_management">Brands</button>
+      <button class="function" type="submit" name="function" value="employee_management">Employees</button>
+      <button class="function" type="submit" name="function" value="global_config">Global Config</button>
       {% else %}
       {% if 'inventory_management' in permissions %}
-      <form method="post"><button class="function" type="submit" name="function" value="inventory_management">Inventory</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="import_data">Import Data</button></form>
+      <button class="function" type="submit" name="function" value="edit_item">View/Edit Item</button>
+      <button class="function" type="submit" name="function" value="import_data">Import Data</button>
       {% endif %}
       {% if 'suppliers_departments_brands' in permissions %}
-      <form method="post"><button class="function" type="submit" name="function" value="supplier_management">Suppliers</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="department_list">Departments & Categories</button></form>
-      <form method="post"><button class="function" type="submit" name="function" value="brand_management">Brands</button></form>
+      <button class="function" type="submit" name="function" value="supplier_management">Suppliers</button>
+      <button class="function" type="submit" name="function" value="department_list">Departments & Categories</button>
+      <button class="function" type="submit" name="function" value="brand_management">Brands</button>
       {% endif %}
       {% if 'employee_management' in permissions %}
-      <form method="post"><button class="function" type="submit" name="function" value="employee_management">Employees</button></form>
+      <button class="function" type="submit" name="function" value="employee_management">Employees</button>
       {% endif %}
       {% endif %}
-      <form method="post"><button class="function" type="submit" name="function" value="change_password">Change Password</button></form>
-    </div>
+      <button class="function" type="submit" name="function" value="change_password">Change Password</button>
+    </form>
   </div>
 </body>
 </html>

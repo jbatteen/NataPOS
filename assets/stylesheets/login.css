@@ -6,11 +6,7 @@
 button.login {
   width: fit-content;
 }
-div.login {
-  justify-content: end;
-  margin-right: 1vw;
-}
-div.login_form {
+form.login_form {
   grid-template-columns: 1fr 5fr;
 }
 input.login {

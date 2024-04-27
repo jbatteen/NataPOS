@@ -7,46 +7,23 @@ div.department_info {
 }
 
 
-div.department_key {
+span.department_key {
   text-align: right;
   margin-right: 0.5vw;
   justify-content: end;
 }
-div.department_input {
+form.department_input {
   display: none;
   text-align: left;
 }
-div.department_value {
+form.department_input_button {
+  display: none;
+  text-align: left;
+  grid-template-columns: 3fr 1fr;
+}
+span.department_value {
   text-align: left;
   margin-left: 0.3vw;
-}
-div.delete_button{
-  grid-column: 1 / span 2;
-  text-align: right;
-}
-div.location {
-  border-width: 1px;
-  border-style: solid;
-  margin-top: .3vw;
-}
-div.location_input {
-  margin-left: 0.3vw;
-  display: none;
-}
-div.location_value{
-  margin-left: 0.3vw;
-}
-div.location_info{
-
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-}
-div.location_heading {
-  grid-column: 1 / span 4;
-  text-align: center;
-  padding: 0.3vw;
-}
-div.location_key {
-  text-align: right;
 }
 div.tax_info {
   grid-template-columns: 1fr 1fr 1fr;
@@ -54,7 +31,7 @@ div.tax_info {
   border-style: solid;
   margin: 0.3vw;
 }
-div.tax_heading {
+span.tax_heading {
   grid-column: 1 / span 3;
   text-align: center;
 }
@@ -65,19 +42,12 @@ div.tax {
   padding: 0.3vw;
   margin: 0.3vw;
 }
-div.tax_id {
-  text-align: right;
-  margin-right: 0.3vw;
-}
-div.tax_input {
+form.tax_input {
   display: none;
 }
 input.department {
   font-size: inherit;
   width: 12vw;
-}
-div.categories_header {
-  text-align: center;
 }
 div.categories {
   border-width: 1px;
@@ -86,19 +56,17 @@ div.categories {
   grid-template-columns: 1fr 1fr 1fr;
 }
 
-div.category {
+form.category {
   margin: 0.2vw;
   text-align: center;
   justify-content: center;
 }
-div.category_input {
-  grid-template-columns: 3fr 1fr;
-}
-div.add_category, div.add_category_value {
+form.add_category, span.add_category_value {
   grid-column: 2 / span 2;
 }
-div.add_category {
+form.add_category {
   display: none;
+  grid-template-columns: 3fr 1fr;
 }
 div.select_category {
   grid-template-columns: 3fr 1fr;
