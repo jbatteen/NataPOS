@@ -1,9 +1,7 @@
 # Working
 ## natapos
 - 'instance_name': str (the business name to display)
-- 'pay_period_type': str ('weekly', 'biweekly', 'bimonthly'), defaults to biweekly on instance spinup
-- 'current_pay_period': str (MM/DD/YY-MM/DD/YY), for weekly/biweekly, defaults to starting on the most recent sunday on instance spinup
-- 'pay_period_rollover': int (DD) for bimonthly pay period, pay period rolls over on the 1st and the pay_period_rolloverth, defaults to 15 on instance spinup
+- 'current_pay_period_start': str (MM/DD/YY) defaults to starting on the most recent sunday on instance spinup
 - 'timesheets_locked': bool (used to lock the timesheets to perform pay period rollover safely wrt clocking in/out)
 - 'employee_discount': float (default employee discount for new items)
 - 'phone': str (phone number)
@@ -15,7 +13,7 @@
 - 'session_key': str (40 random alphanumeric characters)
 - 'time_stamp': last activity, in seconds after the epoch
 - 'username': str (username of the employee logged in)
-- 'location': str (location_id where the employee is logged in, or 'external')
+- 'source_ip': str (location_id where the employee is logged in, or 'external')
 
 ## timesheets
 - 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit)

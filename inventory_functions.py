@@ -63,49 +63,6 @@ def get_item_group_list(db):
     item_group_list.append(item_group['group_id'])
   return item_group_list
 
-def get_location_list(db):
-  try:
-    db.validate_collection("inventory_management")
-  except:
-    return []
-  location_list = []
-  collection = db.inventory_management.find({'type': 'location'})
-  for location in collection:
-    del location['_id']
-    location_list.append(location['location_id'])
-  return location_list
-
-
-def get_locations_collection(db):
-  try:
-    db.validate_collection("inventory_management")
-  except:
-    return []
-  locations_collection = []
-  collection = db.inventory_management.find({'type': 'location'})
-  for location in collection:
-    del location['_id']
-    locations_collection.append(location)
-  return locations_collection
-
-def get_item_locations_collection(db, item_id):
-  try:
-    db.validate_collection("inventory_management")
-  except:
-    return []
-  locations_collection = []
-  document = db.inventory.find_one({'item_id': item_id})
-  locations_collection = document['locations']
-  return locations_collection
-
-def calculate_item_locations_collection(incoming_collection=[], cost_per=1.0):
-  calculated_collection = []
-  if cost_per == 0.0:
-    cost_per = 0.01
-  for i in incoming_collection:
-    i['margin'] = round(100 * ((i['regular_price'] / cost_per) - 1.0), 1)
-    calculated_collection.append(i)
-  return calculated_collection
 
 def beautify_item(db, input_item):
   beautified = {}

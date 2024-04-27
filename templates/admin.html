@@ -18,27 +18,21 @@
     <h1>Admin</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <form method="post" class="admin_list">
+
+      {% if 'inventory_management' in permissions or 'superuser' in permissions %}
+      <button class="function" type="submit" name="function" value="edit_item">View/Edit Item</button>
+      <button class="function" type="submit" name="function" value="import_data">Import Data</button>
+      {% endif %}
+      {% if 'suppliers_departments_brands' in permissions or 'superuser' in permissions %}
+      <button class="function" type="submit" name="function" value="supplier_management">Suppliers</button>
+      <button class="function" type="submit" name="function" value="department_list">Departments & Categories</button>
+      <button class="function" type="submit" name="function" value="brand_management">Brands</button>
+      {% endif %}
+      {% if 'employee_management' in permissions or 'superuser' in permissions %}
+      <button class="function" type="submit" name="function" value="employee_management">Employees</button>
+      {% endif %}
       {% if 'superuser' in permissions %}
-      <button class="function" type="submit" name="function" value="edit_item">View/Edit Item</button>
-      <button class="function" type="submit" name="function" value="import_data">Import Data</button>
-      <button class="function" type="submit" name="function" value="supplier_management">Suppliers</button>
-      <button class="function" type="submit" name="function" value="department_list">Departments & Categories</button>
-      <button class="function" type="submit" name="function" value="brand_management">Brands</button>
-      <button class="function" type="submit" name="function" value="employee_management">Employees</button>
       <button class="function" type="submit" name="function" value="global_config">Global Config</button>
-      {% else %}
-      {% if 'inventory_management' in permissions %}
-      <button class="function" type="submit" name="function" value="edit_item">View/Edit Item</button>
-      <button class="function" type="submit" name="function" value="import_data">Import Data</button>
-      {% endif %}
-      {% if 'suppliers_departments_brands' in permissions %}
-      <button class="function" type="submit" name="function" value="supplier_management">Suppliers</button>
-      <button class="function" type="submit" name="function" value="department_list">Departments & Categories</button>
-      <button class="function" type="submit" name="function" value="brand_management">Brands</button>
-      {% endif %}
-      {% if 'employee_management' in permissions %}
-      <button class="function" type="submit" name="function" value="employee_management">Employees</button>
-      {% endif %}
       {% endif %}
       <button class="function" type="submit" name="function" value="change_password">Change Password</button>
     </form>

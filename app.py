@@ -15,8 +15,8 @@ from pymongo.mongo_client import MongoClient
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price, float_to_percent
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_valid_pay_period_rollover, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, get_location_list, get_item_locations_collection, get_locations_collection, calculate_item_locations_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
 
 
 # open db
@@ -30,7 +30,7 @@ else:
     db.validate_collection("natapos")
   except:
     instance_name = 'NataPOS'
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2})
+    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2, 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'phone': '', 'address': ''})
 
   
 # begin app
@@ -65,7 +65,7 @@ def create_first_user():
           if is_valid_string(request.form['instance_name']) == False:
             return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')
        
-        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name, 'phone': '', 'address':'', 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': []}})
+        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
         creation_check = {}
         creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
@@ -968,7 +968,7 @@ def create_item(item_id):
   allbid_document = db.allbid.find_one({'item_id': item_id})
   if allbid_document != None:
     in_allbid = True
-  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), location_list=get_location_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'], in_allbid=in_allbid)   
+  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'], in_allbid=in_allbid)   
 
 @app.route('/supplier_management/', methods=['POST', 'GET'])
 def supplier_management():
