@@ -174,7 +174,7 @@
         {% if 'superuser' in permissions %}
         <form method="post" class="delete_button">
           <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <button class="change" type="submit" name="function" value="delete_supplier">Delete</button>
+          <button class="delete" type="submit" name="function" value="delete_supplier">Delete</button>
         </form>
         {% endif %}
       </div>
@@ -184,13 +184,13 @@
       <div class="new_supplier">
         <button class="new_supplier_top" onclick="switch_visible('create_supplier')">Create a New Supplier:</button>
         <form method="post" class="create_supplier_input" id="create_supplier_input">
-          <span class="new_supplier_key">Name:</span><input type="text" id="create_supplier_focus" class="wide" title="Enter a unique name for the supplier" name="supplier_id">
-          <span class="new_supplier_key">Account:</span><input type="text" class="wide" title="Enter an account name or number" name="account">
-          <span class="new_supplier_key">Website:</span><input type="text" class="wide" title="Enter a website" name="website">
-          <span class="new_supplier_key">Phone:</span><input type="text" class="wide" title="Enter a phone number" name="phone">
-          <span class="new_supplier_key">Address:</span><input type="text" class="wide" title="Enter an address" name="address">
-          <span class="new_supplier_key">Contact Name:</span><input type="text" class="wide" title="Enter a contact name" name="contact_name">
-          <span class="new_supplier_key">Email:</span><input type="text" class="wide" title="Enter an email address" name="email">
+          <span class="new_supplier_key">Name:</span><input type="text" id="create_supplier_focus" class="create_supplier" title="Enter a unique name for the supplier" name="supplier_id">
+          <span class="new_supplier_key">Account:</span><input type="text" class="create_supplier" title="Enter an account name or number" name="account">
+          <span class="new_supplier_key">Website:</span><input type="text" class="create_supplier" title="Enter a website" name="website">
+          <span class="new_supplier_key">Phone:</span><input type="text" class="create_supplier" title="Enter a phone number" name="phone">
+          <span class="new_supplier_key">Address:</span><input type="text" class="create_supplier" title="Enter an address" name="address">
+          <span class="new_supplier_key">Contact Name:</span><input type="text" class="create_supplier" title="Enter a contact name" name="contact_name">
+          <span class="new_supplier_key">Email:</span><input type="text" class="create_supplier" title="Enter an email address" name="email">
           <button class="new_supplier" type="submit" name="function" value="create_supplier">Create</button>
         </form>
       </div>

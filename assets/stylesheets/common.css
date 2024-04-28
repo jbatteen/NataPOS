@@ -54,18 +54,15 @@ div.sidebar {
   grid-template-columns: 14vw;
   grid-template-rows: auto;
 }
-div {
-  display: grid;
-  align-items: center;
-}
 form.menu {
   position: fixed;
   left: 0;
   bottom: 0;
+  grid-gap: 0.2vw;
 }
 button {
-  border: 1px;
-  border-style: solid;
+/*  border: 1px;*/
+  border-style: none;
   color: inherit;
   background-color: #010338;
   font-size: inherit;
