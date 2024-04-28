@@ -2,7 +2,7 @@ import string
 from datetime import datetime, date, timedelta
 
 def is_valid_username(input_string=''):
-  allowed = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-')
+  allowed = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890')
   for i in input_string:
     if i not in allowed:
       return False

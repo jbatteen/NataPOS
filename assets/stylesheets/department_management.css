@@ -29,7 +29,7 @@ div.tax_info {
   grid-template-columns: 1fr 1fr 1fr;
   border-width: 1px;
   border-style: solid;
-  margin: 0.3vw;
+  margin-top: 0.3vw;
 }
 span.tax_heading {
   grid-column: 1 / span 3;
@@ -37,8 +37,6 @@ span.tax_heading {
 }
 div.tax {
   grid-template-columns: 3fr 1fr;
-  border-width: 1px;
-  border-style: solid;
   padding: 0.3vw;
   margin: 0.3vw;
 }
@@ -50,6 +48,7 @@ input.department {
   width: 12vw;
 }
 div.categories {
+  margin-top: 0.3vw;
   border-width: 1px;
   border-style: solid;
   padding: 0.3vw;

@@ -5,3 +5,12 @@ div.import_list div {
   text-align: center;
 }
 
+div.upload_status {
+  grid-template-columns: 1fr 1fr;
+  width: 40vw;
+}
+span.upload_header {
+  grid-column: 1 / span 2;
+  text-align: center;
+  grid-gap: 0.5vw;
+}

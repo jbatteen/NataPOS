@@ -5,6 +5,51 @@
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/import_unfi_allbid.css">
   <title>Import UNFI Allbid</title>
+  <script>
+    function reload(){
+      var reply;
+      let data = new FormData();
+      data.append("function", "processing_status");
+      fetch("{{ url_for('import_unfi_allbid') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.complete == true) {
+            document.getElementById("upload_status").innerHTML = reply.html
+          } else {
+            document.getElementById("upload_status").innerHTML = reply.html
+            setTimeout(reload, 1000);
+          }
+        });
+      
+    }
+    function upload() {
+
+      let upload_data = new FormData();
+      const files = document.getElementById("file_upload").files;
+      upload_data.append("function", "upload_allbid");
+      upload_data.append("file", files[0]);
+      fetch("{{ url_for('import_unfi_allbid') }}", { method: "POST", body: upload_data,})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            let data = new FormData();
+            data.append("function", "processing_status");
+            document.getElementById("choose_file").style.display = "none";
+            reload();
+            
+            
+          } else {
+            alert(reply.message);
+          }
+        })
+      }
+  </script>
 </head>
 <body>
   <div class="sidebar">
@@ -19,10 +64,13 @@
   <div class="mainbody">
     <h1>Import UNFI Allbid</h1>
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
-    <form method="post" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <button class="function" type="submit" name="function" value="upload_allbid">Upload UNFI Allbid</button>
-    </form>
+    <div class="choose_file" id="choose_file">
+      <input type="file" id="file_upload">
+      <button class="function" onclick="upload()">Upload UNFI Allbid</button>
+    </div>
+    <div class="upload_status" id="upload_status">
+
+    </div>
   </div>
 </body>
 </html>

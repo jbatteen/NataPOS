@@ -122,6 +122,14 @@
 - 'case_cost': float (cost per case)
 - 'suggested_retail_price': str (UNFI suggested retail price)
 
+## allbid_upload (inventory_management collection, 'type': 'allbid_upload'
+- 'processing_time': float (seconds)
+- 'complete': bool (processing complete)
+- 'items_processed': int (items in the allbid)
+- 'items_available': int (items at warehouses we get stuff from)
+- 'new_items': int
+- 'changed_prices': int
+- 'deleted_items': int
 
 # to do
 

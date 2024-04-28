@@ -11,6 +11,20 @@
       value_id = property.concat("_value");
       var input_id = "";
       input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(input_id).focus();
+      }
+    }
+    function switch_value_input_div(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
       var focus_id = "";
       focus_id = property.concat("_focus");
       if (document.getElementById(value_id).style.display == "none") {
@@ -34,9 +48,46 @@
         document.getElementById(input_id).style.display = "none";
       }
     }
+    function update_brand(brand, property, new_data, id_prefix) {
+      var input_id = ""
+      input_id = id_prefix.concat("_input")
+      var value_id = ""
+      value_id = id_prefix.concat("_value")
+      var reply;
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("brand_id", brand);
+      data.append("property", property);
+      data.append("new_data", new_data);
+      return fetch("{{ url_for('brand_management') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(value_id).style.display = "grid";
+            document.getElementById(input_id).style.display = "none";
+            document.getElementById(value_id).innerText = reply.beautified;
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+    function initialize() {
+      {% for brand in brand_collection %}
+      var website_{{ loop.index }}_input = document.getElementById('website_{{ loop.index }}_input');
+      website_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_brand('{{ brand['brand_id'] }}', 'website', website_{{ loop.index }}_input.value, 'website_{{ loop.index }}');
+        }
+      });
+      {% endfor %}
+    }
   </script>
 </head>
-<body>
+<body onload="initialize()">
   <div class="sidebar">
     <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
     <form method="post" class="menu">
@@ -60,38 +111,32 @@
         <span class="brand_key">Name:</span>
         <span class="brand_value">{{ i['brand_id'] }}</span>
         
-        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_website')">Website:</button>
-        <span class="brand_value" id="{{ i['brand_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></span>
-        <form method="post" class="brand_input" id="{{ i['brand_id'] }}_website_input">
-          <input type="text" class="wide" id="{{ i['brand_id'] }}_website_focus" title="Enter a website" name="website">
-          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-          <input type="submit" name="function" value="change_website" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('website_{{ loop.index }}')">Website:</button>
+        <span class="brand_value" id="website_{{ loop.index }}_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></span>
+        <input type="text" class="wide" id="website_{{ loop.index }}_input" title="Enter a website" name="website">
         
-        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_local')">Local:</button>
-        <span class="brand_value" id="{{ i['brand_id'] }}_local_value">{{ i['local'] }}</span>
-        <form method="post" class="brand_input_button" id="{{ i['brand_id'] }}_local_input">
-          <select name="local" id="{{ i['brand_id'] }}_local_focus">
+        <button class="key" onclick="switch_value_input_div('local_{{ loop.index }}')">Local:</button>
+        <span class="brand_value" id="local_{{ loop.index }}_value">{{ i['local'] }}</span>
+        <div class="brand_input_button" id="local_{{ loop.index }}_input">
+          <select name="local" id="local_{{ loop.index }}_focus">
             <option value="True">True</option>
             <option value="False">False</option>                  
           </select>
-          <button class="change" type="submit" name="function" value="change_local">OK</button>
-          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-        </form>
+          <button class="change" onclick="update_brand('{{ i['brand_id'] }}', 'local', local_{{ loop.index }}_focus.value, 'local_{{ loop.index }}')">OK</button>
+        </div>
         
         
-        <button class="key" onclick="switch_value_input('{{ i['brand_id'] }}_supplier')">Supplier:</button>
-        <span class="brand_value" id="{{ i['brand_id'] }}_supplier_value">{{ i['supplier'] }}</span>
-        <form method="post" class="brand_input_button" id="{{ i['brand_id'] }}_supplier_input">
-          <select name="supplier_id" id="{{ i['brand_id'] }}_supplier_focus">
+        <button class="key" onclick="switch_value_input('supplier_{{ loop.index }}')">Supplier:</button>
+        <span class="brand_value" id="supplier_{{ loop.index }}_value">{{ i['supplier'] }}</span>
+        <div class="brand_input_button" id="supplier_{{ loop.index }}_input">
+          <select name="supplier_id" id="supplier_{{ loop.index }}_focus">
             <option value=""> </option>
             {% for supplier in supplier_list %}
             <option value="{{ supplier }}">{{ supplier }}</option>    
             {% endfor %}              
           </select>
-          <button class="change" type="submit" name="function" value="change_supplier">OK</button>
-          <input type="hidden" name="brand_id" value="{{ i['brand_id'] }}">
-        </form>
+          <button class="change" onclick="update_brand('{{ i['brand_id'] }}', 'supplier', supplier_{{ loop.index }}_focus.value, 'supplier_{{ loop.index }}')">OK</button>
+        </div>
         
       </div>
     {% endfor %}

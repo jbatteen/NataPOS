@@ -11,6 +11,35 @@
       value_id = property.concat("_value");
       var input_id = "";
       input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(input_id).focus();
+      }
+    }
+    function switch_value_input_permissions(username) {
+      var value_id = "";
+      value_id = username.concat("_modify_permissions_value");
+      var input_id = "";
+      input_id = username.concat("_modify_permissions_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(value_id).innerText = "";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(input_id).focus();
+      }
+    }
+    function switch_value_input_div(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
       var focus_id = "";
       focus_id = property.concat("_focus");
       if (document.getElementById(value_id).style.display == "none") {
@@ -34,9 +63,142 @@
         document.getElementById(input_id).style.display = "none";
       }
     }
+    function update_employee(username, property, new_data) {
+      var input_id = ""
+      input_id = username.concat("_", property, "_input")
+      var value_id = ""
+      value_id = username.concat("_", property, "_value")
+      var reply;
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("username", username);
+      data.append("property", property);
+      data.append("new_data", new_data);
+      return fetch("{{ url_for('employee_management') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(value_id).style.display = "grid";
+            document.getElementById(input_id).style.display = "none";
+            document.getElementById(value_id).innerText = reply.beautified;
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+    function reset_password(username, password1, password2) {
+      var reply;
+      var password_id = "";
+      password_id = username.concat("_reset_password_input");
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("username", username);
+      data.append("property", "password");
+      data.append("password1", password1);
+      data.append("password2", password2);
+      return fetch("{{ url_for('employee_management') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(password_id).style.display = "none";
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+    function reset_saved(username) {
+      var span_id = "";
+      span_id = username.concat("_modify_permissions_value");
+      document.getElementById(span_id).innerHTML = " ";
+    }
+    function modify_permissions(username, inventory_management, suppliers_departments_brands, employee_management, shrink, superuser) {
+      var reply;
+      var permissions_id = ""
+      permissions_id = username.concat("_permissions")
+      var button_id = ""
+      button_id = username.concat("_modify_permissions")
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("username", username);
+      data.append("property", "permissions");
+      data.append("inventory_management", inventory_management);
+      data.append("suppliers_departments_brands", suppliers_departments_brands);
+      data.append("employee_management", employee_management);
+      data.append("shrink", shrink);
+      data.append("superuser", superuser);
+      return fetch("{{ url_for('employee_management') }}", {"method": "POST", "body": data})
+        .then(response => response.text())
+        .then(text => document.getElementById(permissions_id).innerHTML = text);
+    }
+    function initialize() {
+      {% for employee in employee_collection %}
+      var {{ employee['username'] }}_name_input = document.getElementById('{{ employee['username'] }}_name_input');
+      {{ employee['username'] }}_name_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'name', {{ employee['username'] }}_name_input.value);
+        }
+      });
+      var {{ employee['username'] }}_short_name_input = document.getElementById('{{ employee['username'] }}_short_name_input');
+      {{ employee['username'] }}_short_name_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'short_name', {{ employee['username'] }}_short_name_input.value);
+        }
+      });
+      var {{ employee['username'] }}_title_input = document.getElementById('{{ employee['username'] }}_title_input');
+      {{ employee['username'] }}_title_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'title', {{ employee['username'] }}_title_input.value);
+        }
+      });
+      var {{ employee['username'] }}_phone_input = document.getElementById('{{ employee['username'] }}_phone_input');
+      {{ employee['username'] }}_phone_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'phone', {{ employee['username'] }}_phone_input.value);
+        }
+      });
+      var {{ employee['username'] }}_address_input = document.getElementById('{{ employee['username'] }}_address_input');
+      {{ employee['username'] }}_address_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'address', {{ employee['username'] }}_address_input.value);
+        }
+      });
+      var {{ employee['username'] }}_email_input = document.getElementById('{{ employee['username'] }}_email_input');
+      {{ employee['username'] }}_email_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'email', {{ employee['username'] }}_email_input.value);
+        }
+      });
+      var {{ employee['username'] }}_hire_date_input = document.getElementById('{{ employee['username'] }}_hire_date_input');
+      {{ employee['username'] }}_hire_date_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'hire_date', {{ employee['username'] }}_hire_date_input.value);
+        }
+      });
+      var {{ employee['username'] }}_login_message_input = document.getElementById('{{ employee['username'] }}_login_message_input');
+      {{ employee['username'] }}_login_message_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_employee('{{ employee['username'] }}', 'login_message', {{ employee['username'] }}_login_message_input.value);
+        }
+      });
+      {% endfor %}
+    } 
   </script>
 </head>
-<body>
+<body onload="initialize()">
   <div class="sidebar">
     <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
     <form method="post" class="menu">
@@ -57,108 +219,76 @@
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_name')">Name:</button>
         <span class="employee_value" id="{{ i['username'] }}_name_value" style="width:fit-content">{{ i['name'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_name_input">
-          <input type="text" class="wide" title="Enter employee name" name="name" id="{{ i['username'] }}_name_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_name" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter employee name" id="{{ i['username'] }}_name_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_short_name')">Short Name:</button>
         <span class="employee_value" id="{{ i['username'] }}_short_name_value" style="width:fit-content">{{ i['short_name'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_short_name_input">
-          <input type="text" class="wide" title="Enter a short name for receipts" name="short_name" id="{{ i['username'] }}_short_name_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_short_name" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter a short name for receipts" id="{{ i['username'] }}_short_name_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_title')">Title:</button>
         <span class="employee_value" id="{{ i['username'] }}_title_value" style="width:fit-content">{{ i['title'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_title_input">
-          <input type="text" class="wide" title="Enter a title" name="title" id="{{ i['username'] }}_title_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_title" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter a title" id="{{ i['username'] }}_title_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_phone')">Phone:</button>
         <span class="employee_value" id="{{ i['username'] }}_phone_value">{{ i['phone'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_phone_input">
-          <input type="text" class="wide" title="Enter a phone number" name="phone" id="{{ i['username'] }}_phone_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_phone" hidden>
-        </form>
+          <input type="text" class="hide" title="Enter a phone number" id="{{ i['username'] }}_phone_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_address')">Address:</button>
         <span class="employee_value" id="{{ i['username'] }}_address_value">{{ i['address'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_address_input">
-          <input type="text" class="wide" title="Enter an address" name="address" id="{{ i['username'] }}_address_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_address" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter an address" id="{{ i['username'] }}_address_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_email')">Email:</button>
         <span class="employee_value" id="{{ i['username'] }}_email_value">{{ i['email'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_email_input">
-          <input type="text" class="wide" title="Enter an email address" name="email" id="{{ i['username'] }}_email_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_email" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter an email address" id="{{ i['username'] }}_email_input">
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_hire_date')">Hire Date:</button>
         <span class="employee_value" id="{{ i['username'] }}_hire_date_value">{{ i['hire_date'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_hire_date_input">
-          <input type="text" class="wide" title="Enter a contact name" name="hire_date" id="{{ i['username'] }}_hire_date_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_hire_date" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter a contact name" id="{{ i['username'] }}_hire_date_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['username'] }}_status')">Status:</button>
+        <button class="key" onclick="switch_value_input_div('{{ i['username'] }}_status')">Status:</button>
         <span class="employee_value" id="{{ i['username'] }}_status_value">{{ i['status'] }}</span>
-        <form method="post" class="status_form" id="{{ i['username'] }}_status_input">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
+        <div class="status" id="{{ i['username'] }}_status_input">
           <select name="status" id="{{ i['username'] }}_status_focus">
             <option value="current">Current</option>
             <option value="former">Former</option>
           </select>
-          <button style="width:fit-content" type="submit" name="function" value="change_status">OK</button>
-        </form>
+          <button class="modify" onclick="update_employee('{{ i['username'] }}', 'status', {{ i['username'] }}_status_focus.value)">OK</button>
+        </div>
         
         <button class="key" onclick="switch_value_input('{{ i['username'] }}_login_message')">Login Message:</button>
         <span class="employee_value" id="{{ i['username'] }}_login_message_value" style="width:fit-content">{{ i['login_message'] }}</span>
-        <form method="post" class="employee_input" id="{{ i['username'] }}_login_message_input">
-          <input type="text" class="wide" title="Enter a message to be displayed at login" name="login_message" id="{{ i['username'] }}_login_message_focus">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input type="submit" name="function" value="change_login_message" hidden>
-        </form>
+        <input type="text" class="hide" title="Enter a message to be displayed at login" id="{{ i['username'] }}_login_message_input">
         
         <button class="key" onclick="switch_visible('{{ i['username'] }}_reset_password')">Reset Password:</button>
-        <form method="post" class="reset_password_form" id="{{ i['username'] }}_reset_password_input">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
+        <div class="reset_password" id="{{ i['username'] }}_reset_password_input">
           <label for="{{ i['username'] }}_reset_password_focus">Password:</label><input id="{{ i['username'] }}_reset_password_focus" type="password" class="password" title="Enter a password" name="password1">
-          <label for="reset_password2">Verify:</label><input id="reset_password_2" type="password" class="password" title="Enter a password" name="password2">
-          <button style="width:fit-content" type="submit" name="function" value="reset_password">OK</button>
-        </form>
+          <label for="{{ i['username'] }}_password_verify">Verify:</label><input id="{{ i['username'] }}_password_verify" type="password" class="password" title="Enter a password" name="password2">
+          <button class="modify" onclick="reset_password('{{ i['username'] }}', {{ i['username'] }}_reset_password_focus.value, {{ i['username'] }}_password_verify.value)">OK</button>
+        </div>
 
-        <form method="post" class="permission_form">
-          <input type="hidden" name="username" value="{{ i['username'] }}">
-          <input id="{{ i['username'] }}_inventory_management" type="checkbox" name="permissions[]" value="inventory_management" {% if 'inventory_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_inventory_management">Inventory Management</label>
-          <input id="{{ i['username'] }}_suppliers_departments_brands" type="checkbox" name="permissions[]" value="suppliers_departments_brands" {% if 'suppliers_departments_brands' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_suppliers_departments_brands">Suppliers, Departments, Brands</label>
-          <input id="{{ i['username'] }}_employee_management" type="checkbox" name="permissions[]" value="employee_management" {% if 'employee_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_employee_management">Employee Management</label>
-          <input id="{{ i['username'] }}_shrink" type="checkbox" name="permissions[]" value="shrink" {% if 'shrink' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_shrink">Shrink Items</label>
-          {% if 'superuser' in permissions %}<input id="{{ i['username'] }}_superuser" type="checkbox" name="permissions[]" value="superuser" {% if 'superuser' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_superuser">Superuser</label>{% endif %}
+        <div class="permissions" id="{{ i['username'] }}_permissions">
+          <button class="key" onclick="switch_value_input_permissions('{{ i['username'] }}')">Permissions:</button>
+          <span id="{{ i['username'] }}_modify_permissions_value">&nbsp;</span>
+          {% if 'superuser' in permissions %}<button id="{{ i['username'] }}_modify_permissions_input" class="modify_permissions" onclick="modify_permissions('{{ i['username'] }}', {{ i['username'] }}_inventory_management.checked, {{ i['username'] }}_suppliers_departments_brands.checked, {{ i['username'] }}_employee_management.checked, {{ i['username'] }}_shrink.checked, {{ i['username'] }}_superuser.checked)">Modify Permissions</button>{% else %}<button id="{{ i['username'] }}_modify_permissions" class="modify_permissions" onclick="modify_permissions('{{ i['username'] }}', {{ i['username'] }}_inventory_management.checked, {{ i['username'] }}_suppliers_departments_brands.checked, {{ i['username'] }}_employee_management.checked, {{ i['username'] }}_shrink.checked, false)">Modify Permissions</button>{% endif %}
+          <input id="{{ i['username'] }}_inventory_management" type="checkbox" {% if 'inventory_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_inventory_management">Inventory Management</label>
+          <input id="{{ i['username'] }}_suppliers_departments_brands" type="checkbox" {% if 'suppliers_departments_brands' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_suppliers_departments_brands">Suppliers, Departments, Brands</label>
+          <input id="{{ i['username'] }}_employee_management" type="checkbox" {% if 'employee_management' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_employee_management">Employee Management</label>
+          <input id="{{ i['username'] }}_shrink" type="checkbox" {% if 'shrink' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_shrink">Shrink Items</label>
+          {% if 'superuser' in permissions %}<input id="{{ i['username'] }}_superuser" type="checkbox" {% if 'superuser' in i['permissions'] %}checked{% else %}unchecked{% endif %} /><label for="{{ i['username'] }}_superuser">Superuser</label>{% endif %}
 
-          <button style="width:fit-content" type="submit" name="function" value="modify_permissions">Modify Permissions</button>
-        </form>
+          
+        </div>
         {% if 'superuser' in permissions %}
         <form method="post" class="delete_button">
           <input type="hidden" name="username" value="{{ i['username'] }}">
-          <button class="change" type="submit" name="function" value="delete_employee">Delete</button>
+          <button class="modify" type="submit" name="function" value="delete_employee">Delete</button>
         </form>
         {% endif %}
       </div>
       {% endfor %}
 
       <div class="new_employee">
-        <button class="create_employee" onclick="switch_visible('create_employee')">Create a New employee:</button>
+        <button class="show_create_employee" onclick="switch_visible('create_employee')">Create a New employee:</button>
         <form method="post" class="create_employee_input" id="create_employee_input">
 
           <span class="new_employee_key">Username:</span><input type="text" id="create_employee_focus" class="wide" title="Enter a username for the employee" name="username">
@@ -173,6 +303,7 @@
           <span class="new_employee_key">Hire Date:</span><input type="text" class="wide" title="Enter a hire date" name="hire_date">
           <span class="new_employee_key">Login Message:</span><input type="text" class="wide" title="Enter a message to be displayed at login" name="login_message">
           <div class="permissions">
+            <span class="permissions_header">Permissions:</span>
             <input id="inventory_management" type="checkbox" name="permissions[]" value="inventory_management" unchecked /><label for="inventory_management">Inventory Management</label>
             <input id="suppliers_departments_brands" type="checkbox" name="permissions[]" value="suppliers_departments_brands" unchecked /><label for="suppliers_departments_brands">Suppliers Departments Brands</label>
             <input id="employee_management" type="checkbox" name="permissions[]" value="employee_management" unchecked /><label for="employee_management">Employee Management</label>
@@ -180,7 +311,7 @@
             {% if 'superuser' in permissions %}<input id="superuser" type="checkbox" name="permissions[]" value="superuser" unchecked /><label for="superuser">Superuser</label>{% endif %}
           </div>
 
-          <button style="width:fit-content" type="submit" name="function" value="create_employee">Create</button>
+          <button class="create_employee" type="submit" name="function" value="create_employee">Create</button>
 
         </form>
       </div>

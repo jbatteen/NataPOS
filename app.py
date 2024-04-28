@@ -6,14 +6,14 @@ import ipaddress
 import os
 import csv
 from werkzeug.utils import secure_filename
-
+from threading import Thread
 from datetime import date
 from pymongo.mongo_client import MongoClient
 
 
 # import local files
 from config import db_name, mongo_url, assets_url
-from authentication_functions import validate_login, validate_session_key, create_user
+from authentication_functions import validate_login, validate_session_key, create_user, get_employee_collection
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price, float_to_percent
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
 from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
@@ -31,7 +31,7 @@ else:
   except:
     instance_name = 'NataPOS'
     db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2, 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'phone': '', 'address': ''})
-
+db.inventory_management.update_one({'type':'allbid_upload'}, {'$set': {'complete': True}}, upsert=True)
   
 # begin app
 app = Flask(__name__)
@@ -397,7 +397,7 @@ def scan_search():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response =  redirect('/inventory_management/')
+        response =  redirect('/edit_item/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
   result = validate_session_key(db, session_key)
@@ -486,7 +486,7 @@ def edit_item(item_id):
     elif request.form['function'] == 'remove_tax':
       scanned_item['taxes'].remove(request.form['tax_id'])
       db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
-      return render_template('tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
+      return render_template('item_tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
     elif request.form['function'] == 'add_tax':
       if request.form['tax_id'] == 'exempt':
         scanned_item['taxes'] = ['exempt']
@@ -495,7 +495,7 @@ def edit_item(item_id):
           scanned_item['taxes'] = []
         scanned_item['taxes'].append(request.form['tax_id'])
       db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
-      return render_template('tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
+      return render_template('item_tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
     elif request.form['function'] == 'create_item_group':
       if is_valid_string(request.form['item_group_id']) == False:
         message = 'invalid group name'
@@ -548,10 +548,10 @@ def edit_item(item_id):
         return float_to_percent((scanned_item['regular_price'] / cost_per) - 1)
       elif request.form['property'] == 'subcategories':
         if scanned_item['department'] == '':
-          return render_template('subcategory_div.html', subcategories=[])
+          return render_template('item_subcategory_div.html', subcategories=[])
         else:
           if scanned_item['category'] == '':
-            return render_template('subcategory_div.html', subcategories=[])
+            return render_template('item_subcategory_div.html', subcategories=[])
           else:
             department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
             for category in department_collection['categories']:
@@ -559,13 +559,13 @@ def edit_item(item_id):
                 return render_template('subcategory_div.html', subcategories=category['subcategories'])
       elif request.form['property'] == 'categories':
         if scanned_item['department'] == '':
-          return render_template('category_div.html', categories=[])
+          return render_template('item_category_div.html', categories=[])
         else:
           department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
           categories = []
           for category in department_collection['categories']:
             categories.append(category['category_id'])
-          return render_template('category_div.html', categories=categories)
+          return render_template('item_category_div.html', categories=categories)
 
     elif request.form['function'] == 'update':
       success = False
@@ -1002,8 +1002,6 @@ def supplier_management():
   permissions = employee_info['permissions']
   if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
     return redirect('/')
-  suppliers_collection = []
-  suppliers_collection = get_supplier_collection(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -1014,96 +1012,92 @@ def supplier_management():
       return redirect('/admin/')
     elif request.form['function'] == 'inventory_management':
       return redirect('/inventory_management/')
-    elif request.form['function'] == 'change_website':
-      supplier_id = request.form['supplier_id']
-      website = request.form['website']
-      if is_valid_string(website) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'website': website}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in website'
-    elif request.form['function'] == 'change_account':
-      supplier_id = request.form['supplier_id']
-      account = request.form['account']
-      if is_valid_string(account) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'account': account}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in account'
-    elif request.form['function'] == 'change_phone':
-      supplier_id = request.form['supplier_id']
-      phone = request.form['phone']
-      if is_valid_string(phone) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'phone': phone}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in email'
-    elif request.form['function'] == 'change_address':
-      supplier_id = request.form['supplier_id']
-      address = request.form['address']
-      if is_valid_string(address) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'address': address}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in address'
-    elif request.form['function'] == 'change_contact_name':
-      supplier_id = request.form['supplier_id']
-      contact_name = request.form['contact_name']
-      if is_valid_string(contact_name) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'contact_name': contact_name}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in contact name'
-    elif request.form['function'] == 'change_email':
-      supplier_id = request.form['supplier_id']
-      email = request.form['email']
-      if is_valid_string(email) == True:
-      # TO DO: VALIDATE THIS INPUT
-        db.inventory_management.update_one({'type': 'supplier', 'supplier_id': supplier_id}, {'$set': {'email': email}})
-        suppliers_collection = get_supplier_collection(db)
-      else:
-        message = 'Error: invalid characters in email'
     elif request.form['function'] == 'delete_supplier':
-      supplier_id = request.form['supplier_id']
-      db.inventory_management.delete_one({'type': 'supplier', 'supplier_id': supplier_id})
-      suppliers_collection = get_supplier_collection(db)
+      db.inventory_management.delete_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']})
     elif request.form['function'] == 'create_supplier':
-      supplier_id = request.form['supplier_id']
-      account = request.form['account']
-      website = request.form['website']
-      phone = request.form['phone']
-      address = request.form['address']
-      contact_name = request.form['contact_name']
-      email = request.form['email']
-      if len(supplier_id) < 2:
+      if len(request.form['supplier_id']) < 2:
         message = 'Error: Supplier name must be 2 or more characters'
-      elif is_valid_string(supplier_id) == False:
+      elif is_valid_string(request.form['supplier_id']) == False:
         message = 'Error: invalid character in supplier name'
-      elif is_valid_string(account) == False:
+      elif is_valid_string(request.form['account']) == False:
         message = 'Error: invalid character in account'
-      elif is_valid_string(website) == False:
+      elif is_valid_string(request.form['website']) == False:
         message = 'Error: invalid character in website'
-      elif is_valid_string(phone) == False:
+      elif is_valid_string(request.form['phone']) == False:
         message = 'Error: invalid character in phone'
-      elif is_valid_string(address) == False:
+      elif is_valid_string(request.form['address']) == False:
         message = 'Error: invalid character in address'
-      elif is_valid_string(contact_name) == False:
+      elif is_valid_string(request.form['contact_name']) == False:
         message = 'Error: invalid character in contact name'
-      elif is_valid_string(email) == False:
+      elif is_valid_string(request.form['email']) == False:
         message = 'Error: invalid character in email'
       else:
         try:
-          db.inventory_management.insert_one({'type': 'supplier', 'supplier_id': supplier_id, 'account': account, 'website': website, 'phone': phone, 'address': address, 'contact_name': contact_name, 'email': email})
+          db.inventory_management.insert_one({'type': 'supplier', 'supplier_id': request.form['supplier_id'], 'account': request.form['account'], 'website': request.form['website'], 'phone': request.form['phone'], 'address': request.form['address'], 'contact_name': request.form['contact_name'], 'email': request.form['email']})
         except:
           message = 'Error inserting document into collection'
+    elif request.form['function'] == 'update':
+      success = False
+      beautified = ''
+      if request.form['property'] == 'account':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid account'
+        elif len(request.form['new_data']) < 2:
+          message = 'account too short'
         else:
-          suppliers_collection = get_supplier_collection(db)
-  return render_template('supplier_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, suppliers_collection=suppliers_collection, message=message)
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'account': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if request.form['property'] == 'website':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid website'
+        elif len(request.form['new_data']) < 5:
+          message = 'website too short, must be 5 or more characters'
+        else:
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'website': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if request.form['property'] == 'phone':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid phone'
+        elif len(request.form['new_data']) < 7:
+          message = 'phone number too short'
+        else:
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'phone': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if request.form['property'] == 'address':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid address'
+        elif len(request.form['new_data']) < 7:
+          message = 'address too short'
+        else:
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'address': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if request.form['property'] == 'contact_name':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid contact name'
+        elif len(request.form['new_data']) < 2:
+          message = 'contact name too short'
+        else:
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'contact_name': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if request.form['property'] == 'email':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid email'
+        elif len(request.form['new_data']) < 2:
+          message = 'email too short'
+        else:
+          db.inventory_management.update_one({'type': 'supplier', 'supplier_id': request.form['supplier_id']}, {'$set': {'email': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      if success == True:
+        return make_response(jsonify({'success': success, 'beautified': beautified}))
+      else:
+        return make_response(jsonify({'success': success, 'message': message}))
+  return render_template('supplier_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, suppliers_collection=get_supplier_collection(db), message=message)
 
 
 
@@ -1400,17 +1394,37 @@ def brand_management():
       if is_valid_string(request.form['brand_id']) == False:
         message = 'invalid brand name'
       else:
-        db.inventory_management.insert_one({'type': 'brand', 'brand_id': request.form['brand_id'], 'website': request.form['website'], 'supplier': request.form['supplier_id'], 'local': local_bool})
-    elif request.form['function'] == 'change_website':
-      if is_valid_string(request.form['website']) == True:
-        db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'website': request.form['website']}})
-    elif request.form['function'] == 'change_local':
-      if request.form['local'] == 'True':
-        db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'local': True}})
+        if request.form['brand_id'] in get_brand_list(db):
+          message = 'brand already exists'
+        else:
+          db.inventory_management.insert_one({'type': 'brand', 'brand_id': request.form['brand_id'], 'website': request.form['website'], 'supplier': request.form['supplier_id'], 'local': local_bool})
+    elif request.form['function'] == 'update':
+      success = False
+      beautified = ''
+      if request.form['property'] == 'website':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'Invalid website'
+        elif len(request.form['new_data']) < 5:
+          message = 'website too short, must be 5 or more characters'
+        else:
+          db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'website': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'local':
+        beautified = request.form['new_data']
+        success = True
+        if request.form['new_data'] == 'True':
+          db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'local': True}})
+        else:
+          db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'local': False}})
+      elif request.form['property'] == 'supplier':
+        beautified = request.form['new_data']
+        success = True
+        db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'supplier': request.form['new_data']}})
+      if success == True:
+        return make_response(jsonify({'success': success, 'beautified': beautified}))
       else:
-        db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'local': False}})
-    elif request.form['function'] == 'change_supplier':
-      db.inventory_management.update_one({'type': 'brand', 'brand_id': request.form['brand_id']}, {'$set': {'supplier': request.form['supplier_id']}})
+        return make_response(jsonify({'success': success, 'message': message}))
   return render_template('brand_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, supplier_list=get_supplier_list(db), session_key=session_key, permissions=permissions, message=message, brand_collection=get_brand_collection(db))
 
 
@@ -1455,69 +1469,7 @@ def employee_management():
       return redirect('/')
     elif request.form['function'] == 'admin':
       return redirect('/admin/')
-    
-    elif request.form['function'] == 'change_name':
-      if is_valid_string(request.form['name']) == False:
-        message = 'invalid string'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'name': request.form['name']}})
-    elif request.form['function'] == 'change_short_name':
-      if is_valid_string(request.form['short_name']) == False:
-        message = 'invalid string'
-      elif len(request.form['short_name']) > 15:
-        message = 'name must not be more than 15 characters'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'short_name': request.form['short_name']}})
-    elif request.form['function'] == 'change_title':
-      if is_valid_string(request.form['title']) == False:
-        message = 'invalid string'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'title': request.form['title']}})
-    elif request.form['function'] == 'change_phone':
-      if is_valid_string(request.form['phone']) == False:
-        message = 'invalid string'
-      elif len(request.form['phone']) > 15:
-        message = 'phone number must not be more than characters'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'phone': request.form['phone']}})
-    elif request.form['function'] == 'change_address':
-      if is_valid_string(request.form['address']) == False:
-        message = 'invalid string'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'address': request.form['address']}})
-    
-    elif request.form['function'] == 'change_email':
-      if is_valid_string(request.form['email']) == False:
-        message = 'invalid string'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'email': request.form['email']}})
-    elif request.form['function'] == 'change_date':
-      if is_valid_date(request.form['hire_date']) == False:
-        message = 'invalid date'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'hire_date': request.form['hire_date']}})
-    elif request.form['function'] == 'change_status':
-      db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'status': request.form['status']}})
-    elif request.form['function'] == 'modify_permissions':
-      new_permissions = request.form.getlist('permissions[]')
-      if 'superuser' in new_permissions:
-        new_permissions = ['superuser']      
-      db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'permissions': new_permissions}})
-    elif request.form['function'] == 'reset_password':
-      if is_valid_password(request.form['password1']) == False:
-        message = 'invalid password'
-      elif request.form['password1'] != request.form['password2']:
-        message = 'passwords do not match'
-      else:
-        bytes = request.form['password1'].encode('utf-8')
-        salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(bytes, salt)
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'password': hash}})
-    elif request.form['function'] == 'change_login_message':
-      if is_valid_string(request.form['login_message']) == False:
-        message = 'invalid login message'
-      else:
-        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'login_message': request.form['login_message']}})
+
     elif request.form['function'] == 'create_employee':
       if is_valid_string(request.form['username']) == False:
         message = 'invalid username'
@@ -1553,12 +1505,115 @@ def employee_management():
           new_permissions = ['superuser']      
         create_user(db, request.form['username'], request.form['password1'], new_permissions, request.form['address'], request.form['name'], request.form['short_name'], request.form['title'], request.form['phone'], request.form['email'], request.form['hire_date'], request.form['login_message'])
 
-  employee_collection = db.employees.find({'type': 'user'})
+    elif request.form['function'] == 'update':
+      success = False
+      beautified = ''
+      if request.form['property'] == 'name':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in name'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'name': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'short_name':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in short name'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'short_name': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'title':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in title'
+        elif len(request.form['new_data']) < 2 and request.form['new_data'] != '':
+          message = 'title too short'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'title': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'phone':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in phone'
+        elif len(request.form['new_data']) < 7 and request.form['new_data'] != '':
+          message = 'phone too short'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'phone': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'address':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in address'
+        elif len(request.form['new_data']) < 5 and request.form['new_data'] != '':
+          message = 'address too short'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'address': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'email':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in email'
+        elif len(request.form['new_data']) < 7 and request.form['new_data'] != '':
+          message = 'email too short'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'email': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'hire_date':
+        if is_valid_date(request.form['new_data']) == False and request.form['new_data'] != '':
+          message = 'invalid date'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'hire_date': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'status':
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'status': request.form['new_data']}})
+        success = True
+        beautified = request.form['new_data']
+      elif request.form['property'] == 'login_message':
+        if is_valid_string(request.form['new_data']) == False:
+          message = 'invalid characters in login message'
+        else:
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'login_message': request.form['new_data']}})
+          success = True
+          beautified = request.form['new_data']
+      elif request.form['property'] == 'password':
+        print('function')
+        if is_valid_password(request.form['password1']) == False:
+          message = 'invalid password'
+        elif request.form['password1'] != request.form['password2']:
+          message = 'passwords do not match'
+        else:
+          bytes = request.form['password1'].encode('utf-8')
+          salt = bcrypt.gensalt()
+          hash = bcrypt.hashpw(bytes, salt)
+          db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'password': hash}})
+          return make_response(jsonify({'success': True}))
+      elif request.form['property'] == 'permissions':
+        if 'superuser' in permissions and request.form['superuser'] == 'true':
+          new_permissions = ['superuser']      
+        else:
+          new_permissions = []
+          if request.form['inventory_management'] == 'true':
+            new_permissions.append('inventory_management')
+          if request.form['suppliers_departments_brands'] == 'true':
+            new_permissions.append('suppliers_departments_brands')
+          if request.form['employee_management'] == 'true':
+            new_permissions.append('employee_management')
+          if request.form['shrink'] == 'true':
+            new_permissions.append('shrink')
+        db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'permissions': new_permissions}})
+        return render_template('employee_permissions_div.html',permissions=permissions, new_permissions=new_permissions, username=request.form['username'])
+      if success == True:
+        return make_response(jsonify({'success': True, 'beautified': beautified}))
+      else:
+        return make_response(jsonify({'success': False, 'message': message}))
+  employee_collection = get_employee_collection(db)
   if 'superuser' not in permissions:
     new_employee_collection = []
     for employee in employee_collection:
       if 'superuser' not in employee['permissions']:
         new_employee_collection.append(employee)
+    employee_collection = new_employee_collection
   return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)
 
 
@@ -1581,7 +1636,7 @@ def import_data():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response = redirect('/admin/')
+        response = redirect('/import_data/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
 
@@ -1628,20 +1683,16 @@ def import_unfi_allbid():
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
-        response = redirect('/admin/')
+        response = redirect('/import_unfi_allbid/')
         response.set_cookie('natapos_session_key', login_check['session_key'])
         return response
 
   result = validate_session_key(db, session_key)
   if result['success'] == False:    
-    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  config = db.natapos.find_one({'config': 'global'})
-  instance_name = config['instance_name']
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url) 
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  if 'superuser' not in employee_info['permissions'] and 'inventory_management' not in employee_info['permissions']:
     return redirect('/admin/')
   message = ''
   if request.method == 'POST':
@@ -1654,74 +1705,98 @@ def import_unfi_allbid():
       return redirect('/admin/')
     elif request.form['function'] == 'import_data':
       return redirect('/import_data/')
+    elif request.form['function'] == 'processing_status':
+      upload_document = db.inventory_management.find_one({'type': 'allbid_upload'})
+      if upload_document['complete'] == True:
+        return make_response(jsonify({'completed': True, 'html': render_template('import_unfi_allbid_complete.html', upload_document=upload_document)}))
+      else:
+        return make_response(jsonify({'completed': False, 'html': render_template('import_unfi_allbid_progress.html', upload_document=upload_document)}))
     elif request.form['function'] == 'upload_allbid':
       if 'file' not in request.files:
-        message = 'upload failed'
+        return make_response(jsonify({'success': False, 'message': 'upload failed'}))
       else:
         file = request.files['file']
         if file.filename == '':
-          message = 'no selected file'
+          return make_response(jsonify({'success': False, 'message': 'no selected file'}))
         elif is_allowed_file(file.filename, ['csv', 'CSV']) == False:
-          message = 'invalid file type'
+          return make_response(jsonify({'success': False, 'message': 'invalid file type'}))
         else:
-          starting_time = time.time()
           filename = secure_filename(file.filename)
-          file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-          file_in = open(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-          new_count = 0
-          update_count = 0
-          delete_count = 0
-          reader = csv.reader(file_in, quotechar='\"')
-          for row in reader:
-            if 'T' in row[20] or 'P' in row[20]:
-              APPRV = row[8]
-              if APPRV[0:4] == '*DIS':
-                db.allbid.delete_one({'item_id': row[15].replace('-', '').replace('00', '', 1)})
-                delete_count += 1
-              else:
-                allbid_item = {}
-
-                allbid_item['item_id'] = row[15].replace('-', '').replace('00', '', 1)
-                if is_valid_float(row[4]) == True:
-                  allbid_item['case_quantity'] = float(row[4])
-                else:
-                  allbid_item['case_quantity'] = 1.0
-                allbid_item['package_size'] = row[5]
-                allbid_item['description'] = row[7]
-                if APPRV == '*New':
-                  allbid_item['new'] = True
-                  new_count += 1
-                else:
-                  allbid_item['new'] = False
-                  update_count += 1
-                if APPRV == '*Chg':
-                  allbid_item['cost_change'] = True
-                else:
-                  allbid_item['cost_change'] = False
-                if is_valid_float(row[9]) == True:
-                  allbid_item['case_cost'] = float(row[9])
-                else:
-                  allbid_item['case_cost'] = 0.01
-                if is_valid_float(row[17]) == True:
-                  allbid_item['suggested_retail_price'] = float(row[17])
-                else:
-                  allbid_item['suggested_retail_price'] = 0.01
-                allbid_item['order_code'] = row[2]
-                if db.allbid.find_one({'item_id': allbid_item['item_id']}) == None:
-                  db.allbid.insert_one({'item_id': allbid_item['item_id'], 'case_quantity': allbid_item['case_quantity'], 'package_size': allbid_item['package_size'], 'description': allbid_item['description'], 'new': allbid_item['new'], 'cost_change': allbid_item['cost_change'], 'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']})
-                else:
-                  db.allbid.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_quantity': allbid_item['case_quantity'], 'package_size': allbid_item['package_size'], 'description': allbid_item['description'], 'new': allbid_item['new'], 'cost_change': allbid_item['cost_change'], 'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}})
-
-                if db.inventory.find_one({'item_id': allbid_item['item_id']}) != None:
-                  db.inventory.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}})
-          file_in.close()
-          time_elapsed = time.time() - starting_time
-          message = str(new_count) + ' new items<br/>' + str(update_count) + ' updated items<br/>' + str(delete_count) + ' deleted items<br/>loaded successfully in ' + str(round(time_elapsed,2)) + ' seconds<br/>from ' + filename
-  return render_template('import_unfi_allbid.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions, message=message)
+          complete_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+          file.save(complete_filename)
+          upload_document = db.inventory_management.find_one({'type': 'allbid_upload'})
+          if upload_document['complete'] == False:
+            return make_response(jsonify({'success': False, 'message': 'another upload already ongoing'}))
+          db.inventory_management.update_one({'type':'allbid_upload'}, {'$set': {'processing_time': 0.0, 'complete': False, 'items_processed': 0, 'items_available': 0, 'new_items': 0, 'changed_prices': 0, 'deleted_items': 0}}, upsert=True)
+          t = Thread(target=process_allbid, args=(complete_filename,))
+          t.start()
+          return make_response(jsonify({'success': True}))
+  return render_template('import_unfi_allbid.html', instance_name=config['instance_name'], assets_url=assets_url, username=result['username'], session_key=session_key, permissions=employee_info['permissions'], message=message)
 
 
+def process_allbid(filename):
+  try:
+    process_client = MongoClient(mongo_url)
+  except:
+    return 'database error'
+  else:
+    process_db = process_client[db_name]
 
+  starting_time = time.time()
+  
+  file_in = open(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+  new_count = 0
+  update_count = 0
+  delete_count = 0
+  items_processed = 0
+  items_available = 0
+  reader = csv.reader(file_in, quotechar='\"')
+  for row in reader:
+    items_processed += 1
+    if items_processed % 100 == 0:
+      process_db.inventory_management.update_one({'type': 'allbid_upload'}, {'$set': {'items_processed': items_processed, 'items_available': items_available, 'new_items': new_count, 'changed_prices': update_count, 'deleted_items': delete_count, 'processing_time': (time.time() - starting_time)}})
+    if 'T' in row[20] or 'P' in row[20]:
+      items_available += 1
+      APPRV = row[8]
+      if APPRV[0:4] == '*DIS':
+        process_db.allbid.delete_one({'item_id': row[15].replace('-', '').replace('00', '', 1)})
+        delete_count += 1
+      else:
+        allbid_item = {}
 
+        allbid_item['item_id'] = row[15].replace('-', '').replace('00', '', 1)
+        if is_valid_float(row[4]) == True:
+          allbid_item['case_quantity'] = float(row[4])
+        else:
+          allbid_item['case_quantity'] = 1.0
+        allbid_item['package_size'] = row[5]
+        allbid_item['description'] = row[7]
+        if APPRV == '*New':
+          allbid_item['new'] = True
+          new_count += 1
+        else:
+          allbid_item['new'] = False
+        if APPRV == '*Chg':
+          allbid_item['cost_change'] = True
+          update_count += 1
+        else:
+          allbid_item['cost_change'] = False
+        if is_valid_float(row[9]) == True:
+          allbid_item['case_cost'] = float(row[9])
+        else:
+          allbid_item['case_cost'] = 0.01
+        if is_valid_float(row[17]) == True:
+          allbid_item['suggested_retail_price'] = float(row[17])
+        else:
+          allbid_item['suggested_retail_price'] = 0.01
+        allbid_item['order_code'] = row[2]
 
+        process_db.allbid.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_quantity': allbid_item['case_quantity'], 'package_size': allbid_item['package_size'], 'description': allbid_item['description'], 'new': allbid_item['new'], 'cost_change': allbid_item['cost_change'], 'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}}, upsert=True)
+
+        if process_db.inventory.find_one({'item_id': allbid_item['item_id']}) != None:
+          process_db.inventory.update_one({'item_id': allbid_item['item_id']}, {'$set': {'case_cost': allbid_item['case_cost'], 'suggested_retail_price': allbid_item['suggested_retail_price'], 'order_code': allbid_item['order_code']}})
+  file_in.close()
+  process_db.inventory_management.update_one({'type': 'allbid_upload'}, {'$set': {'items_processed': items_processed, 'items_available': items_available, 'new_items': new_count, 'changed_prices': update_count, 'deleted_items': delete_count, 'complete': True, 'processing_time': (time.time() - starting_time)}})
+  
 
 

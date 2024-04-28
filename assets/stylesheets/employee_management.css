@@ -6,6 +6,7 @@ div.employee_list {
   border-style: solid;
   padding: 0.3vw;
 }
+
 div.employee{
   align-items: center;
   margin-bottom: 0.1vw;
@@ -26,6 +27,7 @@ span.employee_key {
 div.new_employee {
   border-width: 1px;
   border-style: solid;
+  margin-top: 0.4vw;
 
 }
 div.new_employee_button {
@@ -36,21 +38,34 @@ div.new_employee_button {
   justify-content: center;
 }
 div.permissions {
+  border-width: 1px;
+  border-style: solid;
   grid-column: 1 / span 2;
-  grid-template-columns: 1fr 5fr;
+  grid-template-columns: 1fr 8fr;
+  margin-left: 10vw;
+  margin-right: 10vw;
+  padding: 0.5vw;
 }
-button.create_employee {
+span.permissions_header {
+  grid-column: 1 / span 2;
+}
+button.show_create_employee {
   background-color: #1f2a46;
   color: hwb(32 25% 16%);
   border: none;
 }
 form.delete_button{
+  margin-top: 0.4vw;
   grid-column: 1 / span 2;
   text-align: right;
 }
 span.new_employee_key {
   text-align: right;
   margin-right: 0.5vw;
+}
+input.hide {
+  width: 60vw;
+  display: none;
 }
 input.wide {
   width: 60vw;
@@ -61,16 +76,33 @@ select {
 form.create_employee_input {
   display: none;
   grid-template-columns: 1fr 5fr;
+  grid-gap: 0.5vw;
 }
-form.permission_form {
+div.permissions {
+  border-width: 1px;
+  border-style: solid;
   grid-column: 1 / span 2;
-  grid-template-columns: 1fr 4fr;
+  grid-template-columns: 1fr 8fr;
+  margin-left: 10vw;
+  margin-right: 10vw;
+  padding: 0.5vw;
 }
-form.status_form {
+div.status {
   grid-template-columns: 4fr 1fr;
   display: none;
 }
-form.reset_password_form{
+div.reset_password {
   grid-template-columns: 1fr 4fr;
+  display: none;
+}
+button.create_employee{
+  width: fit-content;
+  margin: 0.4vw;
+}
+button.modify {
+  width: fit-content;
+}
+button.modify_permissions {
+  width: fit-content;
   display: none;
 }

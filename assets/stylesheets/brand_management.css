@@ -14,11 +14,7 @@ div.brand{
   padding: 0.3vw;
   grid-template-columns: 1fr 3fr;
 }
-form.brand_input {
-  display: none;
-
-}
-form.brand_input_button {
+div.brand_input_button {
   display:none;
   grid-template-columns: 4fr 1fr;
 }
@@ -37,6 +33,7 @@ span.new_brand_key {
 }
 input.wide {
   width: 60vw;
+  display: none;
 }
 select {
   width: 60vw;

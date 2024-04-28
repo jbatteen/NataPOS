@@ -2,3 +2,7 @@
 input {
   font-size: inherit;
 }
+form.input_form {
+  grid-template-columns: 1fr 4fr;
+  grid-gap: 1vw;
+}

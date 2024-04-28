@@ -3,6 +3,18 @@ import bcrypt
 import random
 import time
 
+
+def get_employee_collection(db):
+  try:
+    db.validate_collection("employees")
+  except:
+    return []
+  employee_collection = []
+  collection = db.employees.find({'type': 'user'})
+  for employee in collection:
+    del employee['_id']
+    employee_collection.append(employee)
+  return employee_collection
 def validate_login(db, username, password, source_ip):
   document = db.employees.find_one({'type': 'user', 'username' : username})
   if document is not None:
@@ -33,7 +45,7 @@ def validate_session_key(db, session_key):
     current_time = int(round(time.time()))
     if current_time - document['time_stamp'] < 3600:
       db.session_keys.update_one({'session_key': session_key}, {'$set': {'time_stamp': current_time}})
-      return({'success': True, 'username': document['username'], 'login_location': document['login_location']})
+      return({'success': True, 'username': document['username']})
     else:
       db.session_keys.delete_one({'session_key': session_key})
       return({'success': False})

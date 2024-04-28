@@ -6,7 +6,22 @@
   <link rel="stylesheet" href="{{ assets_url }}/stylesheets/supplier_management.css">
   <title>Supplier Management</title>
   <script>
+
     function switch_value_input(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(input_id).focus();
+      }
+    }
+    function switch_value_input_div(property) {
       var value_id = "";
       value_id = property.concat("_value");
       var input_id = "";
@@ -34,9 +49,82 @@
         document.getElementById(input_id).style.display = "none";
       }
     }
+    function update_supplier(supplier, property, new_data, id_prefix) {
+      var input_id = ""
+      input_id = id_prefix.concat("_input");
+      var value_id = ""
+      value_id = id_prefix.concat("_value");
+      var reply;
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("supplier_id", supplier);
+      data.append("property", property);
+      data.append("new_data", new_data);
+      return fetch("{{ url_for('supplier_management') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(value_id).style.display = "grid";
+            document.getElementById(input_id).style.display = "none";
+            document.getElementById(value_id).innerText = reply.beautified;
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+    function initialize() {
+      {% for supplier in suppliers_collection %}
+      var account_{{ loop.index }}_input = document.getElementById('account_{{ loop.index }}_input');
+      account_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          console.log("fuck you")
+          update_supplier('{{ supplier['supplier_id'] }}', 'account', account_{{ loop.index }}_input.value, 'account_{{ loop.index }}');
+        }
+      });
+      var website_{{ loop.index }}_input = document.getElementById('website_{{ loop.index }}_input');
+      website_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_supplier('{{ supplier['supplier_id'] }}', 'website', website_{{ loop.index }}_input.value, 'website_{{ loop.index }}');
+        }
+      });
+      var phone_{{ loop.index }}_input = document.getElementById('phone_{{ loop.index }}_input');
+      phone_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_supplier('{{ supplier['supplier_id'] }}', 'phone', phone_{{ loop.index }}_input.value, 'phone_{{ loop.index }}');
+        }
+      });
+      var address_{{ loop.index }}_input = document.getElementById('address_{{ loop.index }}_input');
+      address_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_supplier('{{ supplier['supplier_id'] }}', 'address', address_{{ loop.index }}_input.value, 'address_{{ loop.index }}');
+        }
+      });
+      var contact_name_{{ loop.index }}_input = document.getElementById('contact_name_{{ loop.index }}_input');
+      contact_name_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_supplier('{{ supplier['supplier_id'] }}', 'contact_name', contact_name_{{ loop.index }}_input.value, 'contact_name_{{ loop.index }}');
+        }
+      });
+      var email_{{ loop.index }}_input = document.getElementById('email_{{ loop.index }}_input');
+      email_{{ loop.index }}_input.addEventListener("keypress", function(event) {
+        if (event.key == "Enter") {
+          event.preventDefault();
+          update_supplier('{{ supplier['supplier_id'] }}', 'email', email_{{ loop.index }}_input.value, 'email_{{ loop.index }}');
+        }
+      });
+      {% endfor %}
+    }
   </script>
 </head>
-<body>
+<body onload="initialize()">
   <div class="sidebar">
     <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
     <form method="post" class="menu">
@@ -60,53 +148,29 @@
         <span class="supplier_key">Name:</span>
         <span class="supplier_value">{{ i['supplier_id'] }}</span>
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_account')">Account:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_account_value" style="width:fit-content">{{ i['account'] }}</span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_account_input">
-          <input type="text" class="wide" title="Enter account name or number" name="account">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_account" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('account_{{ loop.index }}')">Account:</button>
+        <span class="supplier_value" id="account_{{ loop.index }}_value" style="width:fit-content">{{ i['account'] }}</span>
+        <input type="text" class="wide" title="Enter account name or number" id="account_{{ loop.index }}_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_website')">Website:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_website_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_website_input">
-          <input type="text" class="wide" title="Enter a website" name="website">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_website" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('website_{{ loop.index }}')">Website:</button>
+        <span class="supplier_value" id="website_{{ loop.index }}_value" style="width:fit-content"><a target="_blank" href="{{ i['website'] }}">{{ i['website'] }}</a></span>
+        <input type="text" class="wide" title="Enter a website" id="website_{{ loop.index }}_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_phone')">Phone:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_phone_value">{{ i['phone'] }}</span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_phone_input">
-          <input type="text" class="wide" title="Enter a phone number" name="phone">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_phone" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('phone_{{ loop.index }}')">Phone:</button>
+        <span class="supplier_value" id="phone_{{ loop.index }}_value">{{ i['phone'] }}</span>
+        <input type="text" class="wide" title="Enter a phone number" id="phone_{{ loop.index }}_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_address')">Address:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_address_value">{{ i['address'] }}</span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_address_input">
-          <input type="text" class="wide" title="Enter an address" name="address">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_address" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('address_{{ loop.index }}')">Address:</button>
+        <span class="supplier_value" id="address_{{ loop.index }}_value">{{ i['address'] }}</span>
+        <input type="text" class="wide" title="Enter an address" id="address_{{ loop.index }}_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_contact_name')">Contact Name:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_contact_name_value">{{ i['contact_name'] }}</span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_contact_name_input">
-          <input type="text" class="wide" title="Enter a contact name" name="contact_name">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_contact_name" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('contact_name_{{ loop.index }}')">Contact Name:</button>
+        <span class="supplier_value" id="contact_name_{{ loop.index }}_value">{{ i['contact_name'] }}</span>
+        <input type="text" class="wide" title="Enter a contact name" id="contact_name_{{ loop.index }}_input">
         
-        <button class="key" onclick="switch_value_input('{{ i['supplier_id'] }}_email')">Email:</button>
-        <span class="supplier_value" id="{{ i['supplier_id'] }}_email_value">{{ i['email'] }}</span>
-        <form method="post" class="supplier_input" id="{{ i['supplier_id'] }}_email_input">
-          <input type="text" class="wide" title="Enter an email address" name="email">
-          <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
-          <input type="submit" name="function" value="change_email" hidden>
-        </form>
+        <button class="key" onclick="switch_value_input('email_{{ loop.index }}')">Email:</button>
+        <span class="supplier_value" id="email_{{ loop.index }}_value">{{ i['email'] }}</span>
+        <input type="text" class="wide" title="Enter an email address" id="email_{{ loop.index }}_input">
         {% if 'superuser' in permissions %}
         <form method="post" class="delete_button">
           <input type="hidden" name="supplier_id" value="{{ i['supplier_id'] }}">
