@@ -29,7 +29,7 @@ else:
     db.validate_collection("natapos")
   except:
     instance_name = 'NataPOS'
-    db.natapos.insert_one({'config': 'global', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2, 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'phone': '', 'address': ''})
+    db.natapos.insert_one({'type': 'global_config', 'instance_name': 'NataPOS', 'current_pay_period_start': date.today().strftime('%m/%d/%y'), 'timesheets_locked': False, 'employee_discount': 0.2, 'taxes': [{'tax_id': 'exempt', 'rate': 0.0}], 'default_taxes': [], 'phone': '', 'address': ''})
 db.inventory_management.update_one({'type':'allbid_upload'}, {'$set': {'complete': True}}, upsert=True)
   
 # begin app
@@ -38,7 +38,7 @@ app.config['UPLOAD_FOLDER'] = '/var/www/NataPOS/uploads'
 
 @app.route('/create_first_user', methods=['POST', 'GET'])
 def create_first_user():
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   if request.method == 'POST':
     if request.form['function'] == 'create_first_user': # create first user form submitted
       try: # if employees collection exists
@@ -59,7 +59,7 @@ def create_first_user():
           if is_valid_string(request.form['instance_name']) == False:
             return render_template('create_first_user.html', instance_name=request.form['instance_name'], assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')
        
-        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': request.form['instance_name']}})
+        db.natapos.update_one({'type': 'global_config'}, {'$set': {'instance_name': request.form['instance_name']}})
         creation_check = {}
         creation_check = create_user(db, request.form['username'], request.form['password'], ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
@@ -88,7 +88,7 @@ def create_first_user():
 def global_config():
   message = None
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
 
@@ -123,12 +123,12 @@ def global_config():
           message = 'Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"'
         else:
           instance_name = request.form['instance_name']
-          db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
+          db.natapos.update_one({'type': 'global_config'}, {'$set': {'instance_name': instance_name}})
     elif request.form['function'] == 'change_current_pay_period_start':
       if is_valid_date(request.form['current_pay_period_start']) == False:
         message = 'Error: invalid date'
       elif is_date_within_range(request.form['current_pay_period_start'], 13) == True and is_date_in_future(request.form['current_pay_period_start']) == False:
-        db.natapos.update_one({'config': 'global'}, {'$set': {'current_pay_period_start': request.form['current_pay_period_start']}})
+        db.natapos.update_one({'type': 'global_config'}, {'$set': {'current_pay_period_start': request.form['current_pay_period_start']}})
       else:
         message = 'Error: date out of range'
         
@@ -146,11 +146,11 @@ def global_config():
         new_employee_discount = percent_to_float(request.form['employee_discount'])
         if new_employee_discount < 0:
           message = 'percentage must be non-negative'
-        else: db.natapos.update_one({'config': 'global'}, { '$set': {'employee_discount': new_employee_discount}})
+        else: db.natapos.update_one({'type': 'global_config'}, { '$set': {'employee_discount': new_employee_discount}})
     elif request.form['function'] == 'remove_default_tax':
       default_taxes = config['default_taxes']
       default_taxes.remove(request.form['tax_id'])
-      result = db.natapos.update_one({'config': 'global'}, {'$set': {'default_taxes': default_taxes}})   
+      result = db.natapos.update_one({'type': 'global_config'}, {'$set': {'default_taxes': default_taxes}})   
     elif request.form['function'] == 'add_default_tax':
       default_taxes = []
       if request.form['tax_id'] == 'exempt':
@@ -160,7 +160,7 @@ def global_config():
         if default_taxes == ['exempt']:
           default_taxes = []
         default_taxes.append(request.form['tax_id'])
-      result = db.natapos.update_one({'config': 'global'}, {'$set': {'default_taxes': default_taxes}})
+      result = db.natapos.update_one({'type': 'global_config'}, {'$set': {'default_taxes': default_taxes}})
     elif request.form['function'] == 'create_tax':
       if is_valid_percent(request.form['tax_rate']) == False:
         message = 'Invalid percentage'
@@ -183,12 +183,12 @@ def global_config():
           tax_rate = percent_to_float(request.form['tax_rate'])
           new_tax['rate'] = tax_rate
           taxes.append(new_tax)
-          result = db.natapos.update_one({'config': 'global'}, {'$set': {'taxes': taxes}})
+          result = db.natapos.update_one({'type': 'global_config'}, {'$set': {'taxes': taxes}})
     elif request.form['function'] == 'delete_tax':
       if request.form['tax_id'].casefold() == 'exempt':
         message = 'cannot delete exempt'
       else:
-        result = db.natapos.update_one({'config': 'global'}, {'$pullAll': {'taxes': [{'tax_id': request.form['tax_id'], 'rate': float(request.form['rate'])}]}})
+        result = db.natapos.update_one({'type': 'global_config'}, {'$pullAll': {'taxes': [{'tax_id': request.form['tax_id'], 'rate': float(request.form['rate'])}]}})
     elif request.form['function'] == 'change_tax_rate':
       if is_valid_percent(request.form['rate']) == False:
         message = 'invalid tax rate'
@@ -204,19 +204,19 @@ def global_config():
               new_taxes.append({'tax_id': request.form['tax_id'], 'rate': new_rate})
             else:
               new_taxes.append(i)
-          result = db.natapos.update_one({'config': 'global'}, {'$set': {'taxes': new_taxes}})
+          result = db.natapos.update_one({'type': 'global_config'}, {'$set': {'taxes': new_taxes}})
 
     elif request.form['function'] == 'change_phone':
       if is_valid_string(request.form['phone']) == True:
-        db.natapos.update_one({'config': 'global'}, {'$set': {'phone': request.form['phone']}})
+        db.natapos.update_one({'type': 'global_config'}, {'$set': {'phone': request.form['phone']}})
       else:
         message = 'invalid phone number'
     elif request.form['function'] == 'change_address':
       if is_valid_string(request.form['address']) == True:
-        db.natapos.update_one({'config': 'global'}, {'$set': {'address': request.form['address']}})
+        db.natapos.update_one({'type': 'global_config'}, {'$set': {'address': request.form['address']}})
       else:
         message = 'invalid address'
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
   employee_discount = str(round((config['employee_discount'] * 100), 5))
   employee_discount = employee_discount + '%'
   return render_template('global_config.html', instance_name=config['instance_name'], assets_url=assets_url, current_pay_period_start=config['current_pay_period_start'], employee_discount=employee_discount, message=message, taxes=config['taxes'], default_taxes=config['default_taxes'], phone=config['phone'], address=config['address'])
@@ -225,7 +225,7 @@ def global_config():
 @app.route('/', methods=['POST', 'GET'])
 def landing():
   message = ''
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   session_key = request.cookies.get('natapos_session_key')
   if request.method == 'GET':
     try:
@@ -255,7 +255,7 @@ def landing():
     if request.form['function'] == 'clock_in':
       while config['timesheets_locked'] == True:
         time.sleep(1)
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
 
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': result['username'], 'pay_period': 'current'})
@@ -266,7 +266,7 @@ def landing():
     if request.form['function'] == 'clock_out':
       while config['timesheets_locked'] == True:
         time.sleep(1)
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
       current_time = int(round(time.time()))
       timesheet = db.timesheets.find_one({'username': result['username'], 'pay_period': 'current'})
       if timesheet is not None:
@@ -316,7 +316,7 @@ def admin():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/admin/')
@@ -325,7 +325,7 @@ def admin():
 
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -367,7 +367,7 @@ def edit_item_scan_search():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/edit_item/')
@@ -376,7 +376,7 @@ def edit_item_scan_search():
   result = validate_session_key(db, session_key)
   message = None
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url,)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -395,7 +395,7 @@ def edit_item_scan_search():
 @app.route('/edit_item/<item_id>/', methods=['POST', 'GET'])
 def edit_item(item_id):
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
 
@@ -871,7 +871,7 @@ def edit_item(item_id):
 @app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
 def create_item(item_id):
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
 
@@ -943,7 +943,7 @@ def supplier_management():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/supplier_management/')
@@ -951,7 +951,7 @@ def supplier_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
@@ -1070,7 +1070,7 @@ def department_list():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/department_list/')
@@ -1078,7 +1078,7 @@ def department_list():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
@@ -1104,7 +1104,7 @@ def department_list():
       elif request.form['department_id'] in department_list:
         message = "Department already exists"
       else:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'default_margin': 0.3, 'default_food_item': True, 'default_ebt_eligible': True, 'default_taxes': config['default_taxes'], 'default_employee_discount': config['employee_discount']})
 
   return render_template('department_list.html', assets_url=assets_url, message=message, department_list=get_department_list(db))
@@ -1113,7 +1113,7 @@ def department_list():
 @app.route('/department_management/<department_id>/', methods=['POST', 'GET'])
 def department_management(department_id):
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  config = db.natapos.find_one({'type': 'global_config'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
@@ -1220,7 +1220,7 @@ def category_management(department_id, category_id):
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/category_management/'+ department_id + '/' + category_id + '/')
@@ -1228,7 +1228,7 @@ def category_management(department_id, category_id):
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
@@ -1285,7 +1285,7 @@ def brand_management():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/brand_management/')
@@ -1293,7 +1293,7 @@ def brand_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
@@ -1365,7 +1365,7 @@ def employee_management():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/employee_management/')
@@ -1373,7 +1373,7 @@ def employee_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
@@ -1519,6 +1519,8 @@ def employee_management():
             new_permissions.append('employee_management')
           if request.form['shrink'] == 'true':
             new_permissions.append('shrink')
+          if request.form['hardware'] == 'true':
+            new_permissions.append('hardware')
         db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'permissions': new_permissions}})
         return render_template('employee_permissions_div.html',permissions=employee_info['permissions'], new_permissions=new_permissions, username=request.form['username'])
       if success == True:
@@ -1549,7 +1551,7 @@ def import_data():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/import_data/')
@@ -1558,7 +1560,7 @@ def import_data():
 
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
   if 'superuser' not in employee_info['permissions'] and 'inventory_management' not in employee_info['permissions']:
@@ -1593,7 +1595,7 @@ def import_unfi_allbid():
       login_check = {}
       login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/import_unfi_allbid/')
@@ -1602,7 +1604,7 @@ def import_unfi_allbid():
 
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url) 
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
@@ -1725,7 +1727,7 @@ def hardware():
       login_check = {}
       login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
-        config = db.natapos.find_one({'config': 'global'})
+        config = db.natapos.find_one({'type': 'global_config'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/hardware/')
@@ -1733,7 +1735,7 @@ def hardware():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
-    config = db.natapos.find_one({'config': 'global'})
+    config = db.natapos.find_one({'type': 'global_config'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
   if 'hardware' not in employee_info['permissions'] and 'superuser' not in employee_info['permissions']:

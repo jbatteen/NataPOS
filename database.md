@@ -1,5 +1,9 @@
+If it's in the 'working' category, it has a page that uses it that is user configurable to the extent sensible and allowable.  It might not be done and perfect but it works.  These schema are still subject to change but will probably keep looking more or less like they do.
+
+If it's in the 'todo' category, it's all ideas and hypotheticals and will probably end up looking different once the specifics of implementation become clear.
+
 # Working
-## natapos
+## global_config (natapos collection, 'type': 'global_config')
 - 'instance_name': str (the business name to display)
 - 'current_pay_period_start': str (MM/DD/YY) defaults to starting on the most recent sunday on instance spinup
 - 'timesheets_locked': bool (used to lock the timesheets to perform pay period rollover safely wrt clocking in/out)
@@ -103,7 +107,7 @@
 - 'status': str (current, former, other?)
 - 'permissions': list of str (permission names the user does/doesn't have)
 
-### permissions:
+### available permissions:
 - 'superuser': all permissions
 - 'employee_management': add/modify users
 - 'inventory_management': add/remove/modify items in inventory

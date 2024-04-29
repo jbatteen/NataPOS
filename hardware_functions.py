@@ -24,8 +24,6 @@ def print_shelf_tag(db, item_id='', hardware_id=''):
   label.write_text(item['brand'], char_height=5, char_width=3, line_width=25, justification='L')
   label.endorigin()
 
-
-
   label.origin(3, 20)
   if item['local'] == True:
     label.write_text('Local', char_height=6, char_width=3, line_width=16, justification='L')
@@ -39,10 +37,7 @@ def print_shelf_tag(db, item_id='', hardware_id=''):
       label.write_text('Conventional', char_height=6, char_width=3, line_width=20, justification='L')
     label.endorigin()
 
-
-
   price = float_to_price(item['regular_price'])
-
   label.origin(25, 10)
   if len(price) <= 5:
     label.write_text(price, char_height=12, char_width=12, line_width=35, justification='L')
@@ -60,7 +55,6 @@ def print_shelf_tag(db, item_id='', hardware_id=''):
   label.write_text(item['department'][:15], char_height=4, char_width=3, line_width=27, justification='C')
   label.endorigin()
 
-
   today = date.today()
   today_string = today.strftime('%m/%d/%y')
   label.origin(30, 22)
@@ -77,7 +71,6 @@ def print_shelf_tag(db, item_id='', hardware_id=''):
   if item['unit'] == 'gallon':
     label.write_text('/gal', char_height=5, char_width=3, line_width=10, justification='L')
   
-
   printer_document = db.natapos.find_one({'type': 'hardware', 'hardware_id': hardware_id})
 
   mysocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
