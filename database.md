@@ -17,7 +17,7 @@ If it's in the 'todo' category, it's all ideas and hypotheticals and will probab
 - 'session_key': str (40 random alphanumeric characters)
 - 'time_stamp': last activity, in seconds after the epoch
 - 'username': str (username of the employee logged in)
-- 'source_ip': str (location_id where the employee is logged in, or 'external')
+- 'source_ip': str (ip user logged in from)
 - 'last_shelf_tag_printer': str (hardware_id of last shelf tag printer used)
 
 ## timesheets
