@@ -14,6 +14,7 @@
 - 'time_stamp': last activity, in seconds after the epoch
 - 'username': str (username of the employee logged in)
 - 'source_ip': str (location_id where the employee is logged in, or 'external')
+- 'last_shelf_tag_printer': str (hardware_id of last shelf tag printer used)
 
 ## timesheets
 - 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit)
@@ -122,7 +123,7 @@
 - 'case_cost': float (cost per case)
 - 'suggested_retail_price': str (UNFI suggested retail price)
 
-## allbid_upload (inventory_management collection, 'type': 'allbid_upload'
+## allbid_upload (inventory_management collection, 'type': 'allbid_upload')
 - 'processing_time': float (seconds)
 - 'complete': bool (processing complete)
 - 'items_processed': int (items in the allbid)
@@ -131,13 +132,13 @@
 - 'changed_prices': int
 - 'deleted_items': int
 
-# to do
-
-## hardware
+## hardware (natapos collection, 'type': 'hardware')
 - 'hardware_id': str (unique identifier for hardware eg 'pax s300 card reader sn9789')
-- 'type': str ('card_reader', 'receipt_printer', 'label_printer' )
+- 'hardware_type': str ('shelf_tag_printer', 'card_reader', 'receipt_printer', 'label_printer' )
 - 'driver': str('zebra', 'pax_s300')
-- 'ip_address': str ('192.168.1.159')
+- 'location': str ('192.168.1.159' or 'http://192.168.1.159:8080/')
+
+# to do
 
 ## registers
 - 'register_id': str (unique identifier)
@@ -191,8 +192,6 @@
   - 'coupons_applied': str (coupon UPCs, in a list if multiple)
   - 'override_price': float (if  the cashier overrode the calculated price, include this as well)
 
-## receipt printing/emailing
-
 ## coupons
 - 'coupon_id': str (UPC)
 - 'name': str (human readable display name, goes on screen & receipt)
@@ -207,5 +206,7 @@
 ## discounts
 - 'discount_id' str ('senior', 'member')
 - 'value': float (percent off)
-- 'eligibility': '
+- 'eligibility': 
+
+## receipt printing/emailing
 

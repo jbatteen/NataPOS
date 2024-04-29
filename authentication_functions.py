@@ -30,7 +30,7 @@ def validate_login(db, username, password, source_ip):
 
       session_key = ''.join(random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") for _ in range(40))
       time_int = int(round(time.time()))
-      db.session_keys.insert_one({'session_key': session_key, 'time_stamp': time_int, 'username': username, 'source_ip': source_ip})
+      db.session_keys.insert_one({'session_key': session_key, 'time_stamp': time_int, 'username': username, 'source_ip': source_ip, 'last_shelf_tag_printer': ''})
       return {'success': True, 'session_key': session_key}
     else:
       return {'success': False, 'error': 'wrong password'}
@@ -45,13 +45,13 @@ def validate_session_key(db, session_key):
     current_time = int(round(time.time()))
     if current_time - document['time_stamp'] < 3600:
       db.session_keys.update_one({'session_key': session_key}, {'$set': {'time_stamp': current_time}})
-      return({'success': True, 'username': document['username']})
+      return({'success': True, 'username': document['username'], 'last_shelf_tag_printer': document['last_shelf_tag_printer']})
     else:
       db.session_keys.delete_one({'session_key': session_key})
       return({'success': False})
   else:
     return({'success': False})
-  
+
 
 def end_session(db, session_key):
   db.session_keys.delete_one({'session_key': session_key})

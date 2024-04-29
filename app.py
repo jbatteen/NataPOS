@@ -15,9 +15,9 @@ from pymongo.mongo_client import MongoClient
 from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user, get_employee_collection
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price, float_to_percent
-from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list, print_shelf_tag
-
+from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file, is_valid_ip_address
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list
+from hardware_functions import get_shelf_tag_printer_collection, get_shelf_tag_printer_list, print_shelf_tag
 
 # open db
 try:
@@ -40,34 +40,29 @@ app.config['UPLOAD_FOLDER'] = '/var/www/NataPOS/uploads'
 @app.route('/create_first_user', methods=['POST', 'GET'])
 def create_first_user():
   config = db.natapos.find_one({'config': 'global'})
-  instance_name = config['instance_name']
   if request.method == 'POST':
     if request.form['function'] == 'create_first_user': # create first user form submitted
       try: # if employees collection exists
         db.validate_collection("employees")
       except: # if it doesn't which it shouldn't
-        username = request.form['username']
-        password = request.form['password']
-        password2 = request.form['password2']
-        if username == '':
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: blank username")
-        if is_valid_username(username) == False:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: Invalid username. Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"")
-        if password != password2:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: passwords didn't match")
-        elif password == '':
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message="Error: blank password")
+        if request.form['username'] == '':
+          return render_template('create_first_user.html', instance_name=config['instance_name'], assets_url=assets_url, message="Error: blank username")
+        if is_valid_username(request.form['username']) == False:
+          return render_template('create_first_user.html', instance_name=config['instance_name'], assets_url=assets_url, message="Error: Invalid username. Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"")
+        if request.form['password'] != request.form['password2']:
+          return render_template('create_first_user.html', instance_name=config['instance_name'], assets_url=assets_url, message="Error: passwords didn't match")
+        elif request.form['password'] == '':
+          return render_template('create_first_user.html', instance_name=config['instance_name'], assets_url=assets_url, message="Error: blank password")
 
-        instance_name = request.form['instance_name']
-        if len(instance_name) < 4:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: Instance name must be 4 characters or more')
+        if len(request.form['instance_name']) < 4:
+          return render_template('create_first_user.html', instance_name=request.form['instance_name'], assets_url=assets_url, message='Error: Instance name must be 4 characters or more')
         else:
           if is_valid_string(request.form['instance_name']) == False:
-            return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')
+            return render_template('create_first_user.html', instance_name=request.form['instance_name'], assets_url=assets_url, message='Error: invalid name.  Allowed characters: \"A-Z\", \"a-z\", \"0-9\", \" .,()-+\"')
        
-        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': instance_name}})
+        db.natapos.update_one({'config': 'global'}, {'$set': {'instance_name': request.form['instance_name']}})
         creation_check = {}
-        creation_check = create_user(db, username, password, ['superuser'], '', '', '', '', '', '', '')
+        creation_check = create_user(db, request.form['username'], request.form['password'], ['superuser'], '', '', '', '', '', '', '')
         if creation_check['success'] == True:
           result = {}
 
@@ -76,19 +71,19 @@ def create_first_user():
             source_ip = request.environ['REMOTE_ADDR']
           else:
             source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-          result = validate_login(db, username=username, password=password, source_ip=source_ip)
+          result = validate_login(db, username=request.form['username'], password=request.form['password'], source_ip=source_ip)
           if result['success'] == True:
             response = redirect('/global_config/')
             response.set_cookie('natapos_session_key', result['session_key'])
             return response
           else:
-            return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message='validation error')
+            return render_template('create_first_user.html', instance_name=request.form['instance_name'], assets_url=assets_url, message='validation error')
         else:
-          return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url, message=creation_check['error'])
+          return render_template('create_first_user.html', instance_name=request.form['instance_name'], assets_url=assets_url, message=creation_check['error'])
       else: # if it does exist and someone called this page anyway
         return('nice try') # someone spoofed
   else:
-    return render_template('create_first_user.html', instance_name=instance_name, assets_url=assets_url)
+    return render_template('create_first_user.html', instance_name=config['instance_name'], assets_url=assets_url)
 
 @app.route('/global_config/', methods=['POST', 'GET'])
 def global_config():
@@ -97,8 +92,6 @@ def global_config():
   config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
 
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
@@ -106,7 +99,7 @@ def global_config():
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -118,11 +111,8 @@ def global_config():
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions']:
     return redirect('/')
   
   if request.method == 'POST':
@@ -230,7 +220,7 @@ def global_config():
     config = db.natapos.find_one({'config': 'global'})
   employee_discount = str(round((config['employee_discount'] * 100), 5))
   employee_discount = employee_discount + '%'
-  return render_template('global_config.html', instance_name=config['instance_name'], assets_url=assets_url, session_key=session_key, current_pay_period_start=config['current_pay_period_start'], employee_discount=employee_discount, message=message, taxes=config['taxes'], default_taxes=config['default_taxes'], phone=config['phone'], address=config['address'])
+  return render_template('global_config.html', instance_name=config['instance_name'], assets_url=assets_url, current_pay_period_start=config['current_pay_period_start'], employee_discount=employee_discount, message=message, taxes=config['taxes'], default_taxes=config['default_taxes'], phone=config['phone'], address=config['address'])
     
 
 @app.route('/', methods=['POST', 'GET'])
@@ -243,19 +233,14 @@ def landing():
       db.validate_collection("employees")
     except:
       return redirect('/create_first_user')
-  if request.method == 'POST':
-    
+  if request.method == 'POST':    
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False: # invalid combo, send back to main page
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -267,7 +252,6 @@ def landing():
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   
-  username = result['username']
   if request.method == 'POST':
     if request.form['function'] == 'clock_in':
       while config['timesheets_locked'] == True:
@@ -275,21 +259,21 @@ def landing():
         config = db.natapos.find_one({'config': 'global'})
 
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+      timesheet = db.timesheets.find_one({'username': result['username'], 'pay_period': 'current'})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'in'}})
+        db.timesheets.update_one({'username': result['username'], 'pay_period': 'current'}, {'$set': {str(current_time): 'in'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': 'current', str(current_time): 'in'})
+        db.timesheets.insert_one({'username': result['username'], 'pay_period': 'current', str(current_time): 'in'})
     if request.form['function'] == 'clock_out':
       while config['timesheets_locked'] == True:
         time.sleep(1)
         config = db.natapos.find_one({'config': 'global'})
       current_time = int(round(time.time()))
-      timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+      timesheet = db.timesheets.find_one({'username': result['username'], 'pay_period': 'current'})
       if timesheet is not None:
-        db.timesheets.update_one({'username': username, 'pay_period': 'current'}, {'$set': {str(current_time): 'out'}})
+        db.timesheets.update_one({'username': result['username'], 'pay_period': 'current'}, {'$set': {str(current_time): 'out'}})
       else:
-        db.timesheets.insert_one({'username': username, 'pay_period': 'current', str(current_time): 'out'})
+        db.timesheets.insert_one({'username': result['username'], 'pay_period': 'current', str(current_time): 'out'})
     if request.form['function'] == 'open_register':
       return 'open register'
     if request.form['function'] == 'admin':
@@ -297,9 +281,9 @@ def landing():
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
       return redirect('/')
-  employee_document = db.employees.find_one({'type': 'user', 'username': username})
+  employee_document = db.employees.find_one({'type': 'user', 'username': result['username']})
   message = employee_document['login_message']
-  timesheet = db.timesheets.find_one({'username': username, 'pay_period': 'current'})
+  timesheet = db.timesheets.find_one({'username': result['username'], 'pay_period': 'current'})
   if timesheet is not None:
     del timesheet['username']
     del timesheet['_id']
@@ -319,25 +303,21 @@ def landing():
     message = message + '<br/><br/>First day on this pay period'
   
 
-  return render_template('landing.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, message=message)
+  return render_template('landing.html', instance_name=config['instance_name'], assets_url=assets_url, username=result['username'], message=message)
 
 @app.route('/admin/', methods=['POST', 'GET'])
 def admin():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/admin/')
@@ -345,9 +325,9 @@ def admin():
         return response
 
   result = validate_session_key(db, session_key)
-  if result['success'] == False:    
+  if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  username = result['username']
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -360,6 +340,8 @@ def admin():
       return redirect('/edit_item/')
     elif request.form['function'] == 'employee_management':
       return redirect('/employee_management/')
+    elif request.form['function'] == 'hardware':
+      return redirect('/hardware/')
     elif request.form['function'] == 'global_config':
       return redirect('/global_config/')
     elif request.form['function'] == 'supplier_management':
@@ -370,31 +352,23 @@ def admin():
       return redirect('/brand_management/')
     elif request.form['function'] == 'import_data':
       return redirect('/import_data/')
-  config = db.natapos.find_one({'config': 'global'})
-  instance_name = config['instance_name']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  return render_template('admin.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)  
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  return render_template('admin.html', assets_url=assets_url, permissions=employee_info['permissions'])  
 
 
 @app.route('/edit_item/', methods=['POST', 'GET'])
-def scan_search():
+def edit_item_scan_search():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/edit_item/')
@@ -403,13 +377,8 @@ def scan_search():
   result = validate_session_key(db, session_key)
   message = None
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url,)
-  instance_name = config['instance_name']
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  username = result['username']
-  permissions = []
-  permissions = employee_info['permissions']
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -422,7 +391,7 @@ def scan_search():
       return redirect('/admin/')
     elif request.form['function'] == 'scan':
       return redirect('/edit_item/' + request.form['scan'] + '/')
-  return render_template('scan_item.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message)
+  return render_template('scan_item.html', assets_url=assets_url, message=message)
 
 @app.route('/edit_item/<item_id>/', methods=['POST', 'GET'])
 def edit_item(item_id):
@@ -430,8 +399,6 @@ def edit_item(item_id):
   config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
 
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
@@ -439,7 +406,7 @@ def edit_item(item_id):
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -449,21 +416,13 @@ def edit_item(item_id):
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  username = result['username']
-  supplier_list= []
-  cost_per = 0.0
-  suggested_margin = 0.0
-  supplier_list= get_supplier_list(db)
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'inventory_management' not in permissions and 'superuser' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'inventory_management' not in employee_info['permissions'] and 'superuser' not in employee_info['permissions']:
     return redirect('/')
   message = ''
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is None:
     return redirect('/create_item/' + item_id + '/')
-  item_group_list = get_item_group_list(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -487,6 +446,9 @@ def edit_item(item_id):
       scanned_item['taxes'].remove(request.form['tax_id'])
       db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
       return render_template('item_tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
+    elif request.form['function'] == 'print_shelf_tag':
+      db.session_keys.update_one({'session_key': session_key}, {'$set': {'last_shelf_tag_printer': request.form['hardware_id']}})
+      return make_response(jsonify(print_shelf_tag(db, item_id, request.form['hardware_id'])))
     elif request.form['function'] == 'add_tax':
       if request.form['tax_id'] == 'exempt':
         scanned_item['taxes'] = ['exempt']
@@ -497,6 +459,7 @@ def edit_item(item_id):
       db.inventory.update_one({'item_id': item_id}, {'$set': {'taxes': scanned_item['taxes']}})
       return render_template('item_tax_div.html', available_taxes=config['taxes'], scanned_item=scanned_item)
     elif request.form['function'] == 'create_item_group':
+      item_group_list = get_item_group_list(db)
       if is_valid_string(request.form['item_group_id']) == False:
         message = 'invalid group name'
       elif request.form['item_group_id'] in item_group_list:
@@ -504,7 +467,6 @@ def edit_item(item_id):
       else:
         itemlist = []
         itemlist.append(item_id)
-
         for group in scanned_item['item_groups']:
           item_group_list.remove(group)
         db.inventory_management.insert_one({'type': 'item_group', 'item_group_id': request.form['item_group_id'], 'items': itemlist})
@@ -517,7 +479,7 @@ def edit_item(item_id):
       document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
       document['items'].remove(item_id)
       db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': document['items']}})
-      
+      item_group_list = get_item_group_list(db)
       for group in scanned_item['item_groups']:
         item_group_list.remove(group)
       return render_template('item_group_div.html', item_group_list=item_group_list, scanned_item=scanned_item)
@@ -527,6 +489,7 @@ def edit_item(item_id):
       document = db.inventory_management.find_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']})
       document['items'].append(item_id)
       db.inventory_management.update_one({'type': 'item_group', 'item_group_id': request.form['item_group_id']}, {'$set': {'items': document['items']}})
+      item_group_list = get_item_group_list(db)
       for group in scanned_item['item_groups']:
         item_group_list.remove(group)
       return render_template('item_group_div.html', item_group_list=item_group_list, scanned_item=scanned_item)
@@ -556,7 +519,7 @@ def edit_item(item_id):
             department_collection = db.inventory_management.find_one({'type': 'department', 'department_id': scanned_item['department']})
             for category in department_collection['categories']:
               if scanned_item['category'] == category['category_id']:
-                return render_template('subcategory_div.html', subcategories=category['subcategories'])
+                return render_template('item_subcategory_div.html', subcategories=category['subcategories'])
       elif request.form['property'] == 'categories':
         if scanned_item['department'] == '':
           return render_template('item_category_div.html', categories=[])
@@ -882,7 +845,7 @@ def edit_item(item_id):
         return make_response(jsonify({'success': success, 'beautified': beautified}))
       else:
         return make_response(jsonify({'success': success, 'message': message}))
-
+  item_group_list = get_item_group_list(db)
   for group in scanned_item['item_groups']:
     item_group_list.remove(group)
   scanned_item = beautify_item(db, scanned_item)
@@ -896,12 +859,15 @@ def edit_item(item_id):
       categories.append(category['category_id'])
       if scanned_item['category'] == category['category_id']:
         subcategories = category['subcategories']
-        
-
-
-
-
-  return render_template('edit_item.html',  departments=get_department_list(db), categories=categories, subcategories=subcategories, instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scanned_item=scanned_item, supplier_list=supplier_list, item_group_list=item_group_list, permissions=permissions, cost_per=cost_per, suggested_margin=suggested_margin, message=message, brands=get_brand_list(db), available_taxes=config['taxes'], item_id=item_id)
+  shelf_tag_printer_list = get_shelf_tag_printer_list(db)
+  if result['last_shelf_tag_printer'] != '' and result['last_shelf_tag_printer'] in shelf_tag_printer_list:
+    new_shelf_tag_printer_list = []
+    new_shelf_tag_printer_list.append(result['last_shelf_tag_printer'])
+    for printer in shelf_tag_printer_list:
+      if printer != result['last_shelf_tag_printer']:
+        new_shelf_tag_printer_list.append(printer)
+    shelf_tag_printer_list = new_shelf_tag_printer_list
+  return render_template('edit_item.html',  departments=get_department_list(db), categories=categories, subcategories=subcategories, assets_url=assets_url, scanned_item=scanned_item, supplier_list=get_supplier_list(db), item_group_list=item_group_list, permissions=employee_info['permissions'], message=message, brands=get_brand_list(db), available_taxes=config['taxes'], item_id=item_id, shelf_tag_printers=shelf_tag_printer_list)
 
 @app.route('/create_item/<item_id>/', methods=['POST', 'GET'])
 def create_item(item_id):
@@ -909,8 +875,6 @@ def create_item(item_id):
   config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
 
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
@@ -918,7 +882,7 @@ def create_item(item_id):
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -928,11 +892,8 @@ def create_item(item_id):
   result = validate_session_key(db, session_key)
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'inventory_management' not in permissions and 'superuser' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'inventory_management' not in employee_info['permissions'] and 'superuser' not in employee_info['permissions']:
     return redirect('/')
   scanned_item = db.inventory.find_one({'item_id' : item_id})
   if scanned_item is not None:
@@ -968,25 +929,22 @@ def create_item(item_id):
   allbid_document = db.allbid.find_one({'item_id': item_id})
   if allbid_document != None:
     in_allbid = True
-  return render_template('create_new_item.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, scan=item_id, supplier_list=get_supplier_list(db), department_list=get_department_list(db), permissions=employee_info['permissions'], in_allbid=in_allbid)   
+  return render_template('create_new_item.html', assets_url=assets_url, scan=item_id, supplier_list=get_supplier_list(db), department_list=get_department_list(db), in_allbid=in_allbid)   
 
 @app.route('/supplier_management/', methods=['POST', 'GET'])
 def supplier_management():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/supplier_management/')
@@ -994,13 +952,11 @@ def supplier_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'suppliers_departments_brands' not in employee_info['permissions']:
     return redirect('/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1097,27 +1053,25 @@ def supplier_management():
         return make_response(jsonify({'success': success, 'beautified': beautified}))
       else:
         return make_response(jsonify({'success': success, 'message': message}))
-  return render_template('supplier_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, suppliers_collection=get_supplier_collection(db), message=message)
+  return render_template('supplier_management.html',  assets_url=assets_url, permissions=employee_info['permissions'], suppliers_collection=get_supplier_collection(db), message=message)
 
 
 
 @app.route('/department_list/', methods=['POST', 'GET'])
 def department_list():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/department_list/')
@@ -1125,15 +1079,12 @@ def department_list():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'suppliers_departments_brands' not in employee_info['permissions']:
     return redirect('/')
-  department_list = get_department_list(db)
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -1154,9 +1105,10 @@ def department_list():
       elif request.form['department_id'] in department_list:
         message = "Department already exists"
       else:
+        config = db.natapos.find_one({'config': 'global'})
         db.inventory_management.insert_one({'type': 'department', 'department_id': request.form['department_id'], 'categories': [], 'default_margin': 0.3, 'default_food_item': True, 'default_ebt_eligible': True, 'default_taxes': config['default_taxes'], 'default_employee_discount': config['employee_discount']})
-        department_list = get_department_list(db)
-  return render_template('department_list.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, department_list=department_list)
+
+  return render_template('department_list.html', assets_url=assets_url, message=message, department_list=get_department_list(db))
 
 
 @app.route('/department_management/<department_id>/', methods=['POST', 'GET'])
@@ -1165,16 +1117,12 @@ def department_management(department_id):
   config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
-        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
@@ -1185,16 +1133,10 @@ def department_management(department_id):
   if result['success'] == False:
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  instance_name = config['instance_name']
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'suppliers_departments_brands' not in employee_info['permissions']:
     return redirect('/')
   
-  selected_category = ''
-  selected_subcategory = ''
   categories_list = []
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1261,36 +1203,25 @@ def department_management(department_id):
       else:
         db.inventory_management.update_one({'type': 'department', 'department_id': request.form['department_id']}, {'$push': {'categories': {'category_id': request.form['category_id'], 'subcategories': []}}})
 
-
-
-  department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
   
 
-
-
-
-
-  return render_template('department_management.html', department_document=department_document, selected_category=selected_category, selected_subcategory=selected_subcategory, categories_list=department_document['categories'], instance_name=instance_name, assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, message=message, taxes=config['taxes'])
+  return render_template('department_management.html', department_document=db.inventory_management.find_one({'type': 'department', 'department_id': department_id}), assets_url=assets_url, message=message, taxes=config['taxes'])
 
 
 
 @app.route('/category_management/<department_id>/<category_id>/', methods=['POST', 'GET'])
 def category_management(department_id, category_id):
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/category_management/'+ department_id + '/' + category_id + '/')
@@ -1298,14 +1229,11 @@ def category_management(department_id, category_id):
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  instance_name = config['instance_name']
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'suppliers_departments_brands' not in employee_info['permissions']:
     return redirect('/')
   subcategories = []
   department_document = db.inventory_management.find_one({'type': 'department', 'department_id': department_id})
@@ -1342,16 +1270,13 @@ def category_management(department_id, category_id):
             category['subcategories'] = subcategories
           new_categories.append(category)
         db.inventory_management.update_one({'type': 'department', 'department_id': department_id}, {'$set': {'categories': new_categories}})
-  return render_template('category_management.html', instance_name=instance_name, assets_url=assets_url, username=username, permissions=permissions, message=message, category_id=category_id, department_id=department_id, subcategories=subcategories)
+  return render_template('category_management.html', assets_url=assets_url, message=message, category_id=category_id, department_id=department_id, subcategories=subcategories)
 
 @app.route('/brand_management/', methods=['POST', 'GET'])
 def brand_management():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
 
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
@@ -1359,8 +1284,9 @@ def brand_management():
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/brand_management/')
@@ -1368,13 +1294,11 @@ def brand_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'suppliers_departments_brands' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'suppliers_departments_brands' not in employee_info['permissions']:
     return redirect('/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1425,27 +1349,24 @@ def brand_management():
         return make_response(jsonify({'success': success, 'beautified': beautified}))
       else:
         return make_response(jsonify({'success': success, 'message': message}))
-  return render_template('brand_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, supplier_list=get_supplier_list(db), session_key=session_key, permissions=permissions, message=message, brand_collection=get_brand_collection(db))
+  return render_template('brand_management.html', assets_url=assets_url, supplier_list=get_supplier_list(db), message=message, brand_collection=get_brand_collection(db))
 
 
 
 @app.route('/employee_management/', methods=['POST', 'GET'])
 def employee_management():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
-
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
       else:
-        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
-  
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']  
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response =  redirect('/employee_management/')
@@ -1453,13 +1374,11 @@ def employee_management():
         return response
   result = validate_session_key(db, session_key)
   if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
   message = None
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'employee_management' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'employee_management' not in employee_info['permissions']:
     return redirect('/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1589,7 +1508,7 @@ def employee_management():
           db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'password': hash}})
           return make_response(jsonify({'success': True}))
       elif request.form['property'] == 'permissions':
-        if 'superuser' in permissions and request.form['superuser'] == 'true':
+        if 'superuser' in employee_info['permissions'] and request.form['superuser'] == 'true':
           new_permissions = ['superuser']      
         else:
           new_permissions = []
@@ -1602,29 +1521,26 @@ def employee_management():
           if request.form['shrink'] == 'true':
             new_permissions.append('shrink')
         db.employees.update_one({'type': 'user', 'username': request.form['username']}, {'$set': {'permissions': new_permissions}})
-        return render_template('employee_permissions_div.html',permissions=permissions, new_permissions=new_permissions, username=request.form['username'])
+        return render_template('employee_permissions_div.html',permissions=employee_info['permissions'], new_permissions=new_permissions, username=request.form['username'])
       if success == True:
         return make_response(jsonify({'success': True, 'beautified': beautified}))
       else:
         return make_response(jsonify({'success': False, 'message': message}))
   employee_collection = get_employee_collection(db)
-  if 'superuser' not in permissions:
+  if 'superuser' not in employee_info['permissions']:
     new_employee_collection = []
     for employee in employee_collection:
       if 'superuser' not in employee['permissions']:
         new_employee_collection.append(employee)
     employee_collection = new_employee_collection
-  return render_template('employee_management.html', instance_name=config['instance_name'], assets_url=assets_url, username=username, session_key=session_key, permissions=permissions, employee_collection=employee_collection, message=message)
+  return render_template('employee_management.html', assets_url=assets_url, permissions=employee_info['permissions'], employee_collection=employee_collection, message=message)
 
 
 @app.route('/import_data/', methods=['POST', 'GET'])
 def import_data():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
   if request.method == 'POST':
     if request.form['function'] == 'login':
-      username = request.form['username']
-      password = request.form['password']
 
       if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         source_ip = request.environ['REMOTE_ADDR']
@@ -1632,8 +1548,9 @@ def import_data():
         source_ip = request.environ['HTTP_X_FORWARDED_FOR']
   
       login_check = {}
-      login_check = validate_login(db, username, password, source_ip)
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/import_data/')
@@ -1641,15 +1558,11 @@ def import_data():
         return response
 
   result = validate_session_key(db, session_key)
-  if result['success'] == False:    
+  if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
-  config = db.natapos.find_one({'config': 'global'})
-  instance_name = config['instance_name']
-  username = result['username']
-  employee_info = db.employees.find_one({'type': 'user', 'username': username})
-  permissions = []
-  permissions = employee_info['permissions']
-  if 'superuser' not in permissions and 'inventory_management' not in permissions:
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'superuser' not in employee_info['permissions'] and 'inventory_management' not in employee_info['permissions']:
     return redirect('/admin/')
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
@@ -1661,13 +1574,13 @@ def import_data():
       return redirect('/admin/')
     elif request.form['function'] == 'import_unfi_allbid':
       return redirect('/import_unfi_allbid/')
-  return render_template('import_data.html', instance_name=instance_name, assets_url=assets_url, username=result['username'], session_key=session_key, permissions=permissions)
+  return render_template('import_data.html', assets_url=assets_url)
 
 
 @app.route('/import_unfi_allbid/', methods=['POST', 'GET'])
 def import_unfi_allbid():
   session_key = request.cookies.get('natapos_session_key')
-  config = db.natapos.find_one({'config': 'global'})
+  
   if request.method == 'POST':
     if request.form['function'] == 'login':
       username = request.form['username']
@@ -1681,6 +1594,7 @@ def import_unfi_allbid():
       login_check = {}
       login_check = validate_login(db, username, password, source_ip)
       if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
         return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
       else:
         response = redirect('/import_unfi_allbid/')
@@ -1688,13 +1602,13 @@ def import_unfi_allbid():
         return response
 
   result = validate_session_key(db, session_key)
-  if result['success'] == False:    
+  if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
     return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url) 
   username = result['username']
   employee_info = db.employees.find_one({'type': 'user', 'username': username})
   if 'superuser' not in employee_info['permissions'] and 'inventory_management' not in employee_info['permissions']:
     return redirect('/admin/')
-  message = ''
   if request.method == 'POST':
     if request.form['function'] == 'log_out':
       db.session_keys.delete_one({'session_key': session_key})
@@ -1731,7 +1645,7 @@ def import_unfi_allbid():
           t = Thread(target=process_allbid, args=(complete_filename,))
           t.start()
           return make_response(jsonify({'success': True}))
-  return render_template('import_unfi_allbid.html', instance_name=config['instance_name'], assets_url=assets_url, username=result['username'], session_key=session_key, permissions=employee_info['permissions'], message=message)
+  return render_template('import_unfi_allbid.html', assets_url=assets_url)
 
 
 def process_allbid(filename):
@@ -1800,3 +1714,44 @@ def process_allbid(filename):
   
 
 
+@app.route('/hardware/', methods=['POST', 'GET'])
+def hardware():
+  session_key = request.cookies.get('natapos_session_key')  
+  if request.method == 'POST':
+    if request.form['function'] == 'login':
+      if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        source_ip = request.environ['REMOTE_ADDR']
+      else:
+        source_ip = request.environ['HTTP_X_FORWARDED_FOR']
+      login_check = {}
+      login_check = validate_login(db, request.form['username'], request.form['password'], source_ip)
+      if login_check['success'] == False:
+        config = db.natapos.find_one({'config': 'global'})
+        return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url, error=login_check['error'])
+      else:
+        response =  redirect('/hardware/')
+        response.set_cookie('natapos_session_key', login_check['session_key'])
+        return response
+  result = validate_session_key(db, session_key)
+  if result['success'] == False:
+    config = db.natapos.find_one({'config': 'global'})
+    return render_template('login.html', instance_name=config['instance_name'], assets_url=assets_url)
+  employee_info = db.employees.find_one({'type': 'user', 'username': result['username']})
+  if 'hardware' not in employee_info['permissions'] and 'superuser' not in employee_info['permissions']:
+    return redirect('/')
+  if request.method == 'POST':
+    if request.form['function'] == 'log_out':
+      db.session_keys.delete_one({'session_key': session_key})
+      return redirect('/')
+    elif request.form['function'] == 'main_menu':
+      return redirect('/')
+    elif request.form['function'] == 'admin':
+      return redirect('/admin/')
+    elif request.form['function'] == 'add_shelf_tag_printer':
+      if is_valid_string(request.form['hardware_id']) == False:
+        return make_response(jsonify({'success': False, 'message': 'invalid name'}))
+      if is_valid_ip_address(request.form['location']) == False:
+        return make_response(jsonify({'success': False, 'message': 'invalid ip address'}))
+      db.natapos.insert_one({'type': 'hardware', 'hardware_id': request.form['hardware_id'], 'hardware_type': 'shelf_tag_printer', 'driver': request.form['driver'], 'location': request.form['location']})
+      return make_response(jsonify({'success': True, 'html': render_template('hardware_shelf_tag_printer_list.html', shelf_tag_printers=get_shelf_tag_printer_collection(db))}))
+  return render_template('hardware.html', assets_url=assets_url, shelf_tag_printers=get_shelf_tag_printer_collection(db))

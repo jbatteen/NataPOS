@@ -132,6 +132,22 @@
         .then(response => response.text())
         .then(text => document.getElementById("subcategory_input").innerHTML = text);
     }
+    function print_shelf_tag(hardware_id) {
+      var reply;
+      let data = new FormData();
+      data.append("function", "print_shelf_tag");
+      data.append("hardware_id", hardware_id);
+      return fetch("{{ url_for('edit_item', item_id=item_id) }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == false) {
+            alert(reply.message);
+          }
+        })
+    }
     function price_by_margin(new_data) {
       var reply;
       let data = new FormData();
@@ -394,14 +410,16 @@
     {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
     <div class="topbar">
       <form class="scanbar" method="post"><label>Scan:</label><input name="scan" type="text" class="wide" autofocus><input type="submit" name="function" value="scan" hidden /> </form>
-      <span>{% if scanned_item %}Barcode: {{ scanned_item['item_id'] }}{% else %}Scan Item{% endif %}</span>
-
+      <select class="shelf_tag_printer_chooser" id="hardware_id">
+        {% for printer in shelf_tag_printers %}
+        <option value="{{ printer }}">{{ printer }}</option>
+        {% endfor %}
+      </select>
+      <button onclick="print_shelf_tag(hardware_id.value)">Shelf Tag</button>
       {% if 'superuser' in permissions %}
-      <div style="text-align:right">
-        <form class="change" method="post">
-          <button class="change" type="submit" name="function" value="delete_item">Delete</button>
-        </form>
-      </div>
+      <form class="delete_item" method="post">
+        <button class="change" type="submit" name="function" value="delete_item">Delete</button>
+      </form>
       {% endif %}
     </div>
     {% if scanned_item %}

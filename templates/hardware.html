@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="icon" href="{{ assets_url }}/favicon.ico" sizes="16">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/common.css">
+  <link rel="stylesheet" href="{{ assets_url }}/stylesheets/hardware.css">
+  <title>Hardware</title>
+  <script>
+    function switch_value_input(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(input_id).focus();
+      }
+    }
+    function switch_value_input_div(property) {
+      var value_id = "";
+      value_id = property.concat("_value");
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(value_id).style.display == "none") {
+        document.getElementById(value_id).style.display = "grid";
+        document.getElementById(input_id).style.display = "none";
+      } else {
+        document.getElementById(value_id).style.display = "none";
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      }
+    }
+    function switch_visible(property) {
+      var input_id = "";
+      input_id = property.concat("_input");
+      var focus_id = "";
+      focus_id = property.concat("_focus");
+      if (document.getElementById(input_id).style.display != "grid") {
+        document.getElementById(input_id).style.display = "grid";
+        document.getElementById(focus_id).focus();
+      } else {
+        document.getElementById(input_id).style.display = "none";
+      }
+    }
+    function update_shelf_tag_printer(hardware_id, property, new_data, id_prefix) {
+      var input_id = ""
+      input_id = id_prefix.concat("_input")
+      var value_id = ""
+      value_id = id_prefix.concat("_value")
+      var reply;
+      let data = new FormData();
+      data.append("function", "update");
+      data.append("hardware_id", hardware_id);
+      data.append("property", property);
+      data.append("new_data", new_data);
+      return fetch("{{ url_for('hardware') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById(value_id).style.display = "grid";
+            document.getElementById(input_id).style.display = "none";
+            document.getElementById(value_id).innerText = reply.beautified;
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+    function add_shelf_tag_printer(hardware_id, driver, ip_address) {
+      var reply;
+      let data = new FormData();
+      data.append("function", "add_shelf_tag_printer");
+      data.append("hardware_id", hardware_id);
+      data.append("driver", driver);
+      data.append("location", ip_address);
+      return fetch("{{ url_for('hardware') }}", {"method": "POST", "body": data})
+        .then(res => res.json())
+        .then(data => {
+          reply = data;
+        })
+        .then(() => {
+          if (reply.success == true) {
+            document.getElementById("shelf_tag_printer_list").innerHTML = reply.html;
+          } else {
+            alert(reply.message);
+          }
+        })
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <img src="{{ assets_url }}/logo.png" class="sidebarlogo">
+    <form method="post" class="menu">
+      <button class="menu" type="submit" name="function" value="admin">Admin</button>
+      <button class="menu" type="submit" name="function" value="main_menu">Main Menu</button>
+      <button class="menu" type="submit" name="function" value="log_out">Log Out</button>
+    </form>
+  </div>
+  <div class="mainbody">
+    <h1>Hardware</h1>
+    {% if message %}<h3>{{ message|safe }}</h3>{% endif %}
+    <div class="hardware_types">
+      <div id="shelf_tag_printer_list" class="hardware_list">
+        <h3 class="hardware_header">Shelf Tag Printers</h3>
+        {% for printer in shelf_tag_printers %}
+        <div class="hardware">
+          <span>{{ printer['hardware_id'] }}</span>
+          <span id="shelf_tag_driver_{{ loop.index }}_value">{{ printer['driver'] }}</span>
+          <select class="edit_hardware" id="shelf_tag_driver_{{ loop.index }}_input">
+            <option value="zebra">Zebra</option>
+          </select>
+          <span id="shelf_tag_ip_{{ loop.index }}_value">{{ printer['location'] }}</span>
+          <input class="edit_hardware" type="text" title="Enter an IP" id="shelf_tag_ip_{{ loop.index }}_input">
+        </div>
+        {% endfor %}
+        <div class="new_hardware">
+          <label for="new_shelf_tag_printer_name">Name:</label><input type="text" title="Enter a name" id="new_shelf_tag_printer_name">
+          <label for="new_shelf_tag_printer_driver">Driver:</label>
+          <select id="new_shelf_tag_printer_driver">
+            <option value="zebra">Zebra</option>
+          </select>
+          <label for="new_shelf_tag_printer_ip">IP:</label><input type="text" title="Enter an IP" id="new_shelf_tag_printer_ip">
+          <button class="new_hardware" onclick="add_shelf_tag_printer(new_shelf_tag_printer_name.value, new_shelf_tag_printer_driver.value, new_shelf_tag_printer_ip.value)">Add Printer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

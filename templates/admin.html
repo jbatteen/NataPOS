@@ -31,6 +31,9 @@
       {% if 'employee_management' in permissions or 'superuser' in permissions %}
       <button class="function" type="submit" name="function" value="employee_management">Employees</button>
       {% endif %}
+      {% if 'hardware' in permissions or 'superuser' in permissions %}
+      <button class="function" type="submit" name="function" value="hardware">Hardware</button>
+      {% endif %}
       {% if 'superuser' in permissions %}
       <button class="function" type="submit" name="function" value="global_config">Global Config</button>
       {% endif %}

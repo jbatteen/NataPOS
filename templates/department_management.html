@@ -104,7 +104,7 @@
           <div class="category_button"><button type="submit" name="function" value="add_category">Add</button></div>
           <input type="hidden" name="department_id" value="{{ department_document['department_id'] }}">
         </form>
-        {% for category in categories_list %}
+        {% for category in department_document['categories'] %}
         <form method="post" class="category">
           <button class="category" type="submit" name="function" value="go_to_category">{{ category['category_id'] }}</button>
           <input type="hidden" name="category_id" value="{{ category['category_id'] }}">

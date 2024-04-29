@@ -3,7 +3,8 @@ form, div, span, select, label {
 }
 
 div.topbar {
-  grid-template-columns: 5fr 4fr 1fr;
+  grid-template-columns: 5fr 1fr 1fr 1fr 1fr;
+  grid-gap: 1vw;
   margin-bottom: 2vw;
 }
 div.property {

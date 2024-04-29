@@ -1,5 +1,6 @@
 import string
 from datetime import datetime, date, timedelta
+import ipaddress
 
 def is_valid_username(input_string=''):
   allowed = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890')
@@ -19,6 +20,13 @@ def is_valid_password(input_string=''):
     if i not in allowed:
       return False
   return True
+
+def is_valid_ip_address(inputstring=''):
+  try:
+    ip = ipaddress.ip_address(inputstring)
+    return True
+  except:
+    return False
 
 def is_valid_price(input_string=''):
   if len(input_string) == 0:

@@ -1,0 +1,22 @@
+
+<h3 class="hardware_header">Shelf Tag Printers</h3>
+{% for printer in shelf_tag_printers %}
+<div class="hardware">
+  <span>{{ printer['hardware_id'] }}</span>
+  <span id="shelf_tag_driver_{{ loop.index }}_value">{{ printer['driver'] }}</span>
+  <select class="edit_hardware" id="shelf_tag_driver_{{ loop.index }}_input">
+    <option value="zebra">Zebra</option>
+  </select>
+  <span id="shelf_tag_ip_{{ loop.index }}_value">{{ printer['location'] }}</span>
+  <input class="edit_hardware" type="text" title="Enter an IP" id="shelf_tag_ip_{{ loop.index }}_input">
+</div>
+{% endfor %}
+<div class="new_hardware">
+  <label for="new_shelf_tag_printer_name">Name:</label><input type="text" title="Enter a name" id="new_shelf_tag_printer_name">
+  <label for="new_shelf_tag_printer_driver">Driver:</label>
+  <select id="new_shelf_tag_printer_driver">
+    <option value="zebra">Zebra</option>
+  </select>
+  <label for="new_shelf_tag_printer_ip">IP:</label><input type="text" title="Enter an IP" id="new_shelf_tag_printer_ip">
+  <button class="new_hardware" onclick="add_shelf_tag_printer(new_shelf_tag_printer_name.value, new_shelf_tag_printer_driver.value, new_shelf_tag_printer_ip.value)">Add Printer</button>
+</div>

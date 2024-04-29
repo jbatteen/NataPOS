@@ -1,0 +1,35 @@
+div.hardware_types {
+  grid-template-columns: 1fr 1fr;
+}
+div.hardware_list {
+  border-width: 1px;
+  border-style: solid;
+}
+div.hardware {
+  grid-template-columns: 1fr 1fr 1fr;
+  border-width: 1px;
+  border-style: solid;
+}
+div.new_hardware {
+  grid-template-columns: 1fr 3fr;
+  border-width: 1px;
+  border-style: solid;
+}
+button.new_hardware {
+  grid-column: 1 / span 2;
+  width: fit-content;
+  margin: auto;
+}
+div.edit_hardware {
+  display: none;
+}
+label {
+  text-align: right;
+  margin-right: 1vw;
+}
+input.edit_hardware {
+  display: none;
+}
+select.edit_hardware {
+  display: none;
+}
