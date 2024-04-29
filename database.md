@@ -17,7 +17,7 @@
 - 'last_shelf_tag_printer': str (hardware_id of last shelf tag printer used)
 
 ## timesheets
-- 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit)
+- 'pay_period': str('current' or 'MMDDYY-MMDDYY' once rolled over by the nightly audit at end of pay period)
 - 'username': str (username)
 - str (YYMMDDHHMMSS timestamp): str ('in', 'out')
 
@@ -60,7 +60,7 @@
 - 'item_location': str (location of item in store eg aisle 5)
 - 'backstock_location': str (location of backstock in store eg dry storage)
 - 'last_sold': str(MMDDYY)
-- 'active': bool(to keep buying or not)
+- 'active': bool (to keep buying or not)
 - 'taxes': list of [str(tax_id)] this item gets charged
 
 ## suppliers  (inventory_management collection,  'type': 'supplier')
@@ -74,7 +74,6 @@
 ## item_groups (inventory_management collection, 'type': 'item_group')
 - 'item_group_id': str (unique group identifier)
 - 'items': list of str (item_id)
-
 
 ## departments  (inventory_management collection,  'type': 'department')
 - 'department_id': str (unique identifier for department)
@@ -138,30 +137,24 @@
 - 'driver': str('zebra', 'pax_s300')
 - 'location': str ('192.168.1.159' or 'http://192.168.1.159:8080/')
 
-# to do
+# to do (everything in this section is tentative and will almost certainly be modified as it is implemented)
 
 ## registers
 - 'register_id': str (unique identifier)
-- 'location': str (location_identifier)
 - 'current_transaction': str (transaction_id) or '' if none/new
 - 'ip_address': str (ip address of interface)
 - 'linked_hardware': list of str (hardware_id)
 - 'open': str ('no', username)
 
 ## unique_inventory
-- type: str ('markdown', 'by_count', 'bundle', 'unique_item')
-- more tbd
-
-## item info page
-- print shelf tag
-- print markdown tag
+- type: str ('markdown', 'unique_item', 'pre_measured')
+- tbd
 
 ## gift_cards
 - 'gift_card_id': str (scan code for gift card)
 - 'value': float ($ value remaining)
 - 'purchased': str (MMDDYY)
 - 'tied_member_account': str (member_id or '' for none)
-- 'tied_online_account': str (account_id or '' for none)
 - 'alternate id': str (any other way to tie this to an owner, or '')
 
 ## members
@@ -180,10 +173,9 @@
 - 'member_id': str (member_id) or ''
 - 'status': str ('unpaid', 'paid', 'background', 'voided')
 - 'clerk': str (username of employee making the transaction or account_id of online account)
-- 'location': str (location_id or 'online')
 - 'payments': dictionary of
   - str (payment type, 'credit', 'debit', 'ebt', 'cash', 'gift_card', 'check'): float ($ paid)
-- items: list  of dictionary of
+- items: list of dictionary of
   - 'item_id': str(item_id)
   - 'quantity': float (number of things bought.  float for bulk items by weight)
   - 'regular_price': float (total cost of all in the quantity after bogos discounts etc, what the receipt says for that line)
@@ -206,7 +198,4 @@
 ## discounts
 - 'discount_id' str ('senior', 'member')
 - 'value': float (percent off)
-- 'eligibility': 
-
-## receipt printing/emailing
-
+- 'eligibility': i don't even know

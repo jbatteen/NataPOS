@@ -2,7 +2,6 @@
 from flask import Flask, render_template, request, redirect, jsonify, make_response
 import time
 import bcrypt
-import ipaddress
 import os
 import csv
 from werkzeug.utils import secure_filename
@@ -16,7 +15,7 @@ from config import db_name, mongo_url, assets_url
 from authentication_functions import validate_login, validate_session_key, create_user, get_employee_collection
 from calculations_and_conversions import calculate_worked_hours, price_to_float, percent_to_float, float_to_price, float_to_percent
 from is_valid import is_valid_username, is_valid_password, is_valid_date, is_date_within_range, is_date_in_future, is_valid_string, is_valid_price, is_valid_float, is_valid_int, is_valid_percent, is_allowed_file, is_valid_ip_address
-from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_department_collection, get_brand_collection, get_brand_list
+from inventory_functions import get_item_group_list, get_supplier_list, get_supplier_collection, beautify_item, get_department_list, get_brand_collection, get_brand_list
 from hardware_functions import get_shelf_tag_printer_collection, get_shelf_tag_printer_list, print_shelf_tag
 
 # open db

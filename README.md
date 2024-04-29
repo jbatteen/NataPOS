@@ -17,12 +17,12 @@ pip packages required:
 
 Almost all configuration is done through the app and stored on a database, but there are some constants configured in config.py:
 - db_name = name of the database to store everything in
-- mongo_uri = location of the mongod instance
+- mongo_url = location of the mongod instance
 - assets_url = location of the static elements of the site such as css and images
 
-The app expects stylesheets and images hosted at assets_url.  
+The app expects the assets folder hosted at assets_url.  Add your own logo.png and favicon.ico.  The first time you fire it up and connect to the root directory you will be prompted to create the first user, then brought to the global configuration page where you should adjust the settings.  Next you'll want to add configure suppliers, departments and brands, add some employees, add some hardware, and configure registers.  (Registers not implemented yet).
 
-All registers connect with a web browser.  The barcode scanner is directly connected to the machine running the browser.  Tentatively, all other peripherals, such as scale, cash register, receipt and label printers, and card readers, are connected over the network.  All computation happens on the server running the flask app.  The browsers/registers are effectively dumb terminals.  All data is stored in the database, so theoretically one could write an entirely new application that could still interface with the information in the database if so desired.  
+All registers connect with a web browser.  The barcode scanner is directly connected to the machine running the browser.  Tentatively, all other peripherals, such as scale, cash register, receipt and label printers, and card readers, are connected over the network.  All computation happens on the server running the flask app.  The browsers/registers are effectively dumb terminals.
 
 ## Links
 [Database Schema](database.md)
