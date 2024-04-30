@@ -56,8 +56,8 @@ If it's in the 'todo' category, it's all ideas and hypotheticals and will probab
 - 'wic_elegible': bool(WIC eligible)
 - 'ebt_eligible': bool(EBT eligible)
 - 'consignment': bool(on consignment)
-- 'regular_price': float (price at this location)
-- 'quantity_on_hand': float (quantity at this location)
+- 'regular_price': float (price before sales/discounts/etc)
+- 'quantity_on_hand': float
 - 'most_recent_delivery': str (MMDDYY)
 - 'quantity_low': float (low alert quantity)
 - 'quantity_high': float (plenty on hand quantity)
